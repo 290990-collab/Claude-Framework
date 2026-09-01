@@ -1,0 +1,19 @@
+name = "web"
+description = "Siti e applicazioni web dove la resa visiva è parte del prodotto."
+
+agents = ["frontend", "deploy", "security-reviewer", "api-scout"]
+on_demand = ["compliance-reviewer", "perf-analyst", "debugger"]
+cycles = ["design"]
+
+shared = [
+  "core/conventions.md",
+  "core/coding-standards.md",
+  "core/architecture-guide.md",
+  "core/testing-guide.md",
+  "core/debugging-playbook.md",
+  "core/review-checklist.md",
+  "domain/design-guide.md",
+]
+
+[settings.permissions]
+deny = ["Read(./**/*.env)", "Read(./**/*.key)", "Read(./**/*.pem)", "Read(./**/.env.*)"]
