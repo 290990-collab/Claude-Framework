@@ -1,0 +1,20 @@
+name = "web"
+description = "Websites and web applications where visual rendering is part of the product."
+critical_surface = "What the user sees and what an outsider reaches: visual rendering and the surface exposed on the network."
+
+agents = ["frontend", "deploy", "security-reviewer", "api-scout"]
+on_demand = ["debugger"]
+cycles = ["design"]
+
+shared = [
+  "core/conventions.md",
+  "core/coding-standards.md",
+  "core/architecture-guide.md",
+  "core/testing-guide.md",
+  "core/debugging-playbook.md",
+  "core/review-checklist.md",
+  "domain/design-guide.md",
+]
+
+[settings.permissions]
+deny = ["Read(./**/*.env)", "Read(./**/*.key)", "Read(./**/*.pem)", "Read(./**/.env.*)"]

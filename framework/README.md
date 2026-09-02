@@ -16,7 +16,7 @@ templates/           i file di stato, generati vuoti ma strutturati
 skills/              framework-install · framework-doctor · framework-sync
 tools/fwbuild/       assemblaggio, hash, verifiche — Python stdlib puro
 tools/trial_install.py  la prova: installa un progetto finto, che il doctor verifica
-tools/tests/         112 test
+tools/tests/         142 test
 ```
 
 ## La separazione che conta: per destinatario, non per argomento

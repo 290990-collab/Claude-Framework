@@ -13,18 +13,19 @@ discover` danno lo stesso numero) · kernel comune **1275 parole** su un tetto d
 1600 · guida del coordinatore 1599 parole base, **1880 sul profilo `research`**
 su un tetto di 2000 · **19 agenti in catalogo, 9–12 installati per progetto**.
 `framework/` è autosufficiente: nessun file al suo interno cita `sources/`,
-`docs/`, `_build/` o questo documento.
+`docs/`, `_build/` o questo documento. Dal 2026-09-02 esiste **`framework-eng/`**,
+traduzione integrale con la stessa struttura e gli stessi 142 test, tenuta
+allineata nella forma da [tools/test_parity.py](tools/test_parity.py).
 
 **Lavoro attivo: nessuno.** [Installing](#installing) e D0 sono chiuse
-(2026-09-01); **D3, D4, D11, D5, D6 e D8 chiuse il 2026-09-02**; **D1 e D2
+(2026-09-01); **D3, D4, D11, D5, D6, D7 e D8 chiuse il 2026-09-02**; **D1 e D2
 archiviate lo stesso giorno** — il materiale sta fuori dal repo, in `../Claude Framework -
 valutazione/`. Il 2026-09-02 il framework è stato installato **sul repository che
 lo produce** e poi rimosso: era una prova, e ciò che ne resta sta in **P4** e in
 [La prova sul campo](#la-prova-sul-campo--2026-09-02).
 
-Restano aperte **D7** (inglese, una decisione più che un lavoro) e **D9 e D10**,
-che sono **da discutere insieme, non da eseguire**: toccano `method/` e
-`coordinator/`, cioè le parole che ogni agente paga a ogni spawn.
+Resta aperto **D9 e D10**, da **discutere insieme, non da eseguire**: toccano
+`method/` e `coordinator/`, cioè le parole che ogni agente paga a ogni spawn.
 I confronti esterni, con i riferimenti fissati a un commit, stanno in
 [Riferimenti esterni](#riferimenti-esterni): le sigle **R1–R3** (da cui
 prendere) ed **E1–E6** (prove) sono citate dalle direttive.
@@ -172,7 +173,7 @@ in più. Se si trovasse un numero migliore, si cambia una costante.
 |---|---|
 | ~~Agenti che entrano in **ogni** roster senza mandato automatico~~ **risolto 2026-09-02** | `compliance-reviewer` e `perf-analyst` erano `on_demand` in tutti e cinque i profili: installati sempre, in ogni campo, senza che il campo li implicasse. Fuori dai profili con **D4**, roster −2 ovunque; li sceglie la domanda sulla superficie critica (**D11**), o `--activate` |
 | ~~Sovrapposizione `deploy`/`infra`~~ **chiuso diversamente, 2026-09-02** | Il check `EXCLUSIVE` ([doctor.py:205](framework/tools/fwbuild/doctor.py#L205)) esiste perché il taglio non sembrava netto. **Lo era**: quattro regole di prosa in comune, non il mandato — confine ora esplicito in entrambe le schede, guardia tenuta. Nessun profilo li installa insieme (web→`deploy`, data→`infra`): il check non scatta mai di default, si attiva solo dopo un `--activate` a mano |
-| Margine sul tetto del coordinatore | `research` è a 1880/2000 parole (94%), `web` a 1825. Un ciclo di dominio in più sfonda la soglia e rompe la build. **Ancora aperto**: non c'è un intervento cheap — o si comprime la guida, o si alza il tetto, e alzarlo senza un motivo è togliersi il vincolo. Da decidere quando servirà davvero, cioè al prossimo ciclo di dominio |
+| Margine sul tetto del coordinatore | `research` è a 1880/2000 parole (94%), `web` a 1825 — e sulla copia inglese **1942** e 1864, cioè 58 parole di margine. Un ciclo di dominio in più sfonda la soglia e rompe la build, prima in inglese. **Ancora aperto**: non c'è un intervento cheap — o si comprime la guida, o si alza il tetto, e alzarlo senza un motivo è togliersi il vincolo. Da decidere quando servirà davvero, cioè al prossimo ciclo di dominio |
 | ~~Dipendenza agente → guida non dichiarata~~ **risolto 2026-09-02** | Un agente attivato con `extras` portava pointer a guide che il profilo non installa: `scientific-reviewer` e `results-analyst` citano `shared/domain/research-principles.md`, elencata solo da `research.toml` → due `SHARED_MISSING`. `profile.roster` risolveva gli agenti, **niente risolveva le loro guide**. Chiuso da [`profile.required_guides`](framework/tools/fwbuild/profile.py) e dal Passo 5 della skill, con 4 test. Misurato: **nessun profilo ha il buco da solo** — lo aprono solo gli extra, ed è per questo che la prova `trial_install.py` non poteva vederlo (usa `research`, che quella guida la installa già) |
 | ~~Due profili indistinguibili~~ **risolto 2026-09-02** | `software.toml` e `library.toml` dichiaravano lo stesso `agents`, lo stesso `on_demand`, le stesse sei guide e gli stessi `settings`: differivano solo per `name` e `description`, e sceglierli non aveva nessuna conseguenza meccanica. **Differenziati**, non fusi, con `critical_surface`: la superficie critica del **campo**, che un profilo conosce prima di conoscere il progetto e che il Passo 3.2 legge come punto di partenza. Non installa nessun agente — è la forma che D11 prescrive per le superfici senza revisore dedicato — e non costa una parola in `CLAUDE.md`. Due test: uno cade se un profilo non la dichiara, l'altro se due profili tornano indistinguibili su tutti i campi meccanici |
 | ~~`framework.json` con percorso assoluto~~ **risolto 2026-09-02** | La skill faceva scrivere `source` come path assoluto. Quando il sorgente è **dentro** il progetto — il primo dei tre modi previsti — l'assoluto è la macchina di chi ha installato, e rompe qualunque clone. La regola c'era già in prosa, ed è esattamente così che è stata disattesa: ora la decide `source.reference()` e la scioglie `source.dereference()`, con quattro test, uno dei quali guarda l'artefatto scritto dall'installazione invece della prosa che lo prescrive |
@@ -422,10 +423,48 @@ Tre scelte che vale la pena vedere scritte:
 
 ### D7 — Inglese
 
-**Sbloccata di fatto, e non è una buona notizia.** Era «solo dopo D2», perché
-tradurre prima significa tradurre anche la prosa inerte. Archiviata D2, il gate
-sparisce ma il rischio no: si tradurrà tutto, inerte compreso. Se si traduce,
-lo si faccia sapendo che si sta pagando anche quella parte.
+**✅ Fatta il 2026-09-02.** `framework-eng/` è la traduzione integrale di
+`framework/`: 70 file, stessa struttura, **142 test verdi** con `pytest` e con
+`unittest discover` — lo stesso numero della copia italiana, che è la
+verifica strutturale più forte disponibile.
+
+Tradotto tutto, non solo la prosa: metodo, guida del coordinatore, cicli,
+19 agenti, 9 guide, 5 profili, 3 skill, i template, il README **e il tooling** —
+docstring, commenti e stringhe. Il tooling doveva essere tradotto perché
+contiene contenuto che deve combaciare col testo: `PLACEHOLDER_RE` cerca
+`TO FILL IN`, `COORDINATOR_ONLY` elenca i titoli inglesi della guida,
+`METHOD_HEADING` e `DOMAIN_HEADING` sono i titoli delle schede. Un tooling
+italiano su file inglesi non fallisce: **smette di vedere**, che è peggio.
+
+Cosa è cambiato in termini contrattuali: `[DA COMPILARE]` → `[TO FILL IN]`,
+`CONF: ALTA | MEDIA | BASSA` → `CONF: HIGH | MEDIUM | LOW`, `SMENTIRE` →
+`REFUTE`. Nomi di agenti, guide, profili e codici di rilievo restano
+identici: sono identificatori, non prosa.
+
+**Il rischio che la direttiva annunciava si è avverato, e va scritto.** Non
+c'era modo di sapere quale prosa fosse portante — l'eval che l'avrebbe detto è
+archiviata — quindi è stata tradotta tutta, inerte compresa. Il costo di
+manutenzione ora è doppio su ogni riga di metodo, e non c'è niente che dica
+quali righe non lo meritavano.
+
+**Misure.** Kernel comune **1303/1600** parole (l'italiano 1275); guida del
+coordinatore 1639 base, **1942/2000 sul profilo `research`** — 58 parole di
+margine contro le 120 dell'italiano. È lo stesso rilievo di *Margine sul tetto
+del coordinatore*, più stretto: sulla copia inglese un ciclo di dominio in più
+rompe la build prima.
+
+**La guardia strutturale.** Due copie non sincronizzate divergono — è la tesi
+del framework applicata a sé stesso. [tools/test_parity.py](tools/test_parity.py)
+tiene le due forme allineate con 9 test: stesso albero di file, stessa versione,
+stesso roster, profili identici su tutti i campi **meccanici** (`agents`,
+`on_demand`, `cycles`, `shared`, `settings` — non su `description` e
+`critical_surface`, che sono prosa), frontmatter degli agenti identico, stessi
+nomi di test in ogni file, e nessun marker di segnaposto della lingua sbagliata.
+
+Vive **fuori** da entrambe le cartelle: un test dentro `framework/` che cita la
+traduzione romperebbe l'autosufficienza del sorgente. E non verifica che la
+traduzione sia **fedele** — nessun test lo può fare: verifica che non si
+biforchi nella forma.
 
 ### D8 — Difesa continua dall'erosione di piattaforma
 

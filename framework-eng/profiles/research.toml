@@ -1,0 +1,23 @@
+name = "research"
+description = "Experimental research: the product is reproducible evidence, not software that runs."
+critical_surface = "The validity of the conclusion: a number produced by a wrong protocol is indistinguishable from a right one."
+
+agents = ["debugger", "api-scout", "results-analyst", "literature", "scientific-reviewer"]
+on_demand = []
+cycles = ["research"]
+
+shared = [
+  "core/conventions.md",
+  "core/coding-standards.md",
+  "core/architecture-guide.md",
+  "core/testing-guide.md",
+  "core/debugging-playbook.md",
+  "core/review-checklist.md",
+  "domain/research-principles.md",
+]
+
+[settings.permissions]
+deny = [
+  "Read(./**/*.ckpt)", "Read(./**/*.pt)", "Read(./**/*.pth)",
+  "Read(./**/*.npy)", "Read(./**/*.npz)", "Read(./**/*.safetensors)",
+]

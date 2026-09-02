@@ -1,0 +1,23 @@
+name = "data"
+description = "Data pipelines: acquisition, transformation, storage, indexing."
+critical_surface = "The correctness of what comes in: a pipeline that runs says nothing about the data passing through it."
+
+agents = ["debugger", "data-ingestion", "data-quality-reviewer", "infra", "api-scout"]
+on_demand = ["security-reviewer"]
+cycles = []
+
+shared = [
+  "core/conventions.md",
+  "core/coding-standards.md",
+  "core/architecture-guide.md",
+  "core/testing-guide.md",
+  "core/debugging-playbook.md",
+  "core/review-checklist.md",
+  "domain/data-guide.md",
+]
+
+[settings.permissions]
+deny = [
+  "Read(./**/*.env)", "Read(./**/*.key)", "Read(./**/*.pem)",
+  "Read(./**/dumps/**)", "Read(./**/exports/**)",
+]

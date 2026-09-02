@@ -110,7 +110,6 @@ Il profilo scelto ne dichiara già una in `critical_surface`: è quella del
 partenza — non come risposta data — e falla confermare, restringere o
 sostituire. Un progetto può averne una che il suo campo non implica.
 
-
 | risposta | revisore |
 |---|---|
 | **Sicurezza** — qualcuno potrebbe abusarne | `security-reviewer` |

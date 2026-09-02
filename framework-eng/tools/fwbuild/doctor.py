@@ -1,0 +1,344 @@
+"""The integrity checks of an installation.
+
+Sixteen finding codes: seven of severity ERROR (PLACEHOLDER, ROSTER_MISSING,
+SHARED_MISSING, STATE_MISSING, KERNEL_MISSING, FABLE, EXCLUSIVE) and nine of
+severity WARN (ROSTER_ORPHAN, KERNEL_DRIFT, COORDINATOR_LEAK, SKILLS_MISSING,
+VERSION_MISMATCH, SETTINGS_MISSING, SHARED_ORPHAN, TOKEN_BUDGET,
+REPORT_FORMAT).
+Every code is explained, with what to do about it, in the `framework-doctor`
+skill.
+"""
+
+import re
+from dataclasses import dataclass
+from pathlib import Path
+
+from . import assemble, kernel, profile
+
+PLACEHOLDER_RE = re.compile(r"\{\{|TO FILL IN")
+# The report format before D3. A project installed back then keeps it until it
+# goes through `framework-sync --down`: no other check sees it, because the
+# kernel hash matches — it matches the old text.
+CONF_PERCENT_RE = re.compile(r"CONF:.*%")
+ROUTING_AGENT_RE = re.compile(r"^\|[^|]*\|\s*`([a-z-]+)`\s*\|", re.MULTILINE)
+FABLE_RE = re.compile(r"^model:\s*fable\s*$", re.MULTILINE)
+SHARED_REF_RE = re.compile(r"\.claude/shared/([A-Za-z0-9_./-]+\.md)")
+STATE_FILES = ("TODO.md", "status.md", "roadmap.md")
+ORCHESTRATION = "shared/orchestration.md"
+
+# Titles that belong to the coordinator's guide. If they reappear in
+# CLAUDE.md, every subagent pays for them at every spawn without being able to
+# use them: it is the separation by recipient being lost again.
+COORDINATOR_ONLY = (
+    "Token economy — the ten rules of delegation",
+    "The code cycle",
+    "How to write a delegation prompt",
+    "State that keeps itself up to date",
+    "Choosing between agents that look close",
+    "This project's roster",
+)
+
+
+def _source_version() -> str | None:
+    """The source's version, deduced from the package's position.
+
+    `fwbuild` lives in `framework/tools/`: the source root is two levels up. If
+    it is not reachable the check is skipped — the doctor must stay usable
+    without the source.
+    """
+    p = Path(__file__).resolve().parents[2] / "VERSION"
+    return p.read_text(encoding="utf-8").strip() if p.is_file() else None
+
+
+# Estimate: no tokeniser is in the stdlib and the doctor runs offline. The
+# ratio comes from the only real measurement the framework has on an assembled
+# CLAUDE.md (1598 words ≈ 2.1k tokens). The exact number is given by the
+# count_tokens endpoint, not by this tool: here an order of magnitude is what
+# is needed.
+TOKENS_PER_WORD = 1.33
+
+
+@dataclass(frozen=True)
+class Finding:
+    code: str
+    severity: str
+    message: str
+
+
+@dataclass(frozen=True)
+class Measure:
+    """The installed CLAUDE.md, split into the two parts that compose it.
+
+    `kernel` is written by the framework and has a ceiling that breaks the
+    build at source stage; `project` is written by whoever installs and has no
+    ceiling at all. It is the only one of the two that grows, because it grows
+    with the project.
+    """
+
+    kernel_words: int
+    project_words: int
+    has_region: bool
+
+    @property
+    def total_words(self) -> int:
+        return self.kernel_words + self.project_words
+
+    @property
+    def tokens(self) -> int:
+        return round(self.total_words * TOKENS_PER_WORD)
+
+
+def measure(claude_text: str) -> Measure:
+    """Measures a CLAUDE.md, separating kernel region and project sections.
+
+    Without markers — variant B, which is legitimate — the two parts are not
+    distinguishable: the total is reported and the absence of the split is
+    declared, instead of attributing everything to one of the two and firing a
+    finding on a healthy installation.
+    """
+    region = kernel.parse(claude_text)
+    if region is None:
+        return Measure(len(claude_text.split()), 0, has_region=False)
+    outside = claude_text[: region.start] + claude_text[region.end :]
+    return Measure(len(region.body.split()), len(outside.split()), has_region=True)
+
+
+def _markdown_files(root: Path) -> list[Path]:
+    """The files adapted to the project, which have to be checked.
+
+    `.claude/skills/` is excluded: the skills are framework files copied
+    verbatim, with no kernel region and no blocks to fill in — and
+    `framework-doctor` necessarily contains the string `TO FILL IN`, because it
+    explains that finding. The state files in `docs/` are included: they are
+    born from a template with placeholders, and an unfilled template is
+    indistinguishable from absent state for whoever reads it at session start.
+    """
+    files = [root / "CLAUDE.md"]
+    claude_dir = root / ".claude"
+    if claude_dir.is_dir():
+        skills = claude_dir / "skills"
+        files += sorted(
+            p for p in claude_dir.rglob("*.md") if skills not in p.parents
+        )
+    files += [root / "docs" / name for name in STATE_FILES]
+    return [f for f in files if f.is_file()]
+
+
+def check(root: Path) -> list[Finding]:
+    root = Path(root)
+    out: list[Finding] = []
+    claude_md = root / "CLAUDE.md"
+    if not claude_md.is_file():
+        return [Finding("STATE_MISSING", "ERROR", "CLAUDE.md absent")]
+
+    agents_dir = root / ".claude" / "agents"
+    present = {p.stem for p in agents_dir.glob("*.md")} if agents_dir.is_dir() else set()
+
+    # The files that are born **with** a kernel region. The guides in `shared/`
+    # are not: they are copied and filled in, they contain no generated method.
+    tracked = {"CLAUDE.md", f".claude/{ORCHESTRATION}"} | {
+        f".claude/agents/{name}.md" for name in present
+    }
+
+    texts = {
+        f.relative_to(root).as_posix(): f.read_text(encoding="utf-8")
+        for f in _markdown_files(root)
+    }
+    claude_text = texts["CLAUDE.md"]
+    versions: dict[str, str] = {}
+    referenced: set[str] = set()
+
+    # The variant without markers is legitimate: no tracking, by choice. But if
+    # even a single tracked file has them, the installation is tracked, and a
+    # file that lost them is indistinguishable from one rewritten by hand.
+    markers = any(kernel.parse(t) for rel, t in texts.items() if rel in tracked)
+
+    for rel, text in texts.items():
+        if PLACEHOLDER_RE.search(text):
+            out.append(
+                Finding("PLACEHOLDER", "ERROR", f"{rel}: placeholder not filled in")
+            )
+        if FABLE_RE.search(text):
+            out.append(Finding("FABLE", "ERROR", f"{rel}: model fable not available"))
+        if CONF_PERCENT_RE.search(text):
+            out.append(
+                Finding(
+                    "REPORT_FORMAT",
+                    "WARN",
+                    f"{rel}: report schema with confidence as a percentage — "
+                    "superseded format, realign with framework-sync --down",
+                )
+            )
+        status = kernel.verify(text)
+        if status == "DRIFT":
+            out.append(
+                Finding("KERNEL_DRIFT", "WARN", f"{rel}: kernel region modified")
+            )
+        elif status == "MISSING" and markers and rel in tracked:
+            out.append(
+                Finding(
+                    "KERNEL_MISSING",
+                    "ERROR",
+                    f"{rel}: markers removed — the method is no longer verifiable",
+                )
+            )
+        if rel in tracked:
+            region = kernel.parse(text)
+            if region is not None:
+                versions[rel] = region.version
+        # The pointer is checked everywhere, not only in CLAUDE.md: the guides
+        # are cited by the agents, and that is where almost all pointers live.
+        for ref in sorted(set(SHARED_REF_RE.findall(text))):
+            referenced.add(ref)
+            if not (root / ".claude" / "shared" / ref).is_file():
+                out.append(
+                    Finding(
+                        "SHARED_MISSING",
+                        "ERROR",
+                        f"{rel} → .claude/shared/{ref}: referenced but absent",
+                    )
+                )
+
+    # The routing table is coordinator content: it lives in its guide. We fall
+    # back to CLAUDE.md only where that guide is absent (partial installation,
+    # or project without delegation), so the roster stays verifiable.
+    routed = set(ROUTING_AGENT_RE.findall(texts.get(f".claude/{ORCHESTRATION}", claude_text)))
+
+    for name in sorted(routed - present):
+        out.append(
+            Finding(
+                "ROSTER_MISSING",
+                "ERROR",
+                f"{name}: cited in the routing table, file absent",
+            )
+        )
+    for name in sorted(present - routed):
+        out.append(
+            Finding(
+                "ROSTER_ORPHAN",
+                "WARN",
+                f"{name}: file present, absent from the routing table",
+            )
+        )
+
+    # The versions: first against each other, then against the source. No other
+    # check sees them — on an old method the hash matches, because it matches
+    # the old one. It is the fork between projects, that is, the defect the
+    # framework exists to avoid.
+    declared = sorted(set(versions.values()))
+    if len(declared) > 1:
+        common = max(declared, key=list(versions.values()).count)
+        odd = sorted(rel for rel, v in versions.items() if v != common)
+        out.append(
+            Finding(
+                "VERSION_MISMATCH",
+                "WARN",
+                f"project at v{common}, but: "
+                + ", ".join(f"{rel} v{versions[rel]}" for rel in odd),
+            )
+        )
+    source = _source_version()
+    if source is not None and declared and declared != [source]:
+        out.append(
+            Finding(
+                "VERSION_MISMATCH",
+                "WARN",
+                f"installation at v{'/'.join(declared)}, source at v{source}: "
+                "realign with framework-sync --down",
+            )
+        )
+
+    # The inverse of SHARED_MISSING. A guide nobody cites is context installed
+    # and never opened: the cost is there, the use is not.
+    shared_dir = root / ".claude" / "shared"
+    if shared_dir.is_dir():
+        for p in sorted(shared_dir.rglob("*.md")):
+            rel = p.relative_to(shared_dir).as_posix()
+            if rel != "orchestration.md" and rel not in referenced:
+                out.append(
+                    Finding(
+                        "SHARED_ORPHAN",
+                        "WARN",
+                        f".claude/shared/{rel}: installed and cited by nobody",
+                    )
+                )
+
+    for conflict in profile.check_exclusive(sorted(present)):
+        out.append(
+            Finding("EXCLUSIVE", "ERROR", f"mutually exclusive agents: {conflict}")
+        )
+
+    for name in STATE_FILES:
+        if not (root / "docs" / name).is_file():
+            out.append(Finding("STATE_MISSING", "ERROR", f"docs/{name} absent"))
+
+    for skill in ("framework-doctor", "framework-sync"):
+        if not (root / ".claude" / "skills" / skill / "SKILL.md").is_file():
+            out.append(
+                Finding(
+                    "SKILLS_MISSING",
+                    "WARN",
+                    f".claude/skills/{skill}/ absent: the skill is not invocable "
+                    "in this project",
+                )
+            )
+
+    if present and not (root / ".claude" / "settings.json").is_file():
+        out.append(
+            Finding(
+                "SETTINGS_MISSING",
+                "WARN",
+                ".claude/settings.json absent: the profile's permissions — among "
+                "them the prohibition on reading secrets — are not in force",
+            )
+        )
+
+    if present and f".claude/{ORCHESTRATION}" not in texts:
+        out.append(
+            Finding(
+                "SHARED_MISSING",
+                "ERROR",
+                f".claude/{ORCHESTRATION} absent: without it, the coordinator has "
+                "no delegation rules",
+            )
+        )
+
+    # The source ceiling constrains what the framework writes. This looks at the
+    # assembled file, which is what every spawn really pays for: the threshold
+    # is the kernel itself — the only known quantity — that is, the project does
+    # not write more than the method. WARN and not ERROR: it would break a
+    # project's build.
+    #
+    # Below the ceiling the framework sets itself for the method alone the
+    # finding stays silent: on a small file the ratio is true and irrelevant,
+    # and a warning about eleven tokens is noise. No real case lands there —
+    # with a kernel of ~1275 words, "project beyond the kernel" already means
+    # more than 2500 in total.
+    m = measure(claude_text)
+    if (
+        m.has_region
+        and m.total_words >= assemble.METHOD_WORD_BUDGET
+        and m.project_words > m.kernel_words
+    ):
+        out.append(
+            Finding(
+                "TOKEN_BUDGET",
+                "WARN",
+                f"CLAUDE.md: {m.project_words} project words against "
+                f"{m.kernel_words} of kernel — {m.total_words} in all, "
+                f"≈{m.tokens} tokens paid at every spawn",
+            )
+        )
+
+    for heading in COORDINATOR_ONLY:
+        if heading in claude_text:
+            out.append(
+                Finding(
+                    "COORDINATOR_LEAK",
+                    "WARN",
+                    f'CLAUDE.md contains "{heading}": it is coordinator content, '
+                    f"paid by every subagent at every spawn",
+                )
+            )
+
+    return out

@@ -1,0 +1,19 @@
+name = "software"
+description = "Applications, services, command-line tools, desktop software."
+critical_surface = "Runtime behaviour in the face of input the project does not control."
+
+agents = ["debugger", "security-reviewer", "api-scout"]
+on_demand = []
+cycles = []
+
+shared = [
+  "core/conventions.md",
+  "core/coding-standards.md",
+  "core/architecture-guide.md",
+  "core/testing-guide.md",
+  "core/debugging-playbook.md",
+  "core/review-checklist.md",
+]
+
+[settings.permissions]
+deny = ["Read(./**/*.env)", "Read(./**/*.key)", "Read(./**/*.pem)"]
