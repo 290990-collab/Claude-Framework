@@ -243,8 +243,14 @@ P.joinpath('.claude/shared/orchestration.md').write_text(
 (`extra=assemble.cycle_files(...)`): sono orchestrazione, non esecuzione, quindi
 non vanno in `CLAUDE.md`.
 
-**Guide** — copia da `<FW>/shared/` solo quelle elencate nel profilo,
-compilando anche lì il blocco di progetto.
+**Guide** — copia da `<FW>/shared/` quelle del profilo **più quelle che gli
+agenti scelti citano**, compilando anche lì il blocco di progetto. Un extra
+porta le sue: senza, la scheda esce con un pointer morto e il doctor lo vede
+solo a installazione già scritta (`SHARED_MISSING`).
+
+```python
+sorted(set(prof.shared) | set(profile.required_guides(F, roster)))
+```
 
 **Skill di ciclo di vita** — copia `<FW>/skills/framework-doctor` e
 `framework-sync` in `.claude/skills/`. Senza, non sono invocabili nel progetto e

@@ -1,6 +1,8 @@
 """Profili di dominio: quali agenti e quali guide installare."""
 
+import re
 import tomllib
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -14,6 +16,10 @@ ALWAYS = [
 ]
 
 EXCLUSIVE = [("deploy", "infra")]
+
+# Lo stesso pattern del doctor: quello che lì è un rilievo, qui è la domanda
+# "cosa serve installare perché quel rilievo non ci sia".
+GUIDE_REF = re.compile(r"\.claude/shared/([A-Za-z0-9_./-]+\.md)")
 
 
 @dataclass(frozen=True)
@@ -50,3 +56,23 @@ def roster(profile: Profile, extras: list[str], drop: list[str]) -> list[str]:
 def check_exclusive(agents: list[str]) -> list[str]:
     present = set(agents)
     return [f"{a} + {b}" for a, b in EXCLUSIVE if a in present and b in present]
+
+
+def required_guides(framework_root: Path, agents: Sequence[str]) -> list[str]:
+    """Le guide che le schede di questi agenti citano.
+
+    Il profilo elenca le guide del **campo**; un agente attivato come extra
+    porta le sue, e nessuno le risolveva: la scheda finiva installata con un
+    pointer morto, e il difetto si vedeva solo col doctor a installazione già
+    scritta (`SHARED_MISSING`). Un pointer che l'agente non può seguire è peggio
+    di assente — sta in un file che lui paga a ogni spawn.
+    """
+    out: list[str] = []
+    for name in agents:
+        src = framework_root / "agents" / f"{name}.md"
+        if not src.is_file():
+            continue
+        for ref in GUIDE_REF.findall(src.read_text(encoding="utf-8")):
+            if ref not in out:
+                out.append(ref)
+    return sorted(out)

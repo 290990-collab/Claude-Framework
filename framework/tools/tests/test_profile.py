@@ -79,5 +79,45 @@ class TestExclusive(unittest.TestCase):
         self.assertEqual(profile.check_exclusive(["deploy"]), [])
 
 
+class TestRequiredGuides(unittest.TestCase):
+    """Le guide che un agente cita e che il profilo puo' non elencare.
+
+    Il difetto e' emerso installando il framework su se' stesso: attivare
+    `scientific-reviewer` su un profilo `library` produce un pointer morto,
+    perche' quella scheda cita una guida che solo `research` installa.
+    """
+
+    FRAMEWORK = Path(__file__).resolve().parents[2]
+
+    def test_finds_the_guide_an_extra_agent_brings(self):
+        got = profile.required_guides(self.FRAMEWORK, ["scientific-reviewer"])
+        self.assertIn("domain/research-principles.md", got)
+
+    def test_a_profile_alone_has_no_gap(self):
+        """Nessun profilo e' incoerente da solo: il buco si apre con gli extra.
+
+        E' il motivo per cui la prova end-to-end non lo vedeva — usa `research`,
+        che quella guida la installa gia'.
+        """
+        for name in ("software", "library", "research", "web", "data"):
+            prof = profile.load(self.FRAMEWORK / "profiles" / f"{name}.toml")
+            needed = profile.required_guides(
+                self.FRAMEWORK, profile.roster(prof, extras=[], drop=[])
+            )
+            with self.subTest(profile=name):
+                self.assertEqual(sorted(set(needed) - set(prof.shared)), [])
+
+    def test_library_plus_scientific_reviewer_needs_a_guide_it_lacks(self):
+        prof = profile.load(self.FRAMEWORK / "profiles" / "library.toml")
+        roster = profile.roster(prof, extras=["scientific-reviewer"], drop=[])
+        needed = profile.required_guides(self.FRAMEWORK, roster)
+        self.assertEqual(
+            sorted(set(needed) - set(prof.shared)), ["domain/research-principles.md"]
+        )
+
+    def test_unknown_agent_is_skipped_not_fatal(self):
+        self.assertEqual(profile.required_guides(self.FRAMEWORK, ["inesistente"]), [])
+
+
 if __name__ == "__main__":
     unittest.main()
