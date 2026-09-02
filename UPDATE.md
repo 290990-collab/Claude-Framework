@@ -17,10 +17,9 @@ su un tetto di 2000 · **19 agenti in catalogo, 11–14 installati per progetto*
 
 **Lavoro attivo:** **D1**. D0 e la sezione [Installing](#installing) sono
 **chiuse** (2026-09-01). D1 ha protocollo e strumenti; mancano i task e le
-prove. Dal 2026-09-02 il framework è **installato sul repository che lo
-produce** — profilo `library`, 12 agenti, 7 guide, `doctor --strict` a 0 — e lo
-stato vive in [docs/TODO.md](docs/TODO.md), [status.md](docs/status.md),
-[roadmap.md](docs/roadmap.md).
+prove. Il 2026-09-02 il framework è stato installato **sul repository che lo
+produce** e poi rimosso: era una prova, e ciò che ne resta sta in **P4** e in
+[La prova sul campo](#la-prova-sul-campo--2026-09-02).
 I confronti esterni, con i riferimenti fissati a un commit, stanno in
 [Riferimenti esterni](#riferimenti-esterni): le sigle **R1–R3** (da cui
 prendere) ed **E1–E6** (prove) sono citate dalle direttive.
@@ -99,6 +98,41 @@ Claude Code assorbe questa superficie a ogni release: subagent nativi, skill,
 La differenziazione deve stare dove la piattaforma non andrà: **verifica
 dell'installazione** e **sincronizzazione fra molti repo**. Non nel testo.
 
+### P4 — Il tetto di parole copre meno di metà del file che si paga
+
+Misurato il 2026-09-02 installando il framework su sé stesso.
+
+I due tetti sono test veri, ma stanno **sul sorgente**:
+[test_end_to_end.py:87](framework/tools/tests/test_end_to_end.py#L87) limita
+`read_method(method/)` a 1600 parole, [:82](framework/tools/tests/test_end_to_end.py#L82)
+la guida del coordinatore a 2000. Il file che ogni spawn paga davvero è però
+`CLAUDE.md` **assemblata** — kernel *più* sezioni di progetto — e le sezioni di
+progetto non le tocca nessun tetto.
+
+| `CLAUDE.md` generata | totale | kernel | sezioni di progetto |
+|---|---|---|---|
+| questo repo, profilo `library` | 2367 | 1265 | **1102 (47%)** |
+| prova di `trial_install.py`, profilo `research` | 1588 | 1265 | 323 (20%) |
+
+Non è prolissità di chi installa: quelle sezioni sono esattamente ciò che il
+Passo 5 di `framework-install` chiede — mappa dei path, vincoli duri, contratti
+con chi li consuma, comandi, verifica rapida, operazioni dell'utente, superficie
+critica, stato, guide, stile. La prova ne scrive 323 perché descrive un progetto
+finto: è il numero di un caso sintetico, non di un progetto vero.
+
+**Perché conta più di quanto sembri.** La tesi centrale del framework è che
+`CLAUDE.md` si paga a ogni spawn — ed è la ragione per cui la separazione per
+destinatario esiste e sposta ~325 parole fuori dal file caro. Ma la disciplina
+che difende quella tesi misura 1265 parole e ne lascia libere 1102: sul progetto
+reale la parte **non** controllata è quasi grande quanto quella controllata, e
+cresce col progetto invece che col framework.
+
+Da decidere, non da correggere di slancio: un tetto sul totale assemblato
+romperebbe la build **di un progetto**, non del framework, e il framework non ha
+un posto dove farlo scattare. Il posto giusto è un rilievo WARN del doctor, che
+già guarda l'installazione. Ma la soglia va scelta su un numero, non a occhio —
+quindi passa da D1/D2 come tutto il resto.
+
 ### Minori ma reali
 
 | Problema | Sintomo |
@@ -106,7 +140,9 @@ dell'installazione** e **sincronizzazione fra molti repo**. Non nel testo.
 | Agenti che entrano in **ogni** roster senza mandato automatico | `compliance-reviewer` e `perf-analyst` sono `on_demand` in **tutti e cinque** i profili: sono installati sempre, e sono proprio i due a sola invocazione esplicita. Costo fisso per progetto, ritorno mai misurato |
 | Sovrapposizione `deploy`/`infra` | Il check `EXCLUSIVE` ([doctor.py:205](framework/tools/fwbuild/doctor.py#L205)) esiste perché il taglio non è netto. Da correggere la diagnosi precedente: **nessun profilo li installa insieme** (web→`deploy`, data→`infra`), quindi il check non scatta mai di default — si attiva solo dopo un `--activate` a mano. Resta un problema di mandato, non un sintomo osservabile |
 | Margine sul tetto del coordinatore | `research` è a 1882/2000 parole (94%), `web` a 1827. Un ciclo di dominio in più sfonda la soglia e rompe la build |
-| Dipendenza agente → guida non dichiarata | Un agente attivato con `extras` porta pointer a guide che il profilo non installa. Trovato installando il framework su sé stesso il 2026-09-02: `scientific-reviewer` e `results-analyst` citano `shared/domain/research-principles.md`, elencata solo da `research.toml` → due `SHARED_MISSING`. `profile.roster` risolve gli agenti, **niente risolve le loro guide**: il difetto si vede solo col doctor, a installazione già scritta |
+| ~~Dipendenza agente → guida non dichiarata~~ **risolto 2026-09-02** | Un agente attivato con `extras` portava pointer a guide che il profilo non installa: `scientific-reviewer` e `results-analyst` citano `shared/domain/research-principles.md`, elencata solo da `research.toml` → due `SHARED_MISSING`. `profile.roster` risolveva gli agenti, **niente risolveva le loro guide**. Chiuso da [`profile.required_guides`](framework/tools/fwbuild/profile.py) e dal Passo 5 della skill, con 4 test. Misurato: **nessun profilo ha il buco da solo** — lo aprono solo gli extra, ed è per questo che la prova `trial_install.py` non poteva vederlo (usa `research`, che quella guida la installa già) |
+| Due profili indistinguibili | `software.toml` e `library.toml` dichiarano lo stesso `agents`, lo stesso `on_demand`, le stesse sei guide e gli stessi `settings`: differiscono solo per `name` e `description`. Sceglierli non ha conseguenze meccaniche. Candidato per la potatura di **D2** |
+| `framework.json` con percorso assoluto | La skill fa scrivere `source` come path assoluto. Quando il sorgente è **dentro** il progetto — il primo dei tre modi previsti — l'assoluto è la macchina di chi ha installato, e rompe qualunque clone. Va relativo in quel caso |
 | Lingua | L'italiano taglia fuori quasi tutto il mercato |
 
 ---
@@ -600,13 +636,38 @@ elencava la prova eseguibile.
 *Cosa non si tocca*, ma il prossimo file che ci finirà è `transcript.py` di
 **D0** — quindi conviene lasciarla.
 
-**Chiusa davvero il 2026-09-02.** Restava un'incoerenza che nessun test poteva
-vedere: il framework non era installato sul repository che lo produce. Ora lo è,
-e `cd framework/tools && python -m fwbuild doctor --strict ../..` stampa `OK —
-nessun rilievo`. La procedura ha retto, e ha prodotto **una scoperta**: il
-difetto della dipendenza agente → guida, in *Minori ma reali*. Era invisibile
-alla prova `trial_install.py`, che usa il profilo `research` e quindi installa
-già la guida mancante.
+### La prova sul campo — 2026-09-02
+
+Il framework è stato installato **sul repository che lo produce**, seguendo
+`framework-install` passo per passo: profilo `library`, revisore
+`scientific-reviewer`, 12 agenti, 7 guide. Alla fine
+`python -m fwbuild doctor --strict ../..` ha stampato `OK — nessun rilievo`,
+uscita 0.
+
+Poi l'installazione è stata **rimossa**, per riportare il repo allo stato
+precedente: era una prova, e ciò che vale non sono i file generati ma quello che
+la prova ha fatto vedere.
+
+**Cosa ha retto.** La procedura è eseguibile come scritta. Il Passo 0 valida il
+sorgente, i due documenti si assemblano, i blocchi di progetto si compilano, il
+doctor chiude. Nessun passo si è rivelato impossibile o ambiguo.
+
+**Cosa si è rotto, ed è il valore della prova.**
+
+1. **Un difetto vero, ora chiuso**: la dipendenza agente → guida (in *Minori ma
+   reali*). Il doctor l'ha visto al primo colpo, con due `SHARED_MISSING` — ma
+   *dopo* che l'installazione era già scritta. Invisibile alla prova automatica,
+   che usa un profilo dove il buco non si apre.
+2. **P4**, sopra: il tetto di parole copre meno di metà del file che si paga a
+   ogni spawn. È la scoperta che conta di più, e non si vede senza scrivere le
+   sezioni di progetto di un progetto **vero**.
+3. Due profili indistinguibili e un `framework.json` non portabile, entrambi in
+   *Minori ma reali*.
+
+**La lezione di metodo.** Tre difetti su tre erano invisibili ai 103 test e li ha
+trovati un'installazione reale. `trial_install.py` verifica che il meccanismo
+giri; installare su un progetto vero verifica che il **risultato** regga. Sono
+due cose diverse, e finora c'era solo la prima.
 
 ### Premessa — il guscio, corretto
 
