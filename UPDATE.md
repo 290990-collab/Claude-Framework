@@ -17,7 +17,10 @@ su un tetto di 2000 · **19 agenti in catalogo, 11–14 installati per progetto*
 
 **Lavoro attivo:** **D1**. D0 e la sezione [Installing](#installing) sono
 **chiuse** (2026-09-01). D1 ha protocollo e strumenti; mancano i task e le
-prove.
+prove. Dal 2026-09-02 il framework è **installato sul repository che lo
+produce** — profilo `library`, 12 agenti, 7 guide, `doctor --strict` a 0 — e lo
+stato vive in [docs/TODO.md](docs/TODO.md), [status.md](docs/status.md),
+[roadmap.md](docs/roadmap.md).
 I confronti esterni, con i riferimenti fissati a un commit, stanno in
 [Riferimenti esterni](#riferimenti-esterni): le sigle **R1–R3** (da cui
 prendere) ed **E1–E6** (prove) sono citate dalle direttive.
@@ -103,6 +106,7 @@ dell'installazione** e **sincronizzazione fra molti repo**. Non nel testo.
 | Agenti che entrano in **ogni** roster senza mandato automatico | `compliance-reviewer` e `perf-analyst` sono `on_demand` in **tutti e cinque** i profili: sono installati sempre, e sono proprio i due a sola invocazione esplicita. Costo fisso per progetto, ritorno mai misurato |
 | Sovrapposizione `deploy`/`infra` | Il check `EXCLUSIVE` ([doctor.py:205](framework/tools/fwbuild/doctor.py#L205)) esiste perché il taglio non è netto. Da correggere la diagnosi precedente: **nessun profilo li installa insieme** (web→`deploy`, data→`infra`), quindi il check non scatta mai di default — si attiva solo dopo un `--activate` a mano. Resta un problema di mandato, non un sintomo osservabile |
 | Margine sul tetto del coordinatore | `research` è a 1882/2000 parole (94%), `web` a 1827. Un ciclo di dominio in più sfonda la soglia e rompe la build |
+| Dipendenza agente → guida non dichiarata | Un agente attivato con `extras` porta pointer a guide che il profilo non installa. Trovato installando il framework su sé stesso il 2026-09-02: `scientific-reviewer` e `results-analyst` citano `shared/domain/research-principles.md`, elencata solo da `research.toml` → due `SHARED_MISSING`. `profile.roster` risolve gli agenti, **niente risolve le loro guide**: il difetto si vede solo col doctor, a installazione già scritta |
 | Lingua | L'italiano taglia fuori quasi tutto il mercato |
 
 ---
@@ -595,6 +599,14 @@ elencava la prova eseguibile.
 `scripts/` è rimasta vuota dopo I2. Cancellarla resta la decisione separata di
 *Cosa non si tocca*, ma il prossimo file che ci finirà è `transcript.py` di
 **D0** — quindi conviene lasciarla.
+
+**Chiusa davvero il 2026-09-02.** Restava un'incoerenza che nessun test poteva
+vedere: il framework non era installato sul repository che lo produce. Ora lo è,
+e `cd framework/tools && python -m fwbuild doctor --strict ../..` stampa `OK —
+nessun rilievo`. La procedura ha retto, e ha prodotto **una scoperta**: il
+difetto della dipendenza agente → guida, in *Minori ma reali*. Era invisibile
+alla prova `trial_install.py`, che usa il profilo `research` e quindi installa
+già la guida mancante.
 
 ### Premessa — il guscio, corretto
 
