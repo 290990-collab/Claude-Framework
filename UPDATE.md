@@ -112,6 +112,10 @@ dell'installazione** e **sincronizzazione fra molti repo**. Non nel testo.
 Ordine vincolante. D1 è un cancello: D5–D7 senza un numero sono opinioni. D0 è
 il prerequisito di D1: senza strumento, il criterio di D1 non è misurabile.
 
+**D9-D10 non sono in fila: sono aperte alla discussione.** A differenza delle
+altre toccano i file di `method/` e `coordinator/` — la parte che ogni agente
+paga — quindi la domanda «dove va scritto» pesa quanto «cosa va scritto».
+
 ### D0 — Strumentazione dell'eval
 
 D1 chiede token per task, tasso di successo, interventi umani. Oggi non esiste
@@ -295,6 +299,178 @@ Solo dopo D2. Tradurre prima significa tradurre anche la prosa inerte.
 
 A ogni release di Claude Code: mappare cosa la piattaforma fa ora nativamente ed
 eliminare dal framework ciò che la duplica. Check ricorrente, non una tantum.
+
+### D9 — Propagazione dell'errore nel lavoro multi-step
+
+**Da discutere.** Tocca il metodo, non il tooling: si paga in parole nei file che
+ogni agente carica a ogni spawn.
+
+**Cosa c'è oggi.** Il ciclo
+([10-cycle.md:3](framework/coordinator/10-cycle.md#L3)) è lineare e verifica **in
+fondo**: revisore di superficie critica e `final-reviewer` stanno ai punti 5-6.
+L'unico presidio intermedio è «`implementer`, un task alla volta: completa,
+verifica, passa al successivo»
+([10-cycle.md:10-11](framework/coordinator/10-cycle.md#L10-L11)) — che dice di
+verificare, non cosa fare **se la verifica smentisce uno step precedente**.
+
+**Il difetto è strutturale, non una svista.** La regola 3
+([00-delegation.md:39-43](framework/coordinator/00-delegation.md#L39-L43)) fa
+esplorare a `explorer` — `effort: low`
+([explorer.md:9](framework/agents/explorer.md#L9)) — per consegnare estratti
+pre-digeriti agli agenti cari, che per la regola 4 «non allargano la lettura». È
+la regola che fa risparmiare di più, ed è **la stessa** che dà all'errore
+dell'agente più economico l'amplificazione più costosa: un `file:riga` sbagliato
+a monte diventa un'implementazione sbagliata, una review che valida la cosa
+sbagliata, un rifacimento a valle. L'inversione fra costo dell'errore e costo di
+chi lo commette non è un caso limite: è il disegno.
+
+**Il segnale esiste già e non ha un consumatore.** Il report standard porta
+`ASSUMED` e `UNVERIFIED`
+([20-evidence.md:36-38](framework/method/20-evidence.md#L36-L38)): è esattamente
+il punto in cui un agente dichiara di passare avanti qualcosa di non verificato.
+Nessuna riga dice al coordinatore cosa farne. Un campo scritto e mai letto è
+costo puro — lo stesso rilievo che il framework muove agli altri.
+
+E la regola 8 ([00-delegation.md:52-55](framework/coordinator/00-delegation.md#L52-L55)),
+«continuare, non ri-spawnare», è economia di token e insieme il canale per cui una
+premessa sbagliata sopravvive: continuare un agente ne conserva il contesto,
+**errore incluso**.
+
+Da discutere:
+
+- **Dove va il presidio, e quanto costa.** Verificare fra uno step e l'altro si
+  paga a ogni step; oggi si paga una volta sola, in fondo. Quale conviene dipende
+  dal tasso d'errore reale, che nessuno ha misurato: passa da D0/D1, non da
+  un'opinione.
+- **Qual è l'unità di ritorno.** Oggi non c'è: nessuno stato di partenza
+  registrato prima di uno step, e il commit è solo su richiesta
+  ([10-cycle.md:19](framework/coordinator/10-cycle.md#L19)). Senza un punto a cui
+  tornare, «non propagare» si riduce a «rifare».
+- **Dare un consumatore ad `ASSUMED`.** È la forma più economica: una riga in
+  `coordinator/`, zero parole in `CLAUDE.md`, e usa un campo che si scrive già.
+- **Nessun agente di checkpoint.** Sarebbe un ruolo in più prima di D1 — vietato
+  da *Cosa non fare* — e farebbe pagare la sorveglianza anche dove non serve.
+
+Candidato naturale per D2: non «aggiungere un presidio», ma **spostare** dove sta
+la verifica e misurare la differenza.
+
+### D10 — Overthinking: divagazione dal problema centrale
+
+**Da discutere** — con D9, e più a fondo di così.
+
+**Non è la quantità di ragionamento.** Capacità ed `effort` restano dove sono: la
+questione è **su cosa** il modello ragiona. Dare peso a problemi secondari,
+cercare una soluzione difficile a un problema semplice, allontanarsi dal centro
+della richiesta. Il costo non è il token speso a pensare — è il lavoro giusto
+fatto sul problema sbagliato.
+
+La distinzione va tenuta ferma perché la cura sbagliata è vicina e sembra la
+stessa cosa: **abbassare l'effort non è questa direttiva.**
+
+**Dov'è il buco.** Tutti i presidi esistenti guardano l'**artefatto**, non
+l'attenzione:
+
+- «Fai solo il task che hai ricevuto»
+  ([10-execution.md:10-12](framework/method/10-execution.md#L10-L12)) limita il
+  **diff**: ciò che scopri strada facendo va nel report. Non dice nulla su quanto
+  peso gli hai dato mentre lavoravi.
+- I divieti su preamboli e narrazione del processo
+  ([20-evidence.md:64-72](framework/method/20-evidence.md#L64-L72)) limitano il
+  **report**, cioè la prosa in uscita.
+- «Un criterio di completamento esplicito… lo chiedi invece di indovinarlo»
+  ([10-execution.md:21-22](framework/method/10-execution.md#L21-L22)) è l'unica
+  regola che dice *chiedi* — e vale fra coordinatore e subagent, sul solo
+  criterio.
+
+**Manca il bordo che conta: coordinatore ↔ utente.** È lì che entra
+l'interpretazione sbagliata, ed è l'errore di livello zero del meccanismo di D9 —
+quello con l'amplificazione più lunga a valle.
+
+**Le tre intuizioni da cui partire** (utente, 2026-09-01):
+
+1. **Chiedere invece di supporre.** Quando l'interpretazione concettuale della
+   richiesta non è sicura — soprattutto su questioni di rilevanza tecnica o
+   pratica — si chiede. Non si sceglie la lettura più probabile dichiarandola come
+   ipotesi: [20-evidence.md:13-14](framework/method/20-evidence.md#L13-L14)
+   permette di procedere dichiarando («probabilmente»), e sull'**intento
+   dell'utente** quel permesso è la porta della divagazione.
+2. **Non filosofeggiare.** Il registro riflessivo su un problema pratico è
+   divagazione travestita da profondità.
+3. **L'utente non è ground truth al 100% — e nemmeno il contrario.** A volte sa
+   con precisione cosa vuole; a volte sbaglia; a volte non ha le idee chiare su
+   ciò che sta facendo. Quindi: **verificare** lo stato delle cose senza farsi
+   determinare al 100% dalle sue parole *quando si trova un conflitto*,
+   **chiedere** quando una questione concettuale non è esposta chiaramente, e
+   **dargli ragione quando ha ragione**. Oggi la catena delle fonti
+   ([20-evidence.md:3-5](framework/method/20-evidence.md#L3-L5)) è «repo →
+   documentazione ufficiale → utente»: l'utente compare come fonte a cui
+   **chiedere**, mai come affermazione da **controllare**.
+
+**La cura ha un modo di andare storta, ed è peggio del male.** Un modello che
+generalizza «l'utente può sbagliare» in «l'utente ha di solito torto» fa come gli
+pare con una giustificazione epistemica addosso. Il disaccordo di facciata è
+divagazione identica a quella che si voleva togliere, e in più costa la fiducia.
+Qualunque regola si scriva deve essere scritta **contro entrambi** gli errori.
+
+**Chi arbitra, per tipo di questione.** È qui che la regola diventa scrivibile
+senza dare ragione a nessuno per default:
+
+| in gioco | arbitro | cosa fa il modello |
+|---|---|---|
+| *com'è* — un fatto sul progetto | il repo | verifica: né la parola dell'utente né la propria memoria fanno fede |
+| *cosa vuole* — intento, obiettivi, priorità | l'utente | chiede: non deduce dalla lettura più probabile |
+| *come si ragiona sul problema* | nessuno dei due | l'ancora è la richiesta centrale; se il ragionamento non ci si riaggancia, è deriva |
+
+Le prime due righe sono 1 e 3 che smettono di sembrare in contraddizione: si
+chiede ciò che solo lui sa, si verifica ciò che dice il repo. Confonderle produce
+i due errori speculari — chiedere ciò che si poteva leggere, credere ciò che si
+poteva smentire.
+
+**Il precedente esiste già, scritto una volta sola e in piccolo.**
+[30-state.md:37](framework/coordinator/30-state.md#L37) dice «⚠️ **In conflitto
+vince il repo**», ma solo per la memoria persistente contro il repo. È
+esattamente l'arbitrato della prima riga, applicato a una coppia sola.
+Generalizzarlo è la mossa più economica sul tavolo: sta in `coordinator/`, non in
+`CLAUDE.md`.
+
+**Il caso che rende la questione non accademica: la deriva accoppiata.** Quando il
+modello va alla deriva su una cosa concettualmente banale *e* l'utente non ha le
+idee chiarissime, l'utente si lascia guidare per non portare fuori strada
+entrambi — e in quel momento **nessuno dei due tiene l'ancora**. È il meccanismo
+di D9 al bordo umano, con il presidio umano disattivato proprio quando servirebbe.
+Ed è il motivo per cui l'ancora non può essere una delle due parti: dev'essere lo
+stato verificabile del progetto.
+
+Da discutere:
+
+- **Dove va scritto.** 1 e 2 riguardano chiunque riceva un task, quindi
+  costerebbero parole in `CLAUDE.md`: il posto più caro. 3 potrebbe essere una
+  riga dentro la catena delle fonti che esiste già — quasi gratis.
+- **Qual è l'osservabile.** Da fissare prima della prosa, come in D1.
+  `output_tokens` **non** misura questo: misura quanto, non su cosa. Più vicini:
+  lavoro poi scartato, file toccati fuori dal bersaglio, giri di chiarimento
+  arrivati **dopo** una consegna invece che prima.
+- **Il limite di «chiedi sempre».** Portato all'estremo scarica sull'utente ogni
+  decisione e costa più della divagazione. Serve la soglia: cosa rende
+  un'ambiguità degna di una domanda.
+- **Come si riconosce la deriva dall'interno.** È il punto duro: una regola che
+  scatta quando si è già fuori strada la applica lo stesso ragionamento che è
+  uscito di strada. Proxy da valutare: riformulare la richiesta centrale in una
+  frase prima di procedere; accorgersi che la soluzione è diventata più difficile
+  del problema.
+- **Il subagent non parla con l'utente.** Per lui «chiedere» significa fermarsi e
+  riportare al coordinatore. Sono due regole diverse, non una scritta due volte.
+
+*Parcheggiato, questione distinta:* `effort` è fissato nella scheda del ruolo e la
+regola 2 ([00-delegation.md:34-38](framework/coordinator/00-delegation.md#L34-L38))
+lascia declassare per-spawn il **modello** dicendo che «l'effort della scheda
+resta» — cioè *al task, non al ruolo* vale su un asse e non sull'altro. È un
+rilievo vero, ma non è D10.
+
+**D9 e D10 si toccano.** La divagazione è l'errore di livello zero di D9: una
+richiesta letta male è uno step sbagliato in cima alla catena. E il rimedio più
+ovvio a D9 — verificare di più, più spesso — è divagazione istituzionalizzata.
+Vanno discusse insieme, non in fila.
 
 ---
 

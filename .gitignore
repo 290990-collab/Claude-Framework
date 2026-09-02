@@ -1,0 +1,7 @@
+# Bytecode: rigenerato a ogni esecuzione, specifico della macchina.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Output di `python framework/tools/trial_install.py`: si rigenera, non si versiona.
+_build/
