@@ -120,12 +120,16 @@ con chi li consuma, comandi, verifica rapida, operazioni dell'utente, superficie
 critica, stato, guide, stile. La prova ne scrive 323 perché descrive un progetto
 finto: è il numero di un caso sintetico, non di un progetto vero.
 
-**Perché conta più di quanto sembri.** La tesi centrale del framework è che
-`CLAUDE.md` si paga a ogni spawn — ed è la ragione per cui la separazione per
-destinatario esiste e sposta ~325 parole fuori dal file caro. Ma la disciplina
-che difende quella tesi misura 1265 parole e ne lascia libere 1102: sul progetto
-reale la parte **non** controllata è quasi grande quanto quella controllata, e
-cresce col progetto invece che col framework.
+**Perché conta.** La separazione per destinatario è la mossa migliore del
+framework, e i numeri la confermano: tiene **1601 parole** di kernel del
+coordinatore fuori da `CLAUDE.md`, così ogni subagent ne paga 1265 invece di
+2866. Quel risparmio è reale, ed è fisso.
+
+Il problema è che accanto a un risparmio fisso di 1601 c'è un costo **libero** di
+1102, sullo stesso file e con la stessa frequenza. La disciplina misura la parte
+che il framework scrive e lascia scoperta quella che l'installazione scrive — e
+solo la seconda cresce, perché cresce col progetto. Su un progetto più grande di
+questo non c'è niente che dica quando è troppo.
 
 Da decidere, non da correggere di slancio: un tetto sul totale assemblato
 romperebbe la build **di un progetto**, non del framework, e il framework non ha
