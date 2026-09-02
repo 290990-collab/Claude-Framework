@@ -8,7 +8,7 @@ pregressa (cutoff maggio 2026), non da fonti verificate. La valutazione del
 framework viene invece dalla lettura diretta dei file. Le due cose hanno peso
 diverso e vanno trattate diversamente.
 
-**Stato misurato.** v1.0.0 · **130 test verdi** (`pytest -q` e `unittest
+**Stato misurato.** v1.0.0 · **142 test verdi** (`pytest -q` e `unittest
 discover` danno lo stesso numero) · kernel comune **1275 parole** su un tetto di
 1600 · guida del coordinatore 1599 parole base, **1880 sul profilo `research`**
 su un tetto di 2000 · **19 agenti in catalogo, 9–12 installati per progetto**.
@@ -16,12 +16,15 @@ su un tetto di 2000 · **19 agenti in catalogo, 9–12 installati per progetto**
 `docs/`, `_build/` o questo documento.
 
 **Lavoro attivo: nessuno.** [Installing](#installing) e D0 sono chiuse
-(2026-09-01); **D3, D4, D11 e D5 chiuse il 2026-09-02**; **D1 e D2 archiviate lo
-stesso giorno** — il materiale sta fuori dal repo, in `../Claude Framework -
+(2026-09-01); **D3, D4, D11, D5, D6 e D8 chiuse il 2026-09-02**; **D1 e D2
+archiviate lo stesso giorno** — il materiale sta fuori dal repo, in `../Claude Framework -
 valutazione/`. Il 2026-09-02 il framework è stato installato **sul repository che
 lo produce** e poi rimosso: era una prova, e ciò che ne resta sta in **P4** e in
-[La prova sul campo](#la-prova-sul-campo--2026-09-02). Quel che resta aperto è
-**D6–D10**, e di quelle **D9 e D10 sono da discutere, non da eseguire**.
+[La prova sul campo](#la-prova-sul-campo--2026-09-02).
+
+Restano aperte **D7** (inglese, una decisione più che un lavoro) e **D9 e D10**,
+che sono **da discutere insieme, non da eseguire**: toccano `method/` e
+`coordinator/`, cioè le parole che ogni agente paga a ogni spawn.
 I confronti esterni, con i riferimenti fissati a un commit, stanno in
 [Riferimenti esterni](#riferimenti-esterni): le sigle **R1–R3** (da cui
 prendere) ed **E1–E6** (prove) sono citate dalle direttive.
@@ -46,7 +49,7 @@ e non per la qualità.
 | Sync con regione hash (`--up`) | Rende il drift visibile invece che sepolto, e lo tratta come segnale anziché errore |
 | Doctor come linter di configurazione agentica | Pointer penzolanti, roster orfani, segnaposto non compilati, agenti mutuamente esclusivi. È la parte con più potenziale di prodotto |
 | Domanda del Passo 3.2 | «Qual è la superficie critica, cioè cosa rende il lavoro sbagliato anche a codice perfetto?» — una riga che fa il lavoro di una matrice |
-| Tooling | stdlib pura, zero dipendenze, 130 test verdi |
+| Tooling | stdlib pura, zero dipendenze, 142 test verdi |
 
 **Il contributo originale è il quartetto**, non i singoli ingredienti:
 separazione per destinatario + budget del kernel come test + doctor che verifica
@@ -63,7 +66,7 @@ cicli per dominio, questionario di installazione, spec-driven.
 
 ### P1 — Zero evidenza (**accettata**, 2026-09-02)
 
-I 130 test verificano l'assemblatore, non il metodo. Non esiste una baseline,
+I 142 test verificano l'assemblatore, non il metodo. Non esiste una baseline,
 né un confronto appaiato, né un tasso di successo — e **non ne esisterà uno**:
 l'eval è stata archiviata (vedi [D1–D2](#d0d2--valutazione-del-metodo-archiviata-il-2026-09-02)).
 
@@ -384,8 +387,38 @@ meccanismo, non un delta di metodo. Vale ancora [P1](#p1--zero-evidenza-accettat
 
 ### D6 — `--up` a livello di organizzazione
 
-Tenere allineato il metodo su 40 repo e 15 persone è un problema da azienda, non
-da singolo. Serve un rapporto di divergenza aggregato: `fwbuild sync --report`.
+**✅ Fatta il 2026-09-02.** Tenere allineato il metodo su 40 repo e 15 persone è
+un problema da azienda, non da singolo, e la divergenza non si vede guardando un
+repository alla volta: si vede solo aggregando.
+
+`python -m fwbuild report <cartella>` cerca `.claude/framework.json` sotto i
+percorsi dati (due livelli, `--depth` per cambiarli), chiama il doctor su ogni
+progetto trovato e mette in fila versione, rilievi e dimensione della
+`CLAUDE.md`. In coda: quante versioni sono in giro e quali progetti riallineare.
+
+```
+progetto  versione   rilievi    CLAUDE.md
+alpha     1.0.0      -          2.107 tok
+beta      0.9.0    ! 2W         2.107 tok
+gamma     1.0.0      1W         2.108 tok
+
+Versioni in giro: 0.9.0 (1), 1.0.0 (2) — sorgente a 1.0.0
+Divergenti dal sorgente: 1 · con drift del kernel: 1 · con errori: 0
+```
+
+Tre scelte che vale la pena vedere scritte:
+
+- **La versione mostrata è quella dei file, non quella dichiarata.**
+  `framework.json` dice da dove il progetto è nato, la regione kernel dice cosa
+  contiene adesso: quando divergono conta la seconda, perché la prima si
+  aggiorna dimenticandosene
+- **Il riferimento è il sorgente da cui giri, non la versione più diffusa.**
+  Senza sorgente non c'è un «indietro» e si riporta la sola distribuzione: la
+  maggioranza non è un riferimento
+- **Il nome.** La direttiva diceva `fwbuild sync --report`, ma `sync` è una
+  skill e le sue modalità non sono flag da shell: è `fwbuild report`, con
+  `--json` e `--strict` come il doctor. Dodici test in
+  [test_report.py](framework/tools/tests/test_report.py); suite a **142**
 
 ### D7 — Inglese
 
@@ -396,8 +429,30 @@ lo si faccia sapendo che si sta pagando anche quella parte.
 
 ### D8 — Difesa continua dall'erosione di piattaforma
 
-A ogni release di Claude Code: mappare cosa la piattaforma fa ora nativamente ed
-eliminare dal framework ciò che la duplica. Check ricorrente, non una tantum.
+**✅ In piedi dal 2026-09-02**, con la prima passata fatta. A ogni release di
+Claude Code: mappare cosa la piattaforma fa ora nativamente ed eliminare dal
+framework ciò che la duplica. Check ricorrente, non una tantum — quindi il
+deliverable non è una conclusione ma una **procedura con un registro**:
+[docs/erosione-piattaforma.md](docs/erosione-piattaforma.md).
+
+Il verdetto per riga ha tre valori: `si appoggia` (la piattaforma lo fornisce e
+il framework lo usa), `duplica` (lo ridice in prosa — da togliere), `scoperto`
+(non lo fornisce, ed è lì che vive il valore).
+
+**Prima passata: nessuna riga a `duplica`.** Le tre da sorvegliare, in ordine di
+esposizione:
+
+1. **Lo stato fra sessioni.** È l'unica superficie dove il framework mantiene
+   file propri (`TODO`/`status`/`roadmap`) per una cosa che la piattaforma sta
+   imparando a fare. Sarà la prima a passare a `duplica`
+2. **La scelta dell'agente a cui delegare.** Dieci regole di prosa che valgono
+   finché la scelta nativa resta grossolana
+3. **La distribuzione.** Se il framework diventasse un plugin, il Passo 0 di
+   `framework-install` cambierebbe forma
+
+La colonna «cosa fa la piattaforma» viene da conoscenza pregressa, non da fonti
+verificate: è precisamente il motivo per cui la mappa va **riverificata** a ogni
+passata invece che ereditata.
 
 ### D9 — Propagazione dell'errore nel lavoro multi-step
 
@@ -596,7 +651,7 @@ Vanno discusse insieme, non in fila.
   «Windows support coming soon»
 - Non spingere il metodo come prodotto: è prosa, e la prosa buona viene copiata
   in una settimana. Nessun fossato, nessun effetto rete, nessun vantaggio di dati
-- Non contare i 130 test come evidenza sul metodo: verificano l'assemblatore
+- Non contare i 142 test come evidenza sul metodo: verificano l'assemblatore
 
 ---
 

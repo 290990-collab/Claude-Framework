@@ -83,6 +83,12 @@ cd <sorgente>/tools && python -m fwbuild cost <progetto> --spawns 200 --devs 12
 
 `doctor --json` stampa gli stessi rilievi più quella misura, per la CI.
 
+Su più repository insieme — quante versioni del metodo sono in giro, e dove:
+
+```bash
+cd <sorgente>/tools && python -m fwbuild report <cartella-di-repository>
+```
+
 ## Come è fatto
 
 **Il metodo è generato, l'adattamento è a mano.** In `CLAUDE.md` e in ogni

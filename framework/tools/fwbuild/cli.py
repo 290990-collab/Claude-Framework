@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import doctor, source
+from . import doctor, report, source
 
 # Listino Claude Opus 5, token di input non in cache, in dollari per milione.
 # È un default dichiarato, non una verità: i prezzi cambiano e la cache abbassa
@@ -56,6 +56,16 @@ def main(argv: list[str] | None = None) -> int:
     d.add_argument("--strict", action="store_true", help="uscita 1 anche con soli avvisi")
     d.add_argument("--json", action="store_true", help="rilievi e misure in JSON, per la CI")
 
+    r = sub.add_parser("report", help="divergenza del metodo su piu' progetti")
+    r.add_argument("paths", type=Path, nargs="+")
+    r.add_argument(
+        "--depth", type=int, default=2, help="quanti livelli scendere cercando progetti"
+    )
+    r.add_argument("--json", action="store_true", help="rapporto in JSON, per la CI")
+    r.add_argument(
+        "--strict", action="store_true", help="uscita 1 se un progetto diverge o ha rilievi"
+    )
+
     c = sub.add_parser("cost", help="cosa costa la CLAUDE.md installata")
     c.add_argument("path", type=Path)
     c.add_argument("--spawns", type=int, default=100, help="spawn al giorno per persona")
@@ -94,6 +104,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "cost":
         return _cost(args.path, args.spawns, args.devs, args.price)
+
+    if args.command == "report":
+        s = report.survey(args.paths, args.depth, _source_version())
+        if args.json:
+            print(json.dumps(report.as_dict(s), ensure_ascii=False, indent=2))
+        else:
+            _print_survey(s)
+        return 1 if args.strict and not s.clean else 0
     return 0
 
 
@@ -174,3 +192,57 @@ def _cost(path: Path, spawns: int, devs: int, price: float) -> int:
         "(input) — cambialo con --price."
     )
     return 0
+
+
+def _source_version() -> str | None:
+    """La versione del sorgente da cui gira questo comando.
+
+    È il riferimento del rapporto: senza, la divergenza non ha un verso e resta
+    una distribuzione. Non si elegge a riferimento la versione più diffusa — la
+    maggioranza non è un riferimento.
+    """
+    p = Path(__file__).resolve().parents[2] / "VERSION"
+    return p.read_text(encoding="utf-8").strip() if p.is_file() else None
+
+
+def _print_survey(s) -> None:
+    """Il rapporto in forma leggibile: prima i progetti, poi cosa se ne ricava.
+
+    La riga per progetto serve a trovare quale sistemare; le due righe finali
+    sono la risposta alla domanda che il singolo non si pone — quante versioni
+    del metodo sono in giro.
+    """
+    if not s.projects:
+        print("nessuna installazione trovata (cerco .claude/framework.json)")
+        return
+
+    width = max([len("progetto")] + [len(p.name) for p in s.projects])
+    print(f"{len(s.projects)} installazioni\n")
+    print(f"{'progetto':<{width}}  {'versione':<10} {'rilievi':<10} CLAUDE.md")
+    for p in sorted(s.projects, key=lambda p: p.name):
+        mark = " " if s.source_version in (None, p.version) else "!"
+        counts = " ".join(
+            part
+            for part in (
+                f"{p.errors}E" if p.errors else "",
+                f"{p.warnings}W" if p.warnings else "",
+            )
+            if part
+        ) or "-"
+        size = "-" if p.measure is None else f"{_n(p.measure.tokens)} tok"
+        print(f"{p.name:<{width}}  {p.version:<9}{mark} {counts:<10} {size}")
+
+    giro = ", ".join(f"{v} ({n})" for v, n in s.versions.items())
+    print(f"\nVersioni in giro: {giro}", end="")
+    print(f" — sorgente a {s.source_version}" if s.source_version else "")
+    drift = sum(1 for p in s.projects if p.drifted)
+    err = sum(1 for p in s.projects if p.errors)
+    print(
+        f"Divergenti dal sorgente: {len(s.behind)} · con drift del kernel: {drift} · "
+        f"con errori: {err}"
+    )
+    if s.behind:
+        print(
+            "Da riallineare con framework-sync --down: "
+            + ", ".join(sorted(p.name for p in s.behind))
+        )

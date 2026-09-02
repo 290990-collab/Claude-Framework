@@ -16,9 +16,9 @@ cd <FW>/tools && python -m fwbuild doctor --strict <PRJ>
 `<FW>` è il campo `source` di `.claude/framework.json`; se il file manca,
 `./framework/`. Quel campo può essere **relativo alla root del progetto** —
 `source.dereference(<PRJ>, source)` lo scioglie. `<PRJ>` è la root del progetto.
-I sottocomandi di `fwbuild` sono **tre**, `doctor`, `source` e `cost`: le
-modalità di `framework-sync` (`--down`, `--up`, `--activate`, `--deactivate`)
-sono di quella skill, non flag da shell.
+I sottocomandi di `fwbuild` sono **quattro**: `doctor`, `source`, `cost` e
+`report`. Le modalità di `framework-sync` (`--down`, `--up`, `--activate`,
+`--deactivate`) sono invece di quella skill, non flag da shell.
 
 Un'installazione completa stampa `OK — nessun rilievo`. Senza `--strict` l'uscita
 è 0 anche con soli avvisi: usalo sempre, in CI e a mano.
@@ -223,6 +223,22 @@ quel testo lì, e la versione dichiarata è quella con cui il progetto è nato.
 **Cosa fare:** `framework-sync --down`. Il formato attuale è categorico e porta
 con sé il falsificatore (`SMENTIRE`), che è ciò che rende leggibile un giudizio
 senza numeri.
+
+## Più progetti insieme
+
+```bash
+cd <FW>/tools && python -m fwbuild report <cartella-di-repository>
+```
+
+`doctor` risponde «questa installazione regge?». `report` risponde a una domanda
+che il singolo non si pone e chi ha quaranta repository sì: **quante versioni del
+metodo sono in giro, e dove**. Cerca `.claude/framework.json` sotto i percorsi
+dati (due livelli, `--depth` per cambiarli), chiama il doctor su ognuno e mette
+in fila versione, rilievi e dimensione della `CLAUDE.md`.
+
+Il riferimento è la versione del **sorgente** da cui giri, non la più diffusa:
+la maggioranza non è un riferimento. `--strict` esce 1 se un progetto diverge o
+ha rilievi; `--json` dà lo stesso rapporto per la CI.
 
 ## Dopo la diagnosi
 

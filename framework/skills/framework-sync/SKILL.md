@@ -17,7 +17,9 @@ Requisito: il sorgente deve essere raggiungibile dalla macchina. Se non lo è,
 solo `doctor` è utilizzabile.
 
 `--down`, `--up`, `--activate`, `--deactivate` sono **modalità di questa skill**,
-non flag da shell: `fwbuild` ha `doctor`, `source` e `cost`. I frammenti qui
+non flag da shell: `fwbuild` ha `doctor`, `source`, `cost` e `report`. Il
+rapporto di divergenza su più repository è `python -m fwbuild report <cartella>`
+— quello sì da shell, perché legge molti progetti e non ne modifica nessuno. I frammenti qui
 sotto partono da `<FW>/tools`, dove `<FW>` è il campo `source` di
 `.claude/framework.json` (se manca, `./framework/`) e `<PRJ>` la root del
 progetto. Quel campo può essere **relativo alla root del progetto**, non alla
