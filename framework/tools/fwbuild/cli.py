@@ -1,11 +1,18 @@
 """Entrypoint: python -m fwbuild <comando>."""
 
 import argparse
+import json
 import os
 import sys
 from pathlib import Path
 
 from . import doctor, source
+
+# Listino Claude Opus 5, token di input non in cache, in dollari per milione.
+# È un default dichiarato, non una verità: i prezzi cambiano e la cache abbassa
+# la cifra reale. `--price` esiste perché il numero lo scelga chi legge.
+PRICE_PER_MTOK = 5.00
+WORKING_DAYS = 22
 
 
 def _force_utf8_stdout() -> None:
@@ -47,6 +54,15 @@ def main(argv: list[str] | None = None) -> int:
     # Un'installazione completa non ha rilievi di nessuna gravità:
     # --strict è quella regola resa meccanica, per la CI e per il Passo 6.
     d.add_argument("--strict", action="store_true", help="uscita 1 anche con soli avvisi")
+    d.add_argument("--json", action="store_true", help="rilievi e misure in JSON, per la CI")
+
+    c = sub.add_parser("cost", help="cosa costa la CLAUDE.md installata")
+    c.add_argument("path", type=Path)
+    c.add_argument("--spawns", type=int, default=100, help="spawn al giorno per persona")
+    c.add_argument("--devs", type=int, default=1, help="quante persone lavorano sul repo")
+    c.add_argument(
+        "--price", type=float, default=PRICE_PER_MTOK, help="$ per milione di token di input"
+    )
 
     s = sub.add_parser("source", help="risolve e valida la root del sorgente")
     s.add_argument("path", type=Path, nargs="?")
@@ -65,10 +81,96 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "doctor":
         findings = doctor.check(args.path)
+        code = 1 if args.strict or any(f.severity == "ERROR" for f in findings) else 0
+        if args.json:
+            print(json.dumps(_report(args.path, findings), ensure_ascii=False, indent=2))
+            return code
         if not findings:
             print("OK — nessun rilievo")
             return 0
         for f in findings:
             print(f"{f.severity:5} {f.code:16} {f.message}")
-        return 1 if args.strict or any(f.severity == "ERROR" for f in findings) else 0
+        return code
+
+    if args.command == "cost":
+        return _cost(args.path, args.spawns, args.devs, args.price)
+    return 0
+
+
+def _measure(path: Path) -> doctor.Measure | None:
+    """La misura della CLAUDE.md di un'installazione, o None se non c'è.
+
+    Il file assente non è un errore di questo strato: il doctor lo riporta già
+    come STATE_MISSING, e duplicare il messaggio darebbe due voci per un fatto.
+    """
+    claude_md = Path(path) / "CLAUDE.md"
+    if not claude_md.is_file():
+        return None
+    return doctor.measure(claude_md.read_text(encoding="utf-8"))
+
+
+def _report(path: Path, findings: list[doctor.Finding]) -> dict:
+    m = _measure(path)
+    return {
+        "path": str(path),
+        "ok": not findings,
+        "errors": sum(1 for f in findings if f.severity == "ERROR"),
+        "warnings": sum(1 for f in findings if f.severity == "WARN"),
+        "measure": None
+        if m is None
+        else {
+            "kernel_words": m.kernel_words,
+            "project_words": m.project_words,
+            "total_words": m.total_words,
+            "tokens": m.tokens,
+            "split": m.has_region,
+        },
+        "findings": [
+            {"code": f.code, "severity": f.severity, "message": f.message}
+            for f in findings
+        ],
+    }
+
+
+def _n(value: float, decimals: int = 0) -> str:
+    """Numero all'italiana: punto per le migliaia, virgola per i decimali."""
+    whole, _, frac = f"{value:,.{decimals}f}".partition(".")
+    whole = whole.replace(",", ".")
+    return f"{whole},{frac}" if frac else whole
+
+
+def _cost(path: Path, spawns: int, devs: int, price: float) -> int:
+    """La dimensione di CLAUDE.md tradotta in una voce di bilancio.
+
+    Il costo pieno, cioè il tetto: la cache dei prompt abbassa la cifra reale e
+    non è misurabile da qui. Ogni assunzione viene stampata insieme al numero —
+    un totale senza le sue ipotesi è un numero che nessuno può contestare.
+    """
+    m = _measure(path)
+    if m is None:
+        print(f"{path}: CLAUDE.md assente — niente da misurare")
+        return 1
+
+    per_day = m.tokens * spawns * devs
+    daily = per_day / 1_000_000 * price
+    persone = "persona" if devs == 1 else "persone"
+
+    print(f"CLAUDE.md: {_n(m.total_words)} parole ≈ {_n(m.tokens)} token, pagati a ogni spawn.")
+    if m.has_region:
+        print(
+            f"  di cui kernel {_n(m.kernel_words)} (con tetto) e progetto "
+            f"{_n(m.project_words)} (senza)."
+        )
+    print(
+        f"{_n(spawns)} spawn al giorno × {devs} {persone} = "
+        f"{_n(per_day / 1_000_000, 1)} milioni di token al giorno di solo contesto comune."
+    )
+    print(
+        f"A {_n(price, 2)} $/Mtok: {_n(daily, 2)} $ al giorno, "
+        f"{_n(daily * WORKING_DAYS, 2)} $ al mese ({WORKING_DAYS} giorni lavorativi)."
+    )
+    print(
+        "Costo pieno: la cache dei prompt lo abbassa. Prezzo di listino Claude Opus 5 "
+        "(input) — cambialo con --price."
+    )
     return 0

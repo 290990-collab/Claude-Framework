@@ -1,9 +1,10 @@
 """Le verifiche di integrità di un'installazione.
 
-Quattordici codici di rilievo: sette di gravità ERROR (PLACEHOLDER,
-ROSTER_MISSING, SHARED_MISSING, STATE_MISSING, KERNEL_MISSING, FABLE, EXCLUSIVE)
-e sette di gravità WARN (ROSTER_ORPHAN, KERNEL_DRIFT, COORDINATOR_LEAK,
-SKILLS_MISSING, VERSION_MISMATCH, SETTINGS_MISSING, SHARED_ORPHAN).
+Sedici codici di rilievo: sette di gravità ERROR (PLACEHOLDER, ROSTER_MISSING,
+SHARED_MISSING, STATE_MISSING, KERNEL_MISSING, FABLE, EXCLUSIVE) e nove di
+gravità WARN (ROSTER_ORPHAN, KERNEL_DRIFT, COORDINATOR_LEAK, SKILLS_MISSING,
+VERSION_MISMATCH, SETTINGS_MISSING, SHARED_ORPHAN, TOKEN_BUDGET,
+REPORT_FORMAT).
 Ogni codice è spiegato, con cosa farne, nella skill `framework-doctor`.
 """
 
@@ -11,9 +12,13 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import kernel, profile
+from . import assemble, kernel, profile
 
 PLACEHOLDER_RE = re.compile(r"\{\{|DA COMPILARE")
+# Il formato del report prima di D3. Un progetto installato allora se lo tiene
+# finché non passa da `framework-sync --down`: nessun altro check lo vede,
+# perché l'hash del kernel torna — torna su quello vecchio.
+CONF_PERCENT_RE = re.compile(r"CONF:.*%")
 ROUTING_AGENT_RE = re.compile(r"^\|[^|]*\|\s*`([a-z-]+)`\s*\|", re.MULTILINE)
 FABLE_RE = re.compile(r"^model:\s*fable\s*$", re.MULTILINE)
 SHARED_REF_RE = re.compile(r"\.claude/shared/([A-Za-z0-9_./-]+\.md)")
@@ -44,11 +49,55 @@ def _source_version() -> str | None:
     return p.read_text(encoding="utf-8").strip() if p.is_file() else None
 
 
+# Stima: nessun tokenizer sta nella stdlib e il doctor gira offline. Il
+# rapporto viene dall'unica misura reale che il framework ha su una CLAUDE.md
+# assemblata (1598 parole ≈ 2,1k token). Il numero esatto lo dà l'endpoint
+# count_tokens, non questo strumento: qui serve un ordine di grandezza.
+TOKENS_PER_WORD = 1.33
+
+
 @dataclass(frozen=True)
 class Finding:
     code: str
     severity: str
     message: str
+
+
+@dataclass(frozen=True)
+class Measure:
+    """La CLAUDE.md installata, divisa nelle due parti che la compongono.
+
+    `kernel` lo scrive il framework e ha un tetto che rompe la build in fase di
+    sorgente; `project` lo scrive chi installa e non ha nessun tetto. È la sola
+    delle due che cresce, perché cresce col progetto.
+    """
+
+    kernel_words: int
+    project_words: int
+    has_region: bool
+
+    @property
+    def total_words(self) -> int:
+        return self.kernel_words + self.project_words
+
+    @property
+    def tokens(self) -> int:
+        return round(self.total_words * TOKENS_PER_WORD)
+
+
+def measure(claude_text: str) -> Measure:
+    """Misura una CLAUDE.md separando regione kernel e sezioni di progetto.
+
+    Senza marker — la variante B, legittima — le due parti non sono
+    distinguibili: si riporta il totale e si dichiara che la separazione non
+    c'è, invece di attribuire tutto a una delle due e far scattare un rilievo
+    su un'installazione sana.
+    """
+    region = kernel.parse(claude_text)
+    if region is None:
+        return Measure(len(claude_text.split()), 0, has_region=False)
+    outside = claude_text[: region.start] + claude_text[region.end :]
+    return Measure(len(region.body.split()), len(outside.split()), has_region=True)
 
 
 def _markdown_files(root: Path) -> list[Path]:
@@ -108,6 +157,15 @@ def check(root: Path) -> list[Finding]:
             )
         if FABLE_RE.search(text):
             out.append(Finding("FABLE", "ERROR", f"{rel}: model fable non disponibile"))
+        if CONF_PERCENT_RE.search(text):
+            out.append(
+                Finding(
+                    "REPORT_FORMAT",
+                    "WARN",
+                    f"{rel}: schema del report con confidenza in percentuale — "
+                    "formato superato, riallinea con framework-sync --down",
+                )
+            )
         status = kernel.verify(text)
         if status == "DRIFT":
             out.append(
@@ -239,6 +297,31 @@ def check(root: Path) -> list[Finding]:
                 "ERROR",
                 f".claude/{ORCHESTRATION} assente: senza, il coordinatore non ha "
                 "le regole di delega",
+            )
+        )
+
+    # Il tetto sul sorgente vincola ciò che scrive il framework. Questo guarda
+    # il file assemblato, che è quello che ogni spawn paga davvero: la soglia è
+    # il kernel stesso — l'unica grandezza nota — cioè il progetto non scrive
+    # più del metodo. WARN e non ERROR: romperebbe la build di un progetto.
+    #
+    # Sotto il tetto che il framework si dà per il solo metodo il rilievo tace:
+    # su un file piccolo il rapporto è vero e irrilevante, e un avviso su undici
+    # token è rumore. Nessun caso reale ci finisce — con un kernel da ~1275
+    # parole, «progetto oltre il kernel» significa già più di 2500 in tutto.
+    m = measure(claude_text)
+    if (
+        m.has_region
+        and m.total_words >= assemble.METHOD_WORD_BUDGET
+        and m.project_words > m.kernel_words
+    ):
+        out.append(
+            Finding(
+                "TOKEN_BUDGET",
+                "WARN",
+                f"CLAUDE.md: {m.project_words} parole di progetto contro "
+                f"{m.kernel_words} di kernel — {m.total_words} in tutto, "
+                f"≈{m.tokens} token pagati a ogni spawn",
             )
         )
 

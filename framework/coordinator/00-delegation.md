@@ -54,8 +54,8 @@ queste.
    l'agente con il contesto intatto: ripartire da freddo ri-digerisce tutto da
    capo. È la regola che più spesso viene dimenticata, ed è fra le più care.
 9. **Una sola review**: il revisore finale **oppure** una skill di review nativa,
-   mai entrambe. Skill native pesanti e agenti a invocazione esplicita solo su
-   richiesta dell'utente.
+   mai entrambe. Le skill native pesanti si lanciano solo su richiesta
+   dell'utente.
 10. **Niente ri-verifiche ridondanti anche per interposto agente.** L'obbligo
     vale per chi esegue; qui vale in più che non si spawna un agente per
     rifare una verifica già passata e ancora valida.

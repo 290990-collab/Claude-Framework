@@ -101,16 +101,34 @@ codice o dall'idea, quando ce l'hai.
 Se nessuno calza, chiedi all'utente di descrivere il campo e costruisci il roster
 a mano partendo dal profilo più vicino.
 
-**2. Superficie critica** — *«cosa rende il lavoro sbagliato anche a codice
-perfetto?»* Determina il revisore, e se ne attiva **uno**:
+**2. Superficie critica** — *«qual è la superficie critica di questo lavoro, cioè
+cosa lo rende sbagliato anche a codice perfetto?»* Determina il revisore, e se ne
+attiva **uno**.
+
+Il profilo scelto ne dichiara già una in `critical_surface`: è quella del
+**campo**, nota prima di conoscere il progetto. Leggila all'utente come punto di
+partenza — non come risposta data — e falla confermare, restringere o
+sostituire. Un progetto può averne una che il suo campo non implica.
+
 
 | risposta | revisore |
 |---|---|
-| qualcuno potrebbe abusarne | `security-reviewer` |
-| le conclusioni potrebbero non essere valide | `scientific-reviewer` |
-| i dati potrebbero essere sbagliati a monte | `data-quality-reviewer` |
+| **Sicurezza** — qualcuno potrebbe abusarne | `security-reviewer` |
+| **Validità scientifica** — le conclusioni potrebbero non reggere | `scientific-reviewer` |
+| **Qualità dei dati** — potrebbero essere sbagliati a monte | `data-quality-reviewer` |
+| **Normativa e licenze** — dati personali, licenze delle dipendenze, obblighi di legge | `compliance-reviewer` |
+| **Prestazioni** — solo se il requisito è dichiarato e misurabile | `perf-analyst` |
 
 Due revisori solo se il progetto ha davvero due superfici critiche distinte.
+
+**Se la risposta non è in tabella** — il contratto pubblico che non si rompe,
+l'accessibilità, il costo operativo — **non si inventa un agente**: sarebbe un
+ruolo pagato da tutti per un caso solo. La superficie va scritta in due posti:
+nella sezione *Superficie critica* di `CLAUDE.md`, e nel contesto di progetto di
+`final-reviewer`, come una riga di «qui verificato significa anche». Il punto 4
+della sua checklist copre già i consumatori esterni e i contratti; quello che
+senza questa riga non sa è **quale** superficie, in questo progetto, viene prima
+delle altre.
 
 **3. Stile delle risposte in chat**, su **due assi indipendenti**:
 
@@ -134,8 +152,10 @@ Ci sono misure da interpretare? → `results-analyst` · Serve letteratura o
 scrittura accademica? → `literature` · Il progetto va pubblicato, e con hosting
 semplice o infrastruttura definita come codice? → `deploy` **oppure** `infra`,
 mai entrambi · Il runtime è non banale (stato, concorrenza, I/O)? → `debugger` ·
-Ci sono operazioni pesanti che lancia l'utente e non l'agente? → va nei comandi ·
-Ci sono vincoli normativi? → `compliance-reviewer`, a invocazione esplicita.
+Ci sono operazioni pesanti che lancia l'utente e non l'agente? → va nei comandi.
+
+Vincoli normativi e requisiti di prestazione stanno nella **domanda 2**, non qui:
+sono superfici critiche, non contorni del profilo.
 
 ## Passo 4 — Roster e installazione selettiva
 
@@ -189,7 +209,10 @@ build, test, avvio · verifica rapida che fa l'agente · operazioni pesanti che
 lancia l'utente, con cosa deve riportare
 
 ## Superficie critica
-cosa rende il lavoro sbagliato anche a codice perfetto, e chi la rivede
+qual è la superficie critica — cosa rende il lavoro sbagliato anche a codice
+perfetto — e chi la rivede. Parte da `prof.critical_surface` e dalla risposta
+alla domanda 2: se coincidono si scrive una riga sola, se divergono valgono
+entrambe
 
 ## Stato attuale
 vuoto alla nascita — è il livello 3 dello stato auto-aggiornante
@@ -209,7 +232,7 @@ forma e base di conoscenza assunta, dalle risposte al Passo 3
 
 ## Roster di questo progetto
 tabella GENERATA dal roster reale, mai copiata: | Situazione | Agente | Modello |
-con marcati "solo su richiesta" gli agenti a invocazione esplicita
+una riga per ogni agente installato, nessuno escluso
 
 ## Note di delega per questo progetto
 operazioni che lancia l'utente e non l'agente · vincoli di parallelismo
@@ -258,8 +281,16 @@ il doctor lo segnala (`SKILLS_MISSING`).
 
 **`.claude/settings.json`** — serializza `Profile.settings` in JSON.
 
-**`.claude/framework.json`** — `{"source": "<FW>", "version": "<versione>"}`:
-è come `framework-doctor` e `framework-sync` ritrovano il sorgente più tardi.
+**`.claude/framework.json`** — `{"source": ..., "version": "<versione>"}`: è
+come `framework-doctor` e `framework-sync` ritrovano il sorgente più tardi. Il
+percorso **non lo scrivi tu**: `source.reference(<PRJ>, <FW>)` lo rende relativo
+quando il sorgente sta dentro il progetto — primo dei tre modi previsti — e
+assoluto solo quando sta fuori. Un assoluto su un sorgente interno è la macchina
+di chi ha installato, e muore al primo clone.
+
+```python
+{"source": source.reference(PRJ, FW), "version": version}
+```
 
 **File di stato** — copia i tre template in `docs/` con la data di oggi e
 compila **subito** i segnaposto: la prima voce reale in `TODO.md`, il primo

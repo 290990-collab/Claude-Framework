@@ -1,8 +1,9 @@
 name = "library"
 description = "Librerie e pacchetti riusabili: il contratto pubblico è il prodotto."
+critical_surface = "Il contratto pubblico — firme, semantica, comportamento fra versioni: romperlo rompe codice che non sta in questo repository."
 
 agents = ["debugger", "api-scout", "security-reviewer"]
-on_demand = ["compliance-reviewer", "perf-analyst"]
+on_demand = []
 cycles = []
 
 shared = [

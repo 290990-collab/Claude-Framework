@@ -1,8 +1,9 @@
 name = "research"
 description = "Ricerca sperimentale: il prodotto è evidenza riproducibile, non software che gira."
+critical_surface = "La validità della conclusione: un numero prodotto da un protocollo sbagliato è indistinguibile da uno giusto."
 
 agents = ["debugger", "api-scout", "results-analyst", "literature", "scientific-reviewer"]
-on_demand = ["compliance-reviewer", "perf-analyst"]
+on_demand = []
 cycles = ["research"]
 
 shared = [

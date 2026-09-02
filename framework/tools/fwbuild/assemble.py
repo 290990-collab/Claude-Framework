@@ -12,6 +12,13 @@ from . import kernel
 METHOD_HEADING = "## Metodo"
 DOMAIN_HEADING = "## Contesto di progetto"
 
+# I due tetti del sorgente, in parole. Sono test veri — la build cade sopra
+# soglia — e stanno qui perché li legge anche il doctor: il rilievo
+# `TOKEN_BUDGET` tace finché il file assemblato non arriva almeno al tetto
+# che il framework si dà per il solo metodo.
+METHOD_WORD_BUDGET = 1600
+COORDINATOR_WORD_BUDGET = 2000
+
 
 def read_method(method_dir: Path, extra: Sequence[Path] = ()) -> str:
     """Concatena i moduli di una cartella di metodo, in ordine di nome file.

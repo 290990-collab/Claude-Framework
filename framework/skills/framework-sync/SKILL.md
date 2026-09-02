@@ -17,10 +17,11 @@ Requisito: il sorgente deve essere raggiungibile dalla macchina. Se non lo è,
 solo `doctor` è utilizzabile.
 
 `--down`, `--up`, `--activate`, `--deactivate` sono **modalità di questa skill**,
-non flag da shell: `fwbuild` ha solo `doctor` e `source`. I frammenti qui sotto
-partono da `<FW>/tools`, dove `<FW>` è il campo `source` di
+non flag da shell: `fwbuild` ha `doctor`, `source` e `cost`. I frammenti qui
+sotto partono da `<FW>/tools`, dove `<FW>` è il campo `source` di
 `.claude/framework.json` (se manca, `./framework/`) e `<PRJ>` la root del
-progetto.
+progetto. Quel campo può essere **relativo alla root del progetto**, non alla
+directory da cui giri: scioglilo con `source.dereference(<PRJ>, source)`.
 
 ---
 

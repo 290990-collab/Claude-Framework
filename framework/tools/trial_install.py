@@ -12,7 +12,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from fwbuild import assemble, profile
+from fwbuild import assemble, profile, source
 
 FRAMEWORK = Path(__file__).resolve().parents[1]
 # Fuori da `framework/`: nel pacchetto entra il codice che fa la prova, non la prova.
@@ -75,17 +75,6 @@ DOMAIN = {
         "terminale, versioni bloccate in `requirements.lock`. `rich` cambia API "
         "fra minori con una certa frequenza: verificare sempre nel pacchetto "
         "installato sotto `.venv/lib/`, non nella documentazione online."
-    ),
-    "compliance-reviewer": (
-        "Il progetto non raccoglie dati personali propri, ma i file di log che "
-        "elabora possono contenerne. Licenza: MIT; le dipendenze devono essere "
-        "compatibili con la ridistribuzione."
-    ),
-    "perf-analyst": (
-        "Requisito dichiarato: memoria costante su file di qualunque "
-        "dimensione, e latenza sotto i 100 ms dal momento in cui una riga è "
-        "scritta a quando appare. Misurabile con `fixtures/big.log` (2 GB) e "
-        "`scripts/bench.py`."
     ),
 }
 
@@ -220,10 +209,6 @@ ROUTING = """## Roster di questo progetto
 | Firme di librerie esterne | `api-scout` | sonnet medium |
 | Superficie raggiungibile da un attaccante | `security-reviewer` | opus high |
 | Verifica finale | `final-reviewer` | opus high |
-| Normativa e licenze — **solo su richiesta** | `compliance-reviewer` | opus high |
-| Prestazioni — **solo su richiesta** | `perf-analyst` | opus high |
-
-Gli ultimi due non si spawnano in autonomia: solo se l'utente li chiede.
 
 ## Note di delega per questo progetto
 
@@ -287,8 +272,13 @@ def install(out: Path) -> int:
     )
 
     # Come `framework-doctor` e `framework-sync` ritrovano il sorgente dopo.
+    # Il percorso lo sceglie `source.reference`: relativo quando il sorgente
+    # sta dentro il progetto, così il file sopravvive al clone.
     (out / ".claude" / "framework.json").write_text(
-        json.dumps({"source": str(FRAMEWORK), "version": VERSION}, indent=2) + "\n",
+        json.dumps(
+            {"source": source.reference(out, FRAMEWORK), "version": VERSION},
+            indent=2,
+        ) + "\n",
         encoding="utf-8",
     )
 

@@ -31,7 +31,8 @@ di superficie critica. Niente prosa di cortesia. Sempre `file:riga`, mai dump di
 file o diff.
 
 ```
-CONF: <0-100%> — <motivo in ≤10 parole>
+CONF: ALTA | MEDIA | BASSA — <motivo in ≤10 parole>
+SMENTIRE: <cosa mi farebbe cambiare idea>
 CHANGED/ANALYZED: <file:riga, ...>
 ASSUMED: <elenco o "-">
 RISK: <regressioni o effetti collaterali, o "nessuna nota">

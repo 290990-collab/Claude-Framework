@@ -16,7 +16,7 @@ templates/           i file di stato, generati vuoti ma strutturati
 skills/              framework-install · framework-doctor · framework-sync
 tools/fwbuild/       assemblaggio, hash, verifiche — Python stdlib puro
 tools/trial_install.py  la prova: installa un progetto finto, che il doctor verifica
-tools/tests/         103 test
+tools/tests/         112 test
 ```
 
 ## La separazione che conta: per destinatario, non per argomento
@@ -73,6 +73,15 @@ cd <sorgente>/tools && python -m fwbuild source ..
 ```
 
 Nessuna dipendenza da installare: serve solo Python 3.11+ (per `tomllib`).
+
+Quanto costa il contesto comune di un progetto installato — la `CLAUDE.md` che
+ogni subagent paga a ogni spawn — lo dice:
+
+```bash
+cd <sorgente>/tools && python -m fwbuild cost <progetto> --spawns 200 --devs 12
+```
+
+`doctor --json` stampa gli stessi rilievi più quella misura, per la CI.
 
 ## Come è fatto
 

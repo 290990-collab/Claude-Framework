@@ -24,12 +24,21 @@ GUIDE_REF = re.compile(r"\.claude/shared/([A-Za-z0-9_./-]+\.md)")
 
 @dataclass(frozen=True)
 class Profile:
+    """Un campo di lavoro: chi si installa, cosa si legge, cosa si rischia.
+
+    `critical_surface` è la sola risposta che il profilo può dare da solo alla
+    domanda del Passo 3.2 — «cosa rende il lavoro sbagliato anche a codice
+    perfetto». Non installa nessun agente: la superficie di un campo è nota
+    prima di conoscere il progetto, il revisore no.
+    """
+
     name: str
     agents: list[str]
     shared: list[str]
     cycles: list[str]
     on_demand: list[str]
     settings: dict
+    critical_surface: str = ""
 
 
 def load(path: Path) -> Profile:
@@ -41,6 +50,7 @@ def load(path: Path) -> Profile:
         cycles=list(data.get("cycles", [])),
         on_demand=list(data.get("on_demand", [])),
         settings=dict(data.get("settings", {})),
+        critical_surface=data.get("critical_surface", ""),
     )
 
 

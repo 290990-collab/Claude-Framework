@@ -14,12 +14,17 @@ cd <FW>/tools && python -m fwbuild doctor --strict <PRJ>
 ```
 
 `<FW>` è il campo `source` di `.claude/framework.json`; se il file manca,
-`./framework/`. `<PRJ>` è la root del progetto. I sottocomandi di `fwbuild`
-sono **due**, `doctor` e `source`: le modalità di `framework-sync` (`--down`,
-`--up`, `--activate`, `--deactivate`) sono di quella skill, non flag da shell.
+`./framework/`. Quel campo può essere **relativo alla root del progetto** —
+`source.dereference(<PRJ>, source)` lo scioglie. `<PRJ>` è la root del progetto.
+I sottocomandi di `fwbuild` sono **tre**, `doctor`, `source` e `cost`: le
+modalità di `framework-sync` (`--down`, `--up`, `--activate`, `--deactivate`)
+sono di quella skill, non flag da shell.
 
 Un'installazione completa stampa `OK — nessun rilievo`. Senza `--strict` l'uscita
 è 0 anche con soli avvisi: usalo sempre, in CI e a mano.
+
+`--json` stampa gli stessi rilievi più la misura di `CLAUDE.md` in una struttura
+sola, per la CI: l'exit code non cambia.
 
 ## Come si legge ogni rilievo
 
@@ -47,9 +52,8 @@ Il file dell'agente esiste ma non compare nella tabella di routing. L'agente
 esiste, costa contesto a ogni sessione, e non verrà mai scelto.
 
 **Cosa fare:** o lo aggiungi alla tabella, o lo disattivi
-(`framework-sync --deactivate <nome>`). Attenzione: gli agenti a invocazione
-esplicita — `compliance-reviewer`, `perf-analyst` — vanno **comunque** in
-tabella, marcati come «solo su richiesta».
+(`framework-sync --deactivate <nome>`). Nessuna eccezione: un agente installato
+che non è in tabella o è di troppo, o la tabella è incompleta.
 
 ### `SHARED_MISSING` — ERRORE
 
@@ -182,6 +186,43 @@ posture opposte — pubblicazione semplice contro infrastruttura definita come
 codice — e la sovrapposizione produce routing ambiguo.
 
 **Cosa fare:** scegli quale descrive davvero questo progetto e disattiva l'altro.
+
+### `TOKEN_BUDGET` — AVVISO
+
+Le sezioni di progetto di `CLAUDE.md` hanno superato in parole la regione
+kernel. Il tetto che rompe la build sta sul **sorgente** e vincola solo il
+metodo; `CLAUDE.md` assemblata è invece ciò che ogni subagent paga a **ogni
+spawn**, e la parte che l'installazione scrive non aveva nessuna soglia — ed è
+la sola che cresce, perché cresce col progetto.
+
+La soglia è il kernel stesso, cioè l'unica grandezza nota: *il progetto non
+scrive più del metodo*. Non viene da una misura di efficacia — non ne esiste
+una — è una scelta a giudizio, e va trattata come tale. Sotto il tetto che il
+framework si dà per il solo metodo il rilievo tace: su un file piccolo il
+rapporto è vero e irrilevante.
+
+**Cosa fare:** non tagliare a caso. Sposta in `.claude/shared/` ciò che serve a
+pochi agenti e lasciane il pointer, togli quello che il repository già dice da
+sé (struttura ricavabile, comandi già in un `Makefile` o in `package.json`), e
+tieni in `CLAUDE.md` solo ciò che un agente non può dedurre: vincoli duri,
+contratti con chi li consuma, superficie critica. Se dopo il taglio il file
+resta sopra soglia perché il progetto è davvero grande, è un avviso da
+accettare consapevolmente, non un errore.
+
+Per tradurlo in una cifra: `python -m fwbuild cost <PRJ> --spawns N --devs N`.
+
+### `REPORT_FORMAT` — AVVISO
+
+Lo schema del report installato porta ancora la confidenza come percentuale. È
+il formato precedente: una precisione finta nel campo che il coordinatore legge
+per primo, mentre la confidenza auto-riportata da un modello è mal calibrata.
+
+Nessun altro rilievo lo vede: l'hash della regione kernel torna, perché torna su
+quel testo lì, e la versione dichiarata è quella con cui il progetto è nato.
+
+**Cosa fare:** `framework-sync --down`. Il formato attuale è categorico e porta
+con sé il falsificatore (`SMENTIRE`), che è ciò che rende leggibile un giudizio
+senza numeri.
 
 ## Dopo la diagnosi
 

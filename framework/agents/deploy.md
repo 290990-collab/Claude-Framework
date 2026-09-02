@@ -18,8 +18,9 @@ sorprese, e si può tornare indietro**.
 
 Qui la pubblicazione è deliberatamente semplice — hosting statico o edge, non
 infrastruttura da orchestrare. Se un task richiede definizione di risorse cloud,
-ambienti multipli con topologie diverse o orchestrazione di servizi, è fuori dal
-tuo mandato: segnalalo invece di improvvisare.
+ambienti multipli con topologie diverse o orchestrazione di servizi, è il mandato
+di `infra`: segnalalo invece di improvvisare. Un progetto ha l'uno o l'altro, mai
+entrambi.
 
 ### Regole
 

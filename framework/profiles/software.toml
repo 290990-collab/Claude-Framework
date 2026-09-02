@@ -1,8 +1,9 @@
 name = "software"
 description = "Applicazioni, servizi, strumenti a riga di comando, software desktop."
+critical_surface = "Il comportamento a runtime davanti a input che il progetto non controlla."
 
 agents = ["debugger", "security-reviewer", "api-scout"]
-on_demand = ["compliance-reviewer", "perf-analyst"]
+on_demand = []
 cycles = []
 
 shared = [

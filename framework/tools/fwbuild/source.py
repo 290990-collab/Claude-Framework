@@ -48,3 +48,34 @@ def resolve(bases: Sequence[Path]) -> Path:
                 + ("assente" if not cand.is_dir() else f"manca {', '.join(gaps)}")
             )
     raise LookupError("nessun sorgente valido fra:\n  " + "\n  ".join(tried))
+
+
+def reference(project_root: Path, framework_root: Path) -> str:
+    """Come `.claude/framework.json` deve citare il sorgente.
+
+    Il primo dei tre modi previsti è il sorgente **dentro** il progetto: lì un
+    percorso assoluto è la macchina di chi ha installato, e il primo clone
+    trova un `source` che non esiste. Relativo alla root del progetto, invece,
+    viaggia col repository. Fuori dal progetto il relativo non regge — la
+    profondità del clone non è nota — e l'assoluto resta l'unica forma
+    scrivibile.
+
+    È qui e non nella skill perché la skill lo prescriveva già, in prosa, ed è
+    esattamente il modo in cui la regola è stata disattesa.
+    """
+    project_root = Path(project_root).resolve()
+    framework_root = Path(framework_root).resolve()
+    if framework_root == project_root or project_root in framework_root.parents:
+        return framework_root.relative_to(project_root).as_posix() or "."
+    return str(framework_root)
+
+
+def dereference(project_root: Path, recorded: str) -> Path:
+    """L'inverso: il `source` letto da `framework.json` come percorso reale.
+
+    Un relativo si scioglie contro la root del progetto, non contro la
+    directory di lavoro: `framework-doctor` e `framework-sync` girano da
+    `<FW>/tools`, non da `<PRJ>`.
+    """
+    p = Path(recorded)
+    return p if p.is_absolute() else (Path(project_root) / p).resolve()

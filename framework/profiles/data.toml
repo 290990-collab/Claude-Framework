@@ -1,8 +1,9 @@
 name = "data"
 description = "Pipeline di dati: acquisizione, trasformazione, archiviazione, indicizzazione."
+critical_surface = "La correttezza di ciò che entra: una pipeline che gira non dice niente sui dati che ci passano dentro."
 
 agents = ["debugger", "data-ingestion", "data-quality-reviewer", "infra", "api-scout"]
-on_demand = ["compliance-reviewer", "perf-analyst", "security-reviewer"]
+on_demand = ["security-reviewer"]
 cycles = []
 
 shared = [

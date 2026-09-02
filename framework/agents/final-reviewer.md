@@ -56,4 +56,6 @@ Chiudi col report standard (`CHANGED` vuoto) più:
 
 [DA COMPILARE — cosa significa "verificato" qui: comandi esatti di build e test,
 quanto durano, cosa non è verificabile in automatico e va controllato a mano;
-le classi di regressione già viste in questo progetto.]
+le classi di regressione già viste in questo progetto; e la superficie critica
+quando non ha un revisore dedicato — contratto pubblico, accessibilità, costo
+operativo — cioè cosa rende il lavoro sbagliato anche a codice perfetto.]
