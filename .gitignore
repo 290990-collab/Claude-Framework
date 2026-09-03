@@ -10,6 +10,7 @@ _build/
 # UPDATE.md è il registro delle decisioni, docs/ i piani e le valutazioni,
 # sources/ l'archivio dei progetti da cui il metodo è stato distillato.
 UPDATE.md
+UPGRADE.md
 docs/
 sources/
 scripts/
