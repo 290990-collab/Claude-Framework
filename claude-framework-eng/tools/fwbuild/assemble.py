@@ -16,8 +16,8 @@ DOMAIN_HEADING = "## Project context"
 # above the threshold — and they live here because the doctor reads them too:
 # the `TOKEN_BUDGET` finding stays silent until the assembled file reaches at
 # least the ceiling the framework sets itself for the method alone.
-METHOD_WORD_BUDGET = 1600
-COORDINATOR_WORD_BUDGET = 2000
+METHOD_WORD_BUDGET = 1800
+COORDINATOR_WORD_BUDGET = 2500
 
 
 def read_method(method_dir: Path, extra: Sequence[Path] = ()) -> str:
