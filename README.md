@@ -1,64 +1,66 @@
 # Claude Framework
 
-Un metodo di lavoro installabile per **Claude Code**: agenti specializzati, regole
-di delega, guide di dominio e file di stato, generati in un progetto e poi
-**verificabili** — con uno strumento che dice quando l'installazione si è rotta e
-un canale per far risalire nel sorgente le modifiche che valgono per tutti.
+An installable working method for **Claude Code**: specialised agents, delegation
+rules, domain guides and state files, generated into a project and then
+**verifiable** — with a tool that tells you when the installation has broken, and
+a channel for pushing improvements back up into the source.
 
-> **English** — the same framework, fully translated, lives in
-> [`claude-framework-eng/`](claude-framework-eng/README.md). Install one or the
-> other, not both.
+> **Italiano** — lo stesso framework, interamente in italiano, sta in
+> [`claude-framework-it/`](claude-framework-it/README.md). Se ne installa uno,
+> non entrambi.
 
 ---
 
-## Cosa risolve
+## What it solves
 
-Chi usa Claude Code su più progetti finisce con un `CLAUDE.md` scritto a mano per
-ognuno. Dopo qualche mese le versioni divergono, nessuno sa quale sia quella
-buona, e il file cresce finché ogni subagent paga un contesto che non usa.
+Anyone using Claude Code across several projects ends up with a hand-written
+`CLAUDE.md` for each. After a few months the versions have diverged, nobody knows
+which one is the good one, and the file has grown until every subagent pays for
+context it cannot use.
 
-Il framework attacca le tre cause:
+The framework attacks the three causes:
 
-| Problema | Cosa fa il framework |
+| Problem | What the framework does |
 |---|---|
-| Il metodo si biforca fra progetti | Un sorgente unico, versionato; `framework-sync` porta le versioni giù e le migliorie su |
-| Le modifiche a mano spariscono | Il metodo generato vive in una **regione kernel** con un hash: modificarla è lecito, ma diventa visibile |
-| `CLAUDE.md` gonfia e costa | Separazione per **destinatario**: chi delega legge un file a parte, che gli altri non pagano |
+| The method forks between projects | One versioned source; `framework-sync` carries versions down and improvements up |
+| Hand edits disappear | The generated method lives in a **kernel region** with a hash: editing it is allowed, but it becomes visible |
+| `CLAUDE.md` bloats and costs | Split by **recipient**: whoever delegates reads a separate file the others never pay for |
 
 ---
 
-## Requisiti
+## Requirements
 
 - **Claude Code**
-- **Python 3.11+** — solo per il tooling, e solo `tomllib` dalla stdlib
+- **Python 3.11+** — for the tooling only, and only `tomllib` from the stdlib
 
-Nessuna dipendenza da installare.
+Nothing to install.
 
 ---
 
-## Installazione
+## Installation
 
-Si fa **una volta per macchina**. Da lì in poi ogni progetto nuovo è una riga.
+Done **once per machine**. From then on, every new project is one line.
 
 ```bash
 git clone https://github.com/290990-collab/Claude-Framework.git ~/.claude/claude-framework
-cp -r ~/.claude/claude-framework/claude-framework-it ~/.claude/framework
+cp -r ~/.claude/claude-framework/claude-framework-eng ~/.claude/framework
 cp -r ~/.claude/framework/skills/framework-install ~/.claude/skills/
 ```
 
 ```powershell
 git clone https://github.com/290990-collab/Claude-Framework.git $HOME\.claude\claude-framework
-Copy-Item -Recurse $HOME\.claude\claude-framework\claude-framework-it $HOME\.claude\framework
+Copy-Item -Recurse $HOME\.claude\claude-framework\claude-framework-eng $HOME\.claude\framework
 Copy-Item -Recurse $HOME\.claude\framework\skills\framework-install $HOME\.claude\skills\
 ```
 
-Per l'inglese, `claude-framework-eng` al posto di `claude-framework-it`.
+For Italian, use `claude-framework-it` in place of `claude-framework-eng`.
 
-La destinazione si chiama `framework/` perché è uno dei posti in cui l'installer
-guarda. Cerca in quest'ordine: `./framework/` nel progetto, `$CLAUDE_FRAMEWORK`,
-`~/.claude/framework/`. Per tenere il sorgente altrove, basta la variabile.
+The destination is named `framework/` because that is one of the places the
+installer looks in. It searches in this order: `./framework/` inside the project,
+`$CLAUDE_FRAMEWORK`, `~/.claude/framework/`. To keep the source elsewhere, the
+environment variable is enough.
 
-Controllo che il sorgente sia valido:
+To check that a source is valid:
 
 ```bash
 cd ~/.claude/framework/tools && python -m fwbuild source ..
@@ -66,144 +68,145 @@ cd ~/.claude/framework/tools && python -m fwbuild source ..
 
 ---
 
-## Uso
+## Usage
 
-### Le tre skill
+### The three skills
 
-| Skill | Quando | Cosa fa |
+| Skill | When | What it does |
 |---|---|---|
-| `/framework-install` | **una volta per progetto** | Legge il progetto, fa il questionario, sceglie il roster, genera tutto, verifica il risultato |
-| `/framework-doctor` | quando qualcosa non torna | 18 controlli sull'installazione, con la remedy per ognuno |
-| `/framework-sync` | manutenzione | Porta versioni **giù** nel progetto, migliorie **su** nel sorgente, attiva o disattiva un agente |
+| `/framework-install` | **once per project** | Reads the project, runs the questionnaire, picks the roster, generates everything, verifies the result |
+| `/framework-doctor` | when something is off | 18 checks on the installation, each with its remedy |
+| `/framework-sync` | maintenance | Carries versions **down** into the project, improvements **up** into the source, activates or deactivates an agent |
 
-Le modalità di `framework-sync` — `--down`, `--up`, `--activate <agente>`,
-`--deactivate <agente>` — si chiedono alla skill in linguaggio naturale: **non
-sono flag da shell.**
+The modes of `framework-sync` — `--down`, `--up`, `--activate <agent>`,
+`--deactivate <agent>` — are asked of the skill in natural language: **they are
+not shell flags.**
 
-### Cosa scrive in un progetto
+### What it writes into a project
 
-`/framework-install` con il profilo `software` produce:
+`/framework-install` with the `software` profile produces:
 
 ```
-CLAUDE.md                      metodo comune + contesto del progetto
-.claude/framework.json         sorgente, versione, profilo
-.claude/settings.json          permessi del profilo (incluso il divieto sui segreti)
-.claude/agents/                9 schede: solo il roster scelto
-.claude/shared/orchestration.md  regole di delega + tabella di routing — solo chi delega
-.claude/shared/core/           6 guide, aperte on-demand
-.claude/skills/                framework-doctor, framework-sync
-docs/TODO.md                   dove siamo adesso
-docs/status.md                 decisioni chiuse e risultati
-docs/roadmap.md                dove si va
+CLAUDE.md                        common method + project context
+.claude/framework.json           source, version, profile
+.claude/settings.json            profile permissions (including the ban on reading secrets)
+.claude/agents/                  9 cards: only the chosen roster
+.claude/shared/orchestration.md  delegation rules + routing table — only for whoever delegates
+.claude/shared/core/             6 guides, opened on demand
+.claude/skills/                  framework-doctor, framework-sync
+docs/TODO.md                     where we are right now
+docs/status.md                   closed decisions and measured results
+docs/roadmap.md                  where it is going
 ```
 
-I blocchi `[DA COMPILARE — …]` sono i punti che l'installer riempie con te
-durante il questionario: sono il contesto del progetto, l'unica parte che si
-personalizza.
+The `[TO FILL IN — …]` blocks are the points the installer fills in with you
+during the questionnaire: they are the project's context, the only part that gets
+personalised.
 
-### I cinque profili
+### The five profiles
 
-| Profilo | Agenti | Cicli aggiunti | Per |
+| Profile | Agents | Added cycles | For |
 |---|---:|---|---|
-| `software` | 9 | — | Applicazioni e servizi |
-| `library` | 9 | — | Librerie e pacchetti |
-| `web` | 11 | design | Siti e interfacce |
-| `data` | 12 | — | Pipeline e dati |
-| `research` | 11 | ricerca | Esperimenti e misure |
+| `software` | 9 | — | Applications and services |
+| `library` | 9 | — | Libraries and packages |
+| `web` | 11 | design | Sites and interfaces |
+| `data` | 12 | — | Pipelines and data |
+| `research` | 11 | research | Experiments and measurements |
 
-Sei agenti sono sempre presenti — `explorer`, `architect`, `implementer`,
-`tester`, `refactorer`, `final-reviewer`: sono il ciclo del codice. Il master ne
-contiene **19**; gli altri si aggiungono con `--activate`.
+Six agents are always present — `explorer`, `architect`, `implementer`, `tester`,
+`refactorer`, `final-reviewer`: they are the code cycle. The master holds **19**;
+the rest are added with `--activate`.
 
 ---
 
-## Comandi
+## Commands
 
-Tutti da `<sorgente>/tools`.
+All run from `<source>/tools`.
 
-| Comando | Risponde a |
+| Command | Answers |
 |---|---|
-| `python -m fwbuild doctor <progetto>` | «Questa installazione regge?» |
-| `python -m fwbuild source <sorgente>` | «Questo sorgente è valido?» |
-| `python -m fwbuild cost <progetto>` | «Quanto costa il contesto comune?» |
-| `python -m fwbuild report <cartella>` | «Quante versioni sono in giro, e dove?» |
+| `python -m fwbuild doctor <project>` | "Does this installation hold?" |
+| `python -m fwbuild source <source>` | "Is this source valid?" |
+| `python -m fwbuild cost <project>` | "What does the common context cost?" |
+| `python -m fwbuild report <folder>` | "How many versions are out there, and where?" |
 
-Opzioni che contano:
+Options that matter:
 
-| Flag | Su | Effetto |
+| Flag | On | Effect |
 |---|---|---|
-| `--strict` | `doctor`, `report` | Esce 1 anche sui soli avvisi. **Da usare sempre**, in CI e a mano |
-| `--json` | `doctor`, `report` | Stesso contenuto in una struttura sola. Non cambia l'exit code |
-| `--spawns N --devs N --price N` | `cost` | Traduce le parole in token e in spesa reale |
-| `--depth N` | `report` | Quanti livelli scendere cercando le installazioni |
+| `--strict` | `doctor`, `report` | Exits 1 on warnings too. **Always use it**, in CI and by hand |
+| `--json` | `doctor`, `report` | Same content in a single structure. Does not change the exit code |
+| `--spawns N --devs N --price N` | `cost` | Turns words into tokens and into real spend |
+| `--depth N` | `report` | How many levels down to look for installations |
 
 ```
-$ python -m fwbuild doctor --strict ../../mio-progetto
-OK — nessun rilievo
+$ python -m fwbuild doctor --strict ../../my-project
+OK — no findings
 
-$ python -m fwbuild cost ../../mio-progetto --spawns 200 --devs 12
-CLAUDE.md: 1.584 parole ≈ 2.107 token, pagati a ogni spawn.
-  di cui kernel 1.275 (con tetto) e progetto 309 (senza).
-200 spawn al giorno × 12 persone = 5,1 milioni di token al giorno di solo contesto comune.
+$ python -m fwbuild cost ../../my-project --spawns 200 --devs 12
+CLAUDE.md: 1,602 words ≈ 2,131 tokens, paid at every spawn.
+  of which kernel 1,303 (with a ceiling) and project 299 (without).
+200 spawns a day × 12 people = 5.1 million tokens a day of common context alone.
 ```
 
-Il doctor produce 18 rilievi su tre livelli: **ERROR** (installazione rotta),
-**WARN** (giudizio), **NOTE** (avviso che il progetto dichiara di accettare, in
-`framework.json`, con una ragione scritta — gli errori non si accettano).
+The doctor produces 18 findings at three levels: **ERROR** (broken installation),
+**WARN** (a judgement), **NOTE** (a warning the project declares it accepts, in
+`framework.json`, with a written reason — errors cannot be accepted).
 
 ---
 
-## Il ciclo di manutenzione
+## The maintenance loop
 
-Il metodo generato vive dentro una regione delimitata:
+The generated method lives inside a delimited region:
 
 ```html
-<!-- FRAMEWORK:KERNEL v1.1.0 sha256:a3f9c1e4 — generato, non modificare a mano -->
+<!-- FRAMEWORK:KERNEL v1.1.0 sha256:a3f9c1e4 — generated, do not edit by hand -->
 …
 <!-- /FRAMEWORK:KERNEL -->
 ```
 
-Non è bloccata. Se la modifichi, l'hash smette di tornare e il doctor segnala
-`KERNEL_DRIFT` — che **non è un errore**, è informazione. A quel punto la
-domanda è una sola:
+It is not locked. If you edit it, the hash stops matching and the doctor reports
+`KERNEL_DRIFT` — which is **not an error**, it is information. At that point
+there is only one question:
 
-> È un miglioramento che vale per tutti i progetti, o una deroga di questo?
+> Is this an improvement that holds for every project, or a waiver for this one?
 
-- **Miglioramento** → `/framework-sync` in modalità `--up`: la modifica risale
-  nel sorgente, la versione si incrementa, il prossimo progetto nasce con dentro.
-- **Deroga locale** → si annota, e il prossimo che legge il rilievo sa che è voluta.
+- **Improvement** → `/framework-sync` in `--up` mode: the change rises into the
+  source, the version is bumped, and the next project is born with it inside.
+- **Local waiver** → it gets annotated, so the next person to read the finding
+  knows it was deliberate.
 
-È la direzione che di solito manca, ed è il motivo per cui altrove il metodo si
-biforca.
+This is the direction that is usually missing, and it is why the method forks
+elsewhere.
 
 ---
 
-## Le due copie
+## The two copies
 
-`claude-framework-it/` e `claude-framework-eng/` sono lo stesso framework, non
-uno l'appendice dell'altro. Restano allineati per costruzione:
-[`tools/test_parity.py`](tools/test_parity.py) fallisce se una copia ha un file,
-un agente, un profilo, una versione o un test che l'altra non ha.
+`claude-framework-it/` and `claude-framework-eng/` are the same framework, not
+one an appendix of the other. They stay aligned by construction:
+[`tools/test_parity.py`](tools/test_parity.py) fails if one copy has a file, an
+agent, a profile, a version or a test the other does not.
 
 ```bash
-cd claude-framework-it/tools && python -m unittest discover -s tests -t . -q   # 160 test
-cd claude-framework-eng/tools && python -m unittest discover -s tests -t . -q  # 160 test
-cd tools && python -m unittest test_parity -q                                  # 9 test
+cd claude-framework-eng/tools && python -m unittest discover -s tests -t . -q  # 160 tests
+cd claude-framework-it/tools && python -m unittest discover -s tests -t . -q   # 160 tests
+cd tools && python -m unittest test_parity -q                                  # 9 tests
 ```
 
 ---
 
-## Stato
+## Status
 
-**Versione 1.1.0.** 329 test verdi, installazione di prova pulita sotto
-`doctor --strict` in entrambe le lingue.
+**Version 1.1.0.** 329 tests green, trial installation clean under
+`doctor --strict` in both languages.
 
-Cosa **non** è stato verificato, e va detto: il framework non è ancora stato
-usato dall'inizio alla fine su un progetto reale in produzione. I test provano
-che l'installazione è coerente e che il tooling fa ciò che dichiara — non che il
-metodo produca lavoro migliore. Quella misura non esiste, e finché non esiste
-nessun numero di risparmio va creduto.
+What has **not** been verified, and should be said: the framework has not yet
+been used end to end on a real project in production. The tests prove that the
+installation is coherent and that the tooling does what it claims — not that the
+method produces better work. That measurement does not exist, and until it does,
+no savings figure should be believed.
 
-## Licenza
+## Licence
 
-Nessuna licenza dichiarata: tutti i diritti riservati dall'autore.
+No licence declared: all rights reserved by the author.
