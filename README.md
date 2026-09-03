@@ -5,6 +5,11 @@ rules, domain guides and state files, generated into a project and then
 **verifiable** — with a tool that tells you when the installation has broken and
 a channel for pushing improvements back up into the source.
 
+![The doctor on an installed project: no findings, what the context costs, and the drift a hand edit leaves behind](assets/demo.gif)
+
+*An installed project, checked. The last command runs after someone edits the
+generated method by hand — the finding is information, not a failure.*
+
 ---
 
 ## What it solves

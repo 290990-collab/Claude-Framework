@@ -1,2 +1,6 @@
 # Line endings normalised in the repository, regardless of local core.autocrlf.
 * text=auto
+
+# Binary assets: never line-ending normalised.
+*.gif binary
+*.png binary
