@@ -1,6 +1,6 @@
-"""Guardia strutturale fra `framework/` e `framework-eng/`.
+"""Guardia strutturale fra `claude-framework-it/` e `claude-framework-eng/`.
 
-Vive **fuori** da entrambi: un test dentro `framework/` che cita la traduzione
+Vive **fuori** da entrambi: un test dentro una copia che cita la traduzione
 romperebbe l'autosufficienza della cartella, che è la prima proprietà del
 sorgente.
 
@@ -21,8 +21,8 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-IT = ROOT / "framework"
-EN = ROOT / "framework-eng"
+IT = ROOT / "claude-framework-it"
+EN = ROOT / "claude-framework-eng"
 
 SKIP_DIRS = {"__pycache__", ".pytest_cache"}
 # I marker di segnaposto: ognuno deve stare **solo** nella sua copia. Un
@@ -33,7 +33,7 @@ TEST_DEF = re.compile(r"^\s*def (test_\w+)", re.MULTILINE)
 # I campi di un profilo che hanno una conseguenza meccanica. `name` e
 # `description` no, e `critical_surface` è prosa tradotta: sono i tre che
 # devono poter differire.
-MECHANICAL = ("agents", "on_demand", "cycles", "shared", "settings")
+MECHANICAL = ("agents", "cycles", "shared", "settings")
 
 
 def files(root: Path) -> set[str]:
@@ -50,8 +50,8 @@ def names(root: Path, rel: str, suffix: str) -> set[str]:
 
 class TestParity(unittest.TestCase):
     def test_both_copies_exist(self):
-        self.assertTrue(IT.is_dir(), "framework/ assente")
-        self.assertTrue(EN.is_dir(), "framework-eng/ assente")
+        self.assertTrue(IT.is_dir(), "claude-framework-it/ assente")
+        self.assertTrue(EN.is_dir(), "claude-framework-eng/ assente")
 
     def test_same_file_tree(self):
         """Un file aggiunto da una parte sola è il primo passo della
@@ -119,12 +119,16 @@ def _frontmatter(path: Path, keys) -> dict:
 
     Solo chiavi scalari su una riga: `description` è multilinea e va esclusa —
     è prosa, ed è la parte che la traduzione deve poter cambiare.
+
+    Il nome della chiave ammette le maiuscole perché la piattaforma ne ha
+    (`disallowedTools`, `permissionMode`, `maxTurns`): con `[a-z]+` una chiave
+    così non veniva letta, e due copie che divergono su di essa passavano.
     """
     out = {}
     for line in path.read_text(encoding="utf-8").split("\n"):
         if line.strip() == "---" and out:
             break
-        m = re.match(r"^([a-z]+):\s*(.+)$", line)
+        m = re.match(r"^([a-zA-Z]+):\s*(.+)$", line)
         if m and m.group(1) in keys:
             out[m.group(1)] = m.group(2).strip()
     return out

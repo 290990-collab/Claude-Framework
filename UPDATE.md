@@ -63,6 +63,22 @@ cicli per dominio, questionario di installazione, spec-driven.
 
 ---
 
+## Passata di lettura del 2026-09-02
+
+Rilettura integrale di `framework/` su correttezza, coerenza e rigidità. Undici
+difetti chiusi (tabella *Minori ma reali*), quattro decisioni prese
+dall'utente: `on_demand` eliminato invece che reso differito, shell tolta ai
+quattro revisori che non eseguono, deroghe annotate invece di due livelli di
+severità, pavimento del roster confermato a sei.
+
+Due verifiche contro la piattaforma, che è la postura di
+[docs/erosione-piattaforma.md](docs/erosione-piattaforma.md): `effort` esiste
+(la mappa lo dava per non documentato), `color` ha otto valori e sei schede ne
+usavano uno inventato.
+
+Versione **1.1.0** su entrambe le copie: regole riformulate, non solo
+correzioni. Suite a 160 test per copia, `test_parity` a 9.
+
 ## Problemi
 
 ### P1 — Zero evidenza (**accettata**, 2026-09-02)
@@ -177,6 +193,18 @@ in più. Se si trovasse un numero migliore, si cambia una costante.
 | ~~Dipendenza agente → guida non dichiarata~~ **risolto 2026-09-02** | Un agente attivato con `extras` portava pointer a guide che il profilo non installa: `scientific-reviewer` e `results-analyst` citano `shared/domain/research-principles.md`, elencata solo da `research.toml` → due `SHARED_MISSING`. `profile.roster` risolveva gli agenti, **niente risolveva le loro guide**. Chiuso da [`profile.required_guides`](framework/tools/fwbuild/profile.py) e dal Passo 5 della skill, con 4 test. Misurato: **nessun profilo ha il buco da solo** — lo aprono solo gli extra, ed è per questo che la prova `trial_install.py` non poteva vederlo (usa `research`, che quella guida la installa già) |
 | ~~Due profili indistinguibili~~ **risolto 2026-09-02** | `software.toml` e `library.toml` dichiaravano lo stesso `agents`, lo stesso `on_demand`, le stesse sei guide e gli stessi `settings`: differivano solo per `name` e `description`, e sceglierli non aveva nessuna conseguenza meccanica. **Differenziati**, non fusi, con `critical_surface`: la superficie critica del **campo**, che un profilo conosce prima di conoscere il progetto e che il Passo 3.2 legge come punto di partenza. Non installa nessun agente — è la forma che D11 prescrive per le superfici senza revisore dedicato — e non costa una parola in `CLAUDE.md`. Due test: uno cade se un profilo non la dichiara, l'altro se due profili tornano indistinguibili su tutti i campi meccanici |
 | ~~`framework.json` con percorso assoluto~~ **risolto 2026-09-02** | La skill faceva scrivere `source` come path assoluto. Quando il sorgente è **dentro** il progetto — il primo dei tre modi previsti — l'assoluto è la macchina di chi ha installato, e rompe qualunque clone. La regola c'era già in prosa, ed è esattamente così che è stata disattesa: ora la decide `source.reference()` e la scioglie `source.dereference()`, con quattro test, uno dei quali guarda l'artefatto scritto dall'installazione invece della prosa che lo prescrive |
+| ~~`doctor --strict --json` usciva 1 su un'installazione pulita~~ **risolto 2026-09-02** | Il ramo JSON restituiva il codice **prima** del ramo «nessun rilievo»: la combinazione raccomandata per la CI — README più skill — falliva sempre, e [test_end_to_end.py](framework/tools/tests/test_end_to_end.py) congelava il difetto asserendo `1` su un'installazione pulita con una motivazione che vale per il caso opposto. L'uscita si decide ora una volta sola, sui soli rilievi bloccanti; il test porta lo stesso nome e prova le quattro combinazioni di flag |
+| ~~`framework.json` non verificato da nessun rilievo~~ **risolto 2026-09-02** | Un'installazione senza passava `--strict` pulita, e poi `framework-sync` non ritrovava il sorgente e `fwbuild report` non la contava fra i progetti: spariva dal rapporto di flotta invece di comparirci rotta. Nuovo codice `MANIFEST_MISSING` (ERROR se manca, WARN se incompleto) |
+| ~~Il profilo non era registrato da nessuna parte~~ **risolto 2026-09-02** | `framework.json` portava `source` e `version`. La remedy di `SETTINGS_MISSING` prescriveva di rigenerare i permessi «del profilo del progetto», che nessuno poteva più nominare, e un cambio di campo non aveva un punto di partenza. Ora c'è `profile`, lo scrive `source.manifest()`, e `framework-sync` ha la procedura di cambio di campo |
+| ~~`{{` come segnaposto, in un file di progetto~~ **risolto 2026-09-02** | `PLACEHOLDER_RE` catturava `{{` ovunque: un progetto Vue, Angular, Jinja o Handlebars che citava la propria sintassi nei vincoli si prendeva un ERROR senza via d'uscita. Marker unico, `[DA COMPILARE — …]` |
+| ~~Due sintassi di segnaposto nei template, il doctor ne vedeva una~~ **risolto 2026-09-02** | `{{…}}` e `<…>`: dopo `trial_install` sopravviveva un `- [ ] <il passo successivo…>` e il doctor dava `OK`, mentre la docstring di `_markdown_files` motiva l'inclusione di `docs/` proprio con «un template non compilato è indistinguibile da uno stato assente». Le righe da riempire portano ora il marker; i suggerimenti su sezioni legittimamente vuote sono diventati testo valido di una sezione vuota |
+| ~~`CONF:.*%` scattava su un giudizio categorico~~ **risolto 2026-09-02** | Una voce di `status.md` che riportava `CONF: ALTA — copertura all'80%` prendeva `REPORT_FORMAT`, e con `--strict` bloccava. Il pattern vuole ora la percentuale **come valore**: il segnaposto di allora (`<0-100%>`) o una cifra attaccata a `CONF:` |
+| ~~`on_demand` diceva il contrario di quello che faceva~~ **risolto 2026-09-02** | `profile.roster` accodava sempre `profile.on_demand`: `web` installava `debugger`, `data` installava `security-reviewer`. È lo stesso meccanismo che aveva prodotto il difetto chiuso su `compliance-reviewer`/`perf-analyst`, risolto allora sui dati e non sul meccanismo. **Campo eliminato**: chi il campo lo implica sta in `agents` e si vede |
+| ~~Sei colori di frontmatter inventati~~ **risolto 2026-09-02** | `brown`, `teal` (×3), `magenta`, `violet` non sono fra gli otto valori documentati per `color`. Una configurazione che la piattaforma non riconosce non fallisce: viene ignorata, ed è così che resta sbagliata per sempre. Corretti, con un test sul sorgente |
+| ~~Revisori «sola lettura» con la shell~~ **risolto 2026-09-02** | Quattro schede — sicurezza, conformità, qualità del dato, validità scientifica — dichiaravano «non modifica il codice» avendo `Bash`, e nessuna delle quattro chiedeva di eseguire niente: shell tolta, la sola lettura è ora la configurazione. `final-reviewer`, `perf-analyst` e `results-analyst` la tengono perché devono eseguire o leggere ciò che `Read` non apre, e la scheda dice che lì il divieto è un mandato, non una guardia. Stessa correzione sul messaggio di `SETTINGS_MISSING`: il `deny` copre `Read`, non `Bash(cat .env)` |
+| ~~Permessi sui segreti disomogenei fra profili~~ **risolto 2026-09-02** | Solo `web` negava `.env.*`: in `software`, `library` e `data` un `.env.local` era leggibile, e `research` non negava nessun segreto. Blocco identico su tutti e cinque, con un test che cade se un profilo si scosta |
+| ~~`--strict` senza nessuna valvola~~ **risolto 2026-09-02** | Un `KERNEL_DRIFT` voluto o un `TOKEN_BUDGET` su un monorepo grande tenevano la CI rossa per sempre, e una CI sempre rossa è un controllo che muore. `accepted` in `framework.json` declassa un avviso a `NOTE` — visibile, non bloccante — **solo** con una ragione scritta e **solo** su un avviso: gli ERROR non si accettano. Una deroga che non copre niente diventa `ACCEPTED_UNUSED` |
+| Pavimento del roster a sei agenti | `drop` ignora gli `ALWAYS`: `architect` e `refactorer` entrano anche in un repo da 500 righe. **Deciso di tenerlo** il 2026-09-02: sono il ciclo del codice, e chi ne salta uno non sta scegliendo un roster. Ora è scritto nel Passo 4 invece di essere scoperto leggendo `profile.py` |
 | Lingua | L'italiano taglia fuori quasi tutto il mercato |
 
 ---
@@ -376,7 +404,8 @@ Cosa è entrato:
   al giorno». Ogni ipotesi è stampata accanto al numero — prezzo, spawn, persone —
   perché una cifra senza le sue ipotesi è un numero che nessuno può contestare.
   È il **costo pieno**: la cache dei prompt lo abbassa, e da qui non è misurabile
-- **`doctor --json`** — per la CI, senza toccare l'exit code (`--strict` c'era già)
+- **`doctor --json`** — per la CI, senza toccare l'exit code (`--strict` c'era già).
+  ⚠️ Lo toccava: corretto il 2026-09-02, vedi *Minori ma reali*
 
 **Il conteggio dei token è una stima, e lo dice.** Nessun tokenizer sta nella
 stdlib e il doctor gira offline: il rapporto parole→token viene dall'unica misura

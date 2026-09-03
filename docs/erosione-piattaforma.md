@@ -20,6 +20,10 @@ pregressa, non da fonti verificate al momento della scrittura. È esattamente il
 motivo per cui questo è un check ricorrente e non una conclusione: la mappa
 qui sotto va **riverificata**, non ereditata.
 
+Dalla passata del 2026-09-02 (seconda) la riga sul frontmatter degli agenti fa
+eccezione: è l'unica letta da una fonte, e la fonte è annotata. Le altre restano
+conoscenza pregressa.
+
 ## Come si esegue
 
 Quindici minuti, in quest'ordine.
@@ -47,9 +51,9 @@ Il verdetto ha tre valori soli:
 
 | superficie | cosa fa la piattaforma | cosa fa il framework | verdetto |
 |---|---|---|---|
-| Definizione degli agenti | file in `.claude/agents/` con frontmatter `name`/`description`/`model`/`tools` | scrive quei file, non un formato proprio | `si appoggia` |
+| Definizione degli agenti | file in `.claude/agents/` con **diciassette** campi di frontmatter — oltre a `name`/`description`/`model`/`tools`: `disallowedTools`, `permissionMode`, `maxTurns`, `skills`, `mcpServers`, `hooks`, `memory`, `background`, `effort`, `isolation`, `color`, `initialPrompt`, `experimental` | scrive quei file, non un formato proprio; ne usa cinque (`name`, `description`, `model`, `effort`, `tools`, `color`) | `si appoggia` — verificato il 2026-09-02 |
 | Skill | `SKILL.md` con frontmatter, invocabili per nome | `framework-install`, `framework-doctor`, `framework-sync` sono skill normali | `si appoggia` |
-| Permessi | `.claude/settings.json`, `allow`/`deny` | li genera dal profilo | `si appoggia` |
+| Permessi | `.claude/settings.json`, `allow`/`deny` per strumento | li genera dal profilo, uguali su tutti e cinque | `si appoggia`, **con un confine da dire**: un `deny` su `Read` non copre `Bash(cat .env)`. Dove il segreto conta, la guardia meccanica è la lista `tools` dell'agente, non i permessi |
 | Contesto comune | `CLAUDE.md` caricata a ogni spawn | ne governa la **dimensione**, con due tetti che rompono la build e un rilievo del doctor sull'installato | `scoperto` |
 | Verifica dell'installazione | niente di equivalente | `fwbuild doctor`, sedici codici di rilievo | `scoperto` — è il prodotto |
 | Allineamento fra repo | niente di equivalente | `fwbuild report`, `framework-sync --up/--down` | `scoperto` — è il prodotto |
@@ -70,3 +74,4 @@ mantiene file propri per una cosa che la piattaforma sta imparando a fare.
 | data | versione di Claude Code | esito |
 |---|---|---|
 | 2026-09-02 | non registrata — da annotare alla prossima | prima passata: mappa costruita, nessuna riga a `duplica`, tre da sorvegliare |
+| 2026-09-02 | non registrata | seconda passata, su fonte: [code.claude.com/docs/en/sub-agents](https://code.claude.com/docs/en/sub-agents). Niente a `duplica`. Due correzioni al framework: `effort` **esiste** (la riga lo dava per non documentato, e la regola 2 della delega ci si appoggia legittimamente); `color` ammette otto valori e sei schede ne dichiaravano uno inventato — corretto, con un test che lo tiene. Da guardare alla prossima: `hooks` e `permissionMode` nel frontmatter, che renderebbero meccanico ciò che oggi è mandato |

@@ -1,0 +1,24 @@
+name = "research"
+description = "Ricerca sperimentale: il prodotto è evidenza riproducibile, non software che gira."
+critical_surface = "La validità della conclusione: un numero prodotto da un protocollo sbagliato è indistinguibile da uno giusto."
+
+agents = ["debugger", "api-scout", "results-analyst", "literature", "scientific-reviewer"]
+cycles = ["research"]
+
+shared = [
+  "core/conventions.md",
+  "core/coding-standards.md",
+  "core/architecture-guide.md",
+  "core/testing-guide.md",
+  "core/debugging-playbook.md",
+  "core/review-checklist.md",
+  "domain/research-principles.md",
+]
+
+[settings.permissions]
+deny = [
+  "Read(./**/.env)", "Read(./**/.env.*)", "Read(./**/*.env)",
+  "Read(./**/*.key)", "Read(./**/*.pem)", "Read(./**/*.p12)",
+  "Read(./**/*.ckpt)", "Read(./**/*.pt)", "Read(./**/*.pth)",
+  "Read(./**/*.npy)", "Read(./**/*.npz)", "Read(./**/*.safetensors)",
+]

@@ -1,0 +1,330 @@
+"""Trial installation: simulates framework-install on the `software` profile.
+
+Fake project: `logtail`, a command-line tool that follows and filters log
+files. It serves to demonstrate that a complete installation passes the doctor
+and that drift is detected.
+"""
+
+import json
+import re
+import shutil
+import sys
+from datetime import date
+from pathlib import Path
+
+from fwbuild import assemble, profile, source
+
+FRAMEWORK = Path(__file__).resolve().parents[1]
+# Outside the source: the package ships the code that runs the trial, not the trial.
+DEFAULT_OUT = FRAMEWORK.parent / "_build" / "trial"
+VERSION = (FRAMEWORK / "VERSION").read_text(encoding="utf-8").strip()
+
+DOMAIN = {
+    "explorer": (
+        "The real logic is in `src/logtail/`; `tests/` holds the tests, "
+        "`dist/` is generated and never opened. The commands are in "
+        "`pyproject.toml`. The sample log files in `fixtures/` can be large: "
+        "read only their first lines."
+    ),
+    "architect": (
+        "Non-negotiable constraints: `src/logtail/core/` imports nothing from "
+        "`src/logtail/cli/` (the direction is one-way); the format of the "
+        "configuration file `~/.logtail.toml` is a contract with existing "
+        "users; streaming must stay at constant memory, whatever the size of "
+        "the file."
+    ),
+    "implementer": (
+        "Build: `python -m build`. Quick check: `python -m pytest -q`. "
+        "Delicate zones: the incremental read in `core/follow.py` (file "
+        "rotation while it is being read) and the parsing in `core/parse.py`, "
+        "which must tolerate malformed lines without stopping."
+    ),
+    "tester": (
+        "Command: `python -m pytest -q`. The tests live in `tests/`, one per "
+        "module of `core/`. Not automatically testable: the interactive "
+        "terminal behaviour — it is checked by hand. Regression already in "
+        "place: file rotation during follow (`tests/test_follow.py`)."
+    ),
+    "refactorer": (
+        "`core/` has coverage, `cli/` almost none: there refactoring must go "
+        "in small steps with manual verification. The names of the subcommands "
+        "and options are a public contract: renaming them breaks users' "
+        "scripts even if the code compiles."
+    ),
+    "final-reviewer": (
+        "Verified means: `python -m pytest -q` green and `python -m build` "
+        "without errors, output in hand. Not automatically verifiable: the "
+        "terminal rendering — it must be looked at. Regressions already seen: "
+        "file rotation handling and non-UTF-8 encoding in the logs."
+    ),
+    "debugger": (
+        "The faults seen so far: file rotated during follow (the descriptor "
+        "stays on the old inode), non-UTF-8 encoding in system logs, buffer "
+        "not flushed when the output is a pipe instead of a terminal. All "
+        "reproducible locally with `fixtures/`."
+    ),
+    "security-reviewer": (
+        "Surfaces: the filter patterns supplied by the user are compiled as "
+        "regular expressions (risk of exponential backtracking on hostile "
+        "input); the log file paths come from the command line and from "
+        "`~/.logtail.toml`; the logs can contain credentials, so the output "
+        "must never be sent elsewhere."
+    ),
+    "api-scout": (
+        "Dependencies: `click` for the command line, `rich` for terminal "
+        "rendering, versions pinned in `requirements.lock`. `rich` changes its "
+        "API between minors fairly often: always check in the installed "
+        "package under `.venv/lib/`, not in the online documentation."
+    ),
+}
+
+GUIDES = {
+    "core/conventions.md": (
+        "Language: code and commits in English. Structure: reusable logic in "
+        "`src/logtail/core/`, command-line interface in `src/logtail/cli/`. "
+        "`dist/` and `*.egg-info/` are generated. User-visible changes go in "
+        "`CHANGELOG.md`."
+    ),
+    "core/coding-standards.md": (
+        "Python 3.11+. Formatting with `ruff format`, analysis with `ruff "
+        "check` — both mandatory before declaring anything finished. Type "
+        "annotations on everything public. No new dependency without the "
+        "user's explicit confirmation."
+    ),
+    "core/architecture-guide.md": (
+        "Two modules: `core/` (pure logic, no terminal I/O, testable in "
+        "isolation) and `cli/` (argument parsing and presentation). The "
+        "dependency goes one way only: `cli` imports `core`, never the "
+        "reverse. Contracts: the format of `~/.logtail.toml`, the names of the "
+        "subcommands, the exit codes."
+    ),
+    "core/testing-guide.md": (
+        "`python -m pytest -q`, tests in `tests/`. Real dirty data in "
+        "`fixtures/`: truncated lines, mixed encodings, rotated files. Not "
+        "testable: the interactive terminal rendering."
+    ),
+    "core/debugging-playbook.md": (
+        "Recurring faults: file rotation during follow, non-UTF-8 encoding, "
+        "buffer not flushed on a pipe. `LOGTAIL_DEBUG=1` turns on the detailed "
+        "trace on stderr."
+    ),
+    "core/review-checklist.md": (
+        "Mandatory checks here: constant memory during follow (a build-up is "
+        "visible only on large files); behaviour on a rotated file; non-UTF-8 "
+        "encoding; output to a pipe as well as to a terminal; exit codes "
+        "unchanged."
+    ),
+}
+
+FIRST_TASK = (
+    "cover `core/follow.py` on file rotation during follow "
+    "(known regression, `tests/test_follow.py`)"
+)
+
+FIRST_STEP = (
+    "isolate the incremental read in `core/follow.py` behind a single "
+    "interface, so the rotated-file case is testable without a terminal"
+)
+
+# Step 5 wants the first goal with its criterion, not the skeleton: a residual
+# placeholder is a PLACEHOLDER at Step 6.
+FIRST_GOAL = """### 1. Reliable follow on a rotated file
+
+**Why:** it is the regression that makes `logtail -f` unusable in production,
+and it blocks any work on incremental filters.
+**Done when:** `tests/test_follow.py` covers rotation, truncation and
+recreation of the file, and passes on `fixtures/big.log` at constant memory.
+**Depends on:** —
+**Risks:** rotation behaviour depends on the filesystem — it must be tried on a
+network volume too.
+
+"""
+
+PROJECT_SECTIONS = """## The project
+
+`logtail` — a command-line tool that follows and filters log files in real
+time.
+
+| Path | Role |
+|---|---|
+| `src/logtail/core/` | pure logic: incremental reading, parsing, filters |
+| `src/logtail/cli/` | argument parsing, terminal rendering |
+| `tests/` | tests for every module of `core/` |
+| `fixtures/` | real, dirty logs for the tests |
+
+**HARD constraints:**
+
+- `core/` does not import from `cli/`: the dependency goes one way only.
+- Constant memory during follow, whatever the size of the file.
+- Malformed lines do not stop processing and end up in a count.
+
+**Contracts:** the format of `~/.logtail.toml` · the names of the subcommands
+and options · the exit codes. Changing them breaks users' scripts.
+
+## Commands
+
+```bash
+python -m pytest -q          # tests — the quick check the agent runs
+ruff check && ruff format    # analysis and formatting
+python -m build              # full build
+```
+
+The performance measurements on `fixtures/big.log` (2 GB) are launched by the
+user.
+
+## Critical surface
+
+Security: the user's filter patterns become regular expressions, the paths come
+from the command line and from configuration, and the logs can contain
+credentials. `security-reviewer` reviews before the final check.
+
+## Current state
+
+Project just initialised. No consolidated conclusions.
+
+## Shared guides
+
+**Coordinator only, and first if the session delegates:**
+`.claude/shared/orchestration.md` — when to delegate and to whom, the work
+cycle, how to write a prompt, how state is kept up to date.
+
+To be opened when the task falls in their domain:
+`.claude/shared/core/conventions.md` ·
+`.claude/shared/core/coding-standards.md` ·
+`.claude/shared/core/architecture-guide.md` ·
+`.claude/shared/core/testing-guide.md` ·
+`.claude/shared/core/debugging-playbook.md` ·
+`.claude/shared/core/review-checklist.md`
+
+## Reply style
+
+Concise but complete, with the reason for non-obvious choices. Python, tests
+and the command line are taken as known; everything concerning the behaviour of
+file descriptors and encodings is introduced at first mention.
+"""
+
+ROUTING = """## This project's roster
+
+| Situation | Agent | Model |
+|---|---|---|
+| Where is / who uses X | `explorer` | haiku low |
+| Design, multi-file plans, contracts | `architect` | opus xhigh |
+| Writing production code | `implementer` | opus high |
+| Extending the tests | `tester` | sonnet medium |
+| Behaviour-preserving refactoring | `refactorer` | opus high |
+| Bug with an unknown cause | `debugger` | opus high |
+| Signatures of external libraries | `api-scout` | sonnet medium |
+| Surface reachable by an attacker | `security-reviewer` | opus high |
+| Final check | `final-reviewer` | opus high |
+
+## Delegation notes for this project
+
+The performance measurements on `fixtures/big.log` (2 GB) are launched by the
+user, not by the agent: prepare the command and wait for the pasted output.
+"""
+
+PLACEHOLDER_BLOCK = re.compile(r"\[TO FILL IN[^\]]*\]", re.DOTALL)
+
+
+def fill(text: str, replacement: str) -> str:
+    filled, n = PLACEHOLDER_BLOCK.subn(replacement, text)
+    if n == 0:
+        raise SystemExit("no [TO FILL IN] block found")
+    return filled
+
+
+def install(out: Path) -> int:
+    """Installs the fake project and returns the number of agents."""
+    if out.exists():
+        shutil.rmtree(out)
+    (out / ".claude" / "agents").mkdir(parents=True)
+    (out / ".claude" / "shared" / "core").mkdir(parents=True)
+    (out / "docs").mkdir(parents=True)
+
+    prof = profile.load(FRAMEWORK / "profiles" / "software.toml")
+    roster = profile.roster(prof, extras=[], drop=[])
+
+    (out / "CLAUDE.md").write_text(
+        assemble.build_document(FRAMEWORK / "method", VERSION, PROJECT_SECTIONS),
+        encoding="utf-8",
+    )
+
+    # The coordinator's guide: same mechanics, different recipient. It does not
+    # go into CLAUDE.md, so subagents do not pay for it. The cycles declared by
+    # the profile are appended here: they are orchestration, not execution.
+    (out / ".claude" / "shared" / "orchestration.md").write_text(
+        assemble.build_document(
+            FRAMEWORK / "coordinator",
+            VERSION,
+            ROUTING,
+            extra=assemble.cycle_files(FRAMEWORK, prof.cycles),
+        ),
+        encoding="utf-8",
+    )
+
+    for name in roster:
+        src = (FRAMEWORK / "agents" / f"{name}.md").read_text(encoding="utf-8")
+        fm, method, domain = assemble.split_source(src)
+        domain = fill(domain, DOMAIN[name])
+        (out / ".claude" / "agents" / f"{name}.md").write_text(
+            assemble.build_agent(fm, method, domain, VERSION), encoding="utf-8"
+        )
+
+    for rel in prof.shared:
+        text = (FRAMEWORK / "shared" / rel).read_text(encoding="utf-8")
+        (out / ".claude" / "shared" / rel).write_text(fill(text, GUIDES[rel]), encoding="utf-8")
+
+    (out / ".claude" / "settings.json").write_text(
+        json.dumps(prof.settings, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+
+    # How `framework-doctor` and `framework-sync` find the source again later,
+    # and which profile the project was born with. The shape is decided by
+    # `source.manifest`: the path is relative when the source sits inside the
+    # project, so the file survives the clone.
+    (out / ".claude" / "framework.json").write_text(
+        json.dumps(
+            source.manifest(out, FRAMEWORK, VERSION, prof.name), indent=2
+        ) + "\n",
+        encoding="utf-8",
+    )
+
+    for name in ("TODO.md", "status.md", "roadmap.md"):
+        shutil.copy(FRAMEWORK / "templates" / name, out / "docs" / name)
+
+    # Step 7: the TODO is born with the first real entry and the date. A
+    # template copied and not filled in leaves the next session guessing.
+    todo = out / "docs" / "TODO.md"
+    todo.write_text(
+        todo.read_text(encoding="utf-8")
+        .replace("[TO FILL IN — the active task, one only]", FIRST_TASK)
+        .replace(
+            "[TO FILL IN — the next step, in dependency order]",
+            FIRST_STEP,
+        )
+        .replace("[TO FILL IN — today's date]", date.today().isoformat()),
+        encoding="utf-8",
+    )
+
+    roadmap = out / "docs" / "roadmap.md"
+    roadmap.write_text(
+        re.sub(
+            r"### 1\. \[TO FILL IN[^\]]*\].*?(?=## Deliberately out of scope)",
+            lambda _: FIRST_GOAL,
+            roadmap.read_text(encoding="utf-8"),
+            flags=re.DOTALL,
+        ),
+        encoding="utf-8",
+    )
+
+    # The lifecycle skills go where Claude Code looks for them, otherwise they
+    # are not invocable in the project.
+    for skill in ("framework-doctor", "framework-sync"):
+        shutil.copytree(FRAMEWORK / "skills" / skill, out / ".claude" / "skills" / skill)
+
+    print(f"installed: {len(roster)} agents, {len(prof.shared)} guides -> {out}")
+    return len(roster)
+
+
+if __name__ == "__main__":
+    install(Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_OUT)
