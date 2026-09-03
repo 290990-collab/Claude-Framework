@@ -3,5 +3,14 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
-# Output di `python framework/tools/trial_install.py`: si rigenera, non si versiona.
+# Output di `python <sorgente>/tools/trial_install.py`: si rigenera, non si versiona.
 _build/
+
+# Materiale di lavoro: resta sulla macchina, non nel pacchetto pubblicato.
+# UPDATE.md è il registro delle decisioni, docs/ i piani e le valutazioni,
+# sources/ l'archivio dei progetti da cui il metodo è stato distillato.
+UPDATE.md
+docs/
+sources/
+scripts/
+dictionary.txt
