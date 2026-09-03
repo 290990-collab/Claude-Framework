@@ -5,35 +5,32 @@ rules, domain guides and state files, generated into a project and then
 **verifiable** — with a tool that tells you when the installation has broken, and
 a channel for pushing improvements back up into the source.
 
-> **Italiano** — lo stesso framework, interamente in italiano, sta in
-> [`claude-framework-it/`](claude-framework-it/README.md). Se ne installa uno,
-> non entrambi.
-
 ---
 
 ## What it solves
 
-Anyone using Claude Code across several projects ends up with a hand-written
-`CLAUDE.md` for each. After a few months the versions have diverged, nobody knows
-which one is the good one, and the file has grown until every subagent pays for
-context it cannot use.
+Claude Code hands you subagents, permissions, skills and a `CLAUDE.md`. What it
+does not hand you is a **method** — who delegates what to whom, how a prompt is
+shaped, what a subagent must hand back, and what nobody may claim without having
+run it. Everyone writes that by hand, once per project. The file grows, the rules
+drift, and a few months later no two projects work the same way.
 
-The framework attacks the three causes:
+This is that method, made installable and verifiable. Five problems, one source:
 
 | Problem | What the framework does |
 |---|---|
-| The method forks between projects | One versioned source; `framework-sync` carries versions down and improvements up |
-| Hand edits disappear | The generated method lives in a **kernel region** with a hash: editing it is allowed, but it becomes visible |
-| `CLAUDE.md` bloats and costs | Split by **recipient**: whoever delegates reads a separate file the others never pay for |
+| **Nothing orchestrates the work.** One context does everything, or agents fan out with no rules | A roster of specialised agents, a routing table saying which one takes what, ten delegation rules and a mandatory prompt shape. One task per agent, one explicit done-criterion, and no subagent spawning another |
+| **Context is paid blindly.** `CLAUDE.md` is loaded into every subagent at every spawn, and it only ever grows | Split by **recipient**: the delegation rules sit in a file only the coordinator opens. Guides load on demand. Word ceilings break the build, and `fwbuild cost` turns the file into tokens and money |
+| **The model invents.** Remembered APIs, remembered numbers, "it works" without having run it | Evidence-before-action rules present in every context, and one fixed report every subagent closes with: confidence, what would disprove it, what it assumed, what it did **not** verify |
+| **The harness is wired by hand.** Models, tools, permissions and skills, one agent at a time | The profile generates them: cards carrying model and effort, `settings.json` permissions, the skills. The four read-only reviewers have no shell at all — the guarantee is the configuration, not a sentence in a prompt |
+| **The method forks.** Each project's copy drifts, and the good hand edits are lost | One versioned source. The generated method sits in a hashed **kernel region**: editing it is allowed and becomes *visible*, and `framework-sync` carries the edits worth keeping back up |
 
 ---
 
 ## Requirements
 
 - **Claude Code**
-- **Python 3.11+** — for the tooling only, and only `tomllib` from the stdlib
-
-Nothing to install.
+- **Python 3.11+** — for the tooling, `tomllib` from the stdlib
 
 ---
 
@@ -41,11 +38,15 @@ Nothing to install.
 
 Done **once per machine**. From then on, every new project is one line.
 
+**macOS / Linux**
+
 ```bash
 git clone https://github.com/290990-collab/Claude-Framework.git ~/.claude/claude-framework
 cp -r ~/.claude/claude-framework/claude-framework-eng ~/.claude/framework
 cp -r ~/.claude/framework/skills/framework-install ~/.claude/skills/
 ```
+
+**Windows (PowerShell)**
 
 ```powershell
 git clone https://github.com/290990-collab/Claude-Framework.git $HOME\.claude\claude-framework
@@ -53,12 +54,9 @@ Copy-Item -Recurse $HOME\.claude\claude-framework\claude-framework-eng $HOME\.cl
 Copy-Item -Recurse $HOME\.claude\framework\skills\framework-install $HOME\.claude\skills\
 ```
 
-For Italian, use `claude-framework-it` in place of `claude-framework-eng`.
-
-The destination is named `framework/` because that is one of the places the
-installer looks in. It searches in this order: `./framework/` inside the project,
-`$CLAUDE_FRAMEWORK`, `~/.claude/framework/`. To keep the source elsewhere, the
-environment variable is enough.
+It goes to `framework/` because that is where the installer looks: `./framework/`
+in the project, then `$CLAUDE_FRAMEWORK`, then `~/.claude/framework/`. Set the
+variable to keep the source anywhere else.
 
 To check that a source is valid:
 
@@ -79,29 +77,34 @@ cd ~/.claude/framework/tools && python -m fwbuild source ..
 | `/framework-sync` | maintenance | Carries versions **down** into the project, improvements **up** into the source, activates or deactivates an agent |
 
 The modes of `framework-sync` — `--down`, `--up`, `--activate <agent>`,
-`--deactivate <agent>` — are asked of the skill in natural language: **they are
-not shell flags.**
+`--deactivate <agent>` — are asked of the skill in natural language.
 
 ### What it writes into a project
 
-`/framework-install` with the `software` profile produces:
+Whatever the profile, `/framework-install` produces the same shape:
 
 ```
-CLAUDE.md                        common method + project context
-.claude/framework.json           source, version, profile
-.claude/settings.json            profile permissions (including the ban on reading secrets)
-.claude/agents/                  9 cards: only the chosen roster
-.claude/shared/orchestration.md  delegation rules + routing table — only for whoever delegates
-.claude/shared/core/             6 guides, opened on demand
+CLAUDE.md                        the common method + this project's context
+.claude/framework.json           source, version, profile — how the project finds its way home
+.claude/settings.json            permissions from the profile, secrets denied
+.claude/agents/                  one card per agent in the chosen roster
+.claude/shared/orchestration.md  delegation rules + routing table — opened only by whoever delegates
+.claude/shared/core/             six cross-project guides, opened on demand
+.claude/shared/domain/           the domain guide, when the profile calls for one
 .claude/skills/                  framework-doctor, framework-sync
-docs/TODO.md                     where we are right now
-docs/status.md                   closed decisions and measured results
+docs/TODO.md                     where the project stands right now
+docs/status.md                   closed decisions, measured results
 docs/roadmap.md                  where it is going
 ```
 
-The `[TO FILL IN — …]` blocks are the points the installer fills in with you
-during the questionnaire: they are the project's context, the only part that gets
-personalised.
+The profile decides how many agents and which domain guide. Nothing else is
+written: the framework does not touch your code, your build or your dependencies,
+and it installs nothing.
+
+Every generated file carries `[TO FILL IN — …]` blocks — the constraints, the
+critical surface, the commands a subagent cannot deduce. The installer fills them
+in with you during the questionnaire, and they are the **only** part that gets
+personalised: the method itself is never rewritten per project.
 
 ### The five profiles
 
