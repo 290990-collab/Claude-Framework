@@ -97,9 +97,10 @@ had forked into four divergent versions.
 6. **Realign the originating project** with `--down`, so the hash matches
    again.
 
-⚠️ **If the translation overlay exists**, a change to the method misaligns it.
-It must be noted: a translation stuck at an old version becomes the new fossil
-source.
+⚠️ **A translation of this source is a source of its own**, with its own
+`VERSION`: `--up` does not reach it. If the rule promoted here holds in every
+language, it has to be carried across by hand — and until it is, the two
+editions say different things.
 
 ---
 

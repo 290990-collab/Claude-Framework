@@ -94,9 +94,10 @@ biforcato in quattro versioni divergenti.
 5. **Dichiara cosa è cambiato**, così chi aggiorna sa cosa sta ricevendo.
 6. **Riallinea il progetto di origine** con `--down`, perché ora l'hash torni.
 
-⚠️ **Se esiste l'overlay di traduzione**, una modifica al metodo lo disallinea.
-Va annotato: una traduzione ferma a una versione vecchia diventa il nuovo
-sorgente fossile.
+⚠️ **Una traduzione di questo sorgente è un sorgente a sé**, con il proprio
+`VERSION`: `--up` non la raggiunge. Se la regola promossa qui vale in ogni
+lingua, va portata a mano anche là — e finché non lo è, le due edizioni dicono
+cose diverse.
 
 ---
 

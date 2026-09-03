@@ -181,25 +181,29 @@ elsewhere.
 
 ---
 
-## The two copies
+## The two editions
 
-`claude-framework-it/` and `claude-framework-eng/` are the same framework, not
-one an appendix of the other. They stay aligned by construction:
-[`tools/test_parity.py`](tools/test_parity.py) fails if one copy has a file, an
-agent, a profile, a version or a test the other does not.
+`claude-framework-eng/` and `claude-framework-it/` are two **self-standing
+editions** of the same framework, not one an appendix of the other. They start
+from the same version and each carries its own source, tooling, tests and
+`VERSION`.
+
+You install one. They are not meant to be used together, and nothing links them
+at runtime: an improvement promoted with `framework-sync --up` rises into the
+edition you installed, and stays there. From 1.1.0 onwards each edition follows
+the people who use it.
 
 ```bash
 cd claude-framework-eng/tools && python -m unittest discover -s tests -t . -q  # 160 tests
 cd claude-framework-it/tools && python -m unittest discover -s tests -t . -q   # 160 tests
-cd tools && python -m unittest test_parity -q                                  # 9 tests
 ```
 
 ---
 
 ## Status
 
-**Version 1.1.0.** 329 tests green, trial installation clean under
-`doctor --strict` in both languages.
+**Version 1.1.0**, both editions. 160 tests green each, trial installation clean
+under `doctor --strict` in both.
 
 What has **not** been verified, and should be said: the framework has not yet
 been used end to end on a real project in production. The tests prove that the
