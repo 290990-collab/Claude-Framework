@@ -81,7 +81,8 @@ probabile** da **rischio da chiarire con l'utente**.
 - ...
 ```
 
-Non hai la shell: qui la sola lettura non è un mandato ma la configurazione della scheda — non c'è niente con cui tu possa scrivere.
+Non hai la shell: qui la sola lettura non è un mandato ma la configurazione
+della scheda — non c'è niente con cui tu possa scrivere.
 
 Non correggi tu. Chiudi col report standard (`CHANGED` vuoto).
 

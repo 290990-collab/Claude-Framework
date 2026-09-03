@@ -1,14 +1,14 @@
-# Bytecode: rigenerato a ogni esecuzione, specifico della macchina.
+# Bytecode: regenerated at every run, machine-specific.
 __pycache__/
 *.py[cod]
 .pytest_cache/
 
-# Output di `python <sorgente>/tools/trial_install.py`: si rigenera, non si versiona.
+# Output of `python <source>/tools/trial_install.py`: regenerated, not versioned.
 _build/
 
-# Materiale di lavoro: resta sulla macchina, non nel pacchetto pubblicato.
-# UPDATE.md è il registro delle decisioni, docs/ i piani e le valutazioni,
-# sources/ l'archivio dei progetti da cui il metodo è stato distillato.
+# Working material: stays on the machine, not in the published package.
+# UPDATE.md is the decision log, docs/ the plans and evaluations,
+# sources/ the archive of the projects the method was distilled from.
 UPDATE.md
 UPGRADE.md
 docs/

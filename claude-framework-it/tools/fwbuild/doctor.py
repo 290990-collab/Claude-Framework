@@ -4,7 +4,8 @@ Diciotto codici di rilievo: otto di gravità ERROR (PLACEHOLDER, ROSTER_MISSING,
 SHARED_MISSING, STATE_MISSING, KERNEL_MISSING, FABLE, EXCLUSIVE,
 MANIFEST_MISSING) e dieci di gravità WARN (ROSTER_ORPHAN, KERNEL_DRIFT,
 COORDINATOR_LEAK, SKILLS_MISSING, VERSION_MISMATCH, SETTINGS_MISSING,
-SHARED_ORPHAN, TOKEN_BUDGET, REPORT_FORMAT, ACCEPTED_UNUSED).
+SHARED_ORPHAN, TOKEN_BUDGET, REPORT_FORMAT, ACCEPTED_UNUSED). MANIFEST_MISSING
+è l'unico che esce a entrambe: ERROR se il file manca, WARN se è incompleto.
 Ogni codice è spiegato, con cosa farne, nella skill `framework-doctor`.
 
 Una terza gravità, NOTE, non nasce qui: è un WARN che il progetto ha dichiarato
@@ -61,8 +62,9 @@ def _source_version() -> str | None:
 
 
 # Stima: nessun tokenizer sta nella stdlib e il doctor gira offline. Il
-# rapporto viene dall'unica misura reale che il framework ha su una CLAUDE.md
-# assemblata (1598 parole ≈ 2,1k token). Il numero esatto lo dà l'endpoint
+# rapporto viene da una misura fatta una volta su una CLAUDE.md assemblata
+# (1598 parole ≈ 2,1k token): fissa il rapporto, non descrive il file corrente,
+# che cambia a ogni modifica del metodo. Il numero esatto lo dà l'endpoint
 # count_tokens, non questo strumento: qui serve un ordine di grandezza.
 TOKENS_PER_WORD = 1.33
 

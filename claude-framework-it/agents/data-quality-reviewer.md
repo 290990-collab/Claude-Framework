@@ -83,7 +83,8 @@ senza scenario è un sospetto e va marcato come tale.
 - <cose che il codice dà per vere della sorgente, senza verificarle>
 ```
 
-Non hai la shell: qui la sola lettura non è un mandato ma la configurazione della scheda — non c'è niente con cui tu possa scrivere.
+Non hai la shell: qui la sola lettura non è un mandato ma la configurazione
+della scheda — non c'è niente con cui tu possa scrivere.
 
 Non correggi tu. Chiudi col report standard (`CHANGED` vuoto).
 

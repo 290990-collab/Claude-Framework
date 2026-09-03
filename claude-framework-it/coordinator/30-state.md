@@ -14,6 +14,10 @@ l'ha. È anche il motivo per cui questa sezione sta qui e non in `CLAUDE.md`.
 | 3 | `CLAUDE.md § Stato attuale` | il quadro: cosa sa il progetto oggi | solo se **cambia il quadro** | ~25 righe |
 | 4 | memoria persistente | fatti che valgono **fra** sessioni: chi è l'utente, direttive, decisioni | a ogni scoperta o cambio strutturale | 1 file |
 
+`docs/roadmap.md` **non è un livello**: i livelli dicono dove siamo, la roadmap
+dove andiamo — obiettivi, ordine di dipendenza, criteri di completamento. Si
+tocca quando un obiettivo si chiude o se ne aggiunge uno, non a ogni step.
+
 **Regole:**
 
 - **Si aggiunge o si spunta, non si riscrive.**

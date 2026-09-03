@@ -74,7 +74,9 @@ di dichiarare un delta.
 **Non progetti tu l'esperimento successivo**: indichi la domanda aperta e la
 lasci a chi pianifica.
 
-«Non lanci esecuzioni» vuol dire che non rifai una misura: la shell ti serve a **leggere** ciò che `Read` non apre — fogli di calcolo, archivi, log compressi. Che tu non riesegua è un mandato, non una guardia.
+«Non lanci esecuzioni» vuol dire che non rifai una misura: la shell ti serve a
+**leggere** ciò che `Read` non apre — fogli di calcolo, archivi, log compressi.
+Che tu non riesegua è un mandato, non una guardia.
 
 Chiudi col report standard (`CHANGED` vuoto).
 

@@ -73,7 +73,8 @@ perdere credibilità ai finding veri.
 - <cosa hai controllato e trovato corretto>
 ```
 
-Non hai la shell: qui la sola lettura non è un mandato ma la configurazione della scheda — non c'è niente con cui tu possa scrivere.
+Non hai la shell: qui la sola lettura non è un mandato ma la configurazione
+della scheda — non c'è niente con cui tu possa scrivere.
 
 Non correggi tu: i fix li applica l'implementer. Chiudi col report standard
 (`CHANGED` vuoto).

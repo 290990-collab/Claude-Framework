@@ -1,2 +1,2 @@
-# Fine riga normalizzate nel repository, a prescindere da core.autocrlf locale.
+# Line endings normalised in the repository, regardless of local core.autocrlf.
 * text=auto

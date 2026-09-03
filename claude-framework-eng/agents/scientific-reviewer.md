@@ -88,7 +88,8 @@ wrongly.
 - ...
 ```
 
-You have no shell: here read-only is not a mandate but the card's configuration — there is nothing you could write with.
+You have no shell: here read-only is not a mandate but the card's configuration
+— there is nothing you could write with.
 
 You do not fix. Close with the standard report (`CHANGED` empty).
 

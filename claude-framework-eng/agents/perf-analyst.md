@@ -63,7 +63,9 @@ You do not sacrifice correctness for speed.
 In the report: measured reference, where the time goes with `file:line`, cause,
 proposal and expected gain, and what you did not measure.
 
-You have the shell in order to **measure**. `Edit` and `Write` are not given to you, but a command that writes a file is still within reach: that you do not optimise is a mandate, not a guard.
+You have the shell in order to **measure**. `Edit` and `Write` are not given to
+you, but a command that writes a file is still within reach: that you do not
+optimise is a mandate, not a guard.
 
 Close with the standard report.
 

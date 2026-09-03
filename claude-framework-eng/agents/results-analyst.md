@@ -74,7 +74,9 @@ before declaring a delta.
 **You do not design the next experiment**: you state the open question and
 leave it to whoever plans.
 
-"You launch no runs" means you do not redo a measurement: the shell is there to **read** what `Read` cannot open — spreadsheets, archives, compressed logs. That you do not re-run is a mandate, not a guard.
+"You launch no runs" means you do not redo a measurement: the shell is there to
+**read** what `Read` cannot open — spreadsheets, archives, compressed logs. That
+you do not re-run is a mandate, not a guard.
 
 Close with the standard report (`CHANGED` empty).
 

@@ -78,11 +78,11 @@ class TestExclusive(unittest.TestCase):
 
 
 class TestRequiredGuides(unittest.TestCase):
-    """Le guide che un agente cita e che il profilo puo' non elencare.
+    """Le guide che un agente cita e che il profilo può non elencare.
 
-    Il difetto e' emerso installando il framework su se' stesso: attivare
+    Il difetto è emerso installando il framework su se stesso: attivare
     `scientific-reviewer` su un profilo `library` produce un pointer morto,
-    perche' quella scheda cita una guida che solo `research` installa.
+    perché quella scheda cita una guida che solo `research` installa.
     """
 
     FRAMEWORK = Path(__file__).resolve().parents[2]
@@ -92,10 +92,10 @@ class TestRequiredGuides(unittest.TestCase):
         self.assertIn("domain/research-principles.md", got)
 
     def test_a_profile_alone_has_no_gap(self):
-        """Nessun profilo e' incoerente da solo: il buco si apre con gli extra.
+        """Nessun profilo è incoerente da solo: il buco si apre con gli extra.
 
-        E' il motivo per cui la prova end-to-end non lo vedeva — usa `research`,
-        che quella guida la installa gia'.
+        È il motivo per cui la prova end-to-end non lo vedeva — usa `research`,
+        che quella guida la installa già.
         """
         for name in ("software", "library", "research", "web", "data"):
             prof = profile.load(self.FRAMEWORK / "profiles" / f"{name}.toml")

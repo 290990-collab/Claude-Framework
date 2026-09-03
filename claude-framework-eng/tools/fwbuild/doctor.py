@@ -4,7 +4,9 @@ Eighteen finding codes: eight of severity ERROR (PLACEHOLDER, ROSTER_MISSING,
 SHARED_MISSING, STATE_MISSING, KERNEL_MISSING, FABLE, EXCLUSIVE,
 MANIFEST_MISSING) and ten of severity WARN (ROSTER_ORPHAN, KERNEL_DRIFT,
 COORDINATOR_LEAK, SKILLS_MISSING, VERSION_MISMATCH, SETTINGS_MISSING,
-SHARED_ORPHAN, TOKEN_BUDGET, REPORT_FORMAT, ACCEPTED_UNUSED).
+SHARED_ORPHAN, TOKEN_BUDGET, REPORT_FORMAT, ACCEPTED_UNUSED). MANIFEST_MISSING
+is the only one that comes out at both: ERROR if the file is missing, WARN if it
+is incomplete.
 Every code is explained, with what to do about it, in the `framework-doctor`
 skill.
 
@@ -62,10 +64,11 @@ def _source_version() -> str | None:
 
 
 # Estimate: no tokeniser is in the stdlib and the doctor runs offline. The
-# ratio comes from the only real measurement the framework has on an assembled
-# CLAUDE.md (1598 words ≈ 2.1k tokens). The exact number is given by the
-# count_tokens endpoint, not by this tool: here an order of magnitude is what
-# is needed.
+# ratio comes from a measurement taken once on an assembled CLAUDE.md (1598
+# words ≈ 2.1k tokens): it fixes the ratio, it does not describe the current
+# file, which changes with every edit to the method. The exact number is given
+# by the count_tokens endpoint, not by this tool: here an order of magnitude is
+# what is needed.
 TOKENS_PER_WORD = 1.33
 
 

@@ -11,7 +11,7 @@ a channel for pushing improvements back up into the source.
 
 Claude Code hands you subagents, MCP and skills. What it
 does not hand you is a **method**. Everyone writes that by hand, once per project. The file grows, the rules
-drift, and a few months later it becomes inconsistent accross projects.
+drift, and a few months later it becomes inconsistent across projects.
 
 This is that method. Five problems, one source:
 
@@ -103,7 +103,7 @@ and it installs nothing.
 
 The method itself is never rewritten per project.
 
-### The five profiles
+### Five profiles
 
 | Profile | Agents | Added cycles | For |
 |---|---:|---|---|
@@ -173,7 +173,7 @@ editions** of the same framework.
 
 ## Status
 
-**Version 1.1.0.**
+**Version 1.1.1.**
 
 The test suite shows the installation is coherent. Quantified results are
 planned for a future release.

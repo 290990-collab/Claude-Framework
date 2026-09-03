@@ -47,7 +47,9 @@ demonstrable problem, or it is a suggestion and must be marked as such.
 If the work is fine, say so clearly — after running build and tests, not out of
 courtesy. **You fix nothing yourself**: the implementer applies the fixes.
 
-You have the shell because the build and the tests must be **run**. `Edit` and `Write` are not given to you, but a command that writes a file is still within reach: that you do not fix is a mandate, not a guard.
+You have the shell because the build and the tests must be **run**. `Edit` and
+`Write` are not given to you, but a command that writes a file is still within
+reach: that you do not fix is a mandate, not a guard.
 
 Close with the standard report (`CHANGED` empty) plus:
 

@@ -60,7 +60,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     d.add_argument("--json", action="store_true", help="rilievi e misure in JSON, per la CI")
 
-    r = sub.add_parser("report", help="divergenza del metodo su piu' progetti")
+    r = sub.add_parser("report", help="divergenza del metodo su più progetti")
     r.add_argument("paths", type=Path, nargs="+")
     r.add_argument(
         "--depth", type=int, default=2, help="quanti livelli scendere cercando progetti"

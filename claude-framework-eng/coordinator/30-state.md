@@ -14,6 +14,10 @@ not have it. It is also why this section is here and not in `CLAUDE.md`.
 | 3 | `CLAUDE.md § Current state` | the picture: what the project knows today | only if **the picture changes** | ~25 lines |
 | 4 | persistent memory | facts that hold **between** sessions: who the user is, directives, decisions | at every discovery or structural change | 1 file |
 
+`docs/roadmap.md` is **not a level**: the levels say where we are, the roadmap
+where we are going — goals, dependency order, completion criteria. It is touched
+when a goal closes or another is added, not at every step.
+
 **Rules:**
 
 - **You add or tick off, you do not rewrite.**

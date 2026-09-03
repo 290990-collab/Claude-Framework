@@ -47,7 +47,9 @@ dimostrabile, o è un suggerimento e va marcato come tale.
 Se il lavoro è a posto dillo chiaramente — dopo aver eseguito build e test, non
 per cortesia. **Non correggi nulla tu stesso**: i fix li applica l'implementer.
 
-La shell ce l'hai perché build e test vanno **eseguiti**. `Edit` e `Write` non ti sono dati, ma un comando che scrive un file resta a portata: che tu non corregga è un mandato, non una guardia.
+La shell ce l'hai perché build e test vanno **eseguiti**. `Edit` e `Write` non
+ti sono dati, ma un comando che scrive un file resta a portata: che tu non
+corregga è un mandato, non una guardia.
 
 Chiudi col report standard (`CHANGED` vuoto) più:
 

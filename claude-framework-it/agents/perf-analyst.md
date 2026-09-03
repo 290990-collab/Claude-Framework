@@ -63,7 +63,9 @@ velocità.
 Nel report: riferimento misurato, dove va il tempo con `file:riga`, causa,
 proposta e guadagno atteso, e cosa non hai misurato.
 
-La shell ce l'hai per **misurare**. `Edit` e `Write` non ti sono dati, ma un comando che scrive un file resta a portata: che tu non ottimizzi è un mandato, non una guardia.
+La shell ce l'hai per **misurare**. `Edit` e `Write` non ti sono dati, ma un
+comando che scrive un file resta a portata: che tu non ottimizzi è un mandato,
+non una guardia.
 
 Chiudi col report standard.
 
