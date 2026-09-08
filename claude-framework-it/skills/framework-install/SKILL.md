@@ -9,20 +9,15 @@ description: >
 
 # Installazione e adattamento del framework
 
-Sei il coordinatore. Questa procedura richiede giudizio: leggi un progetto, fai
-domande, decidi un roster e compili contenuti. Il tooling fa solo ciò che è
-meccanico — assemblaggio, hash, verifiche.
+Sei il coordinatore: leggi un progetto, fai domande, decidi un roster, compili contenuti. Il tooling fa solo il meccanico — assemblaggio, hash, verifiche.
 
-**Non installi nulla** (pacchetti, dipendenze, estensioni) in nessun passo. Se
-qualcosa sembra mancare, lo segnali e chiedi.
+**Non installi nulla** (pacchetti, dipendenze, estensioni) in nessun passo. Se qualcosa sembra mancare, lo segnali e chiedi.
 
 ---
 
 ## Passo 0 — Trova e valida il sorgente
 
-Il sorgente sta in uno di questi posti, **in quest'ordine**: `./framework/`
-(copiato nel progetto), `$CLAUDE_FRAMEWORK`, `~/.claude/framework/`. Prendi il
-**primo che esiste** — non il primo che funziona — e validalo:
+Il sorgente sta in uno di questi posti, **in quest'ordine**: `./framework/` (copiato nel progetto), `$CLAUDE_FRAMEWORK`, `~/.claude/framework/`. Prendi il **primo che esiste** — non il primo che funziona — e validalo:
 
 ```bash
 cd <FW>/tools && python -m fwbuild source ..
@@ -30,13 +25,9 @@ cd <FW>/tools && python -m fwbuild source ..
 
 Stampa root e versione, oppure cosa manca ed esce 1.
 
-**Se esce 1, fermati qui.** Non creare cartelle e non scrivere file: un sorgente
-sbagliato scoperto a metà lascia un progetto peggiore di uno vergine. Chiedi
-all'utente dov'è il framework e riprova con quel percorso. **Trovato ma
-incompleto è un errore, non un motivo per provare il successivo.**
+**Se esce 1, fermati qui:** niente cartelle, niente file — un sorgente sbagliato scoperto a metà lascia un progetto peggiore di uno vergine. Chiedi all'utente dov'è il framework e riprova con quel percorso. **Trovato ma incompleto è un errore, non un motivo per provare il successivo.**
 
-Da qui in poi `<FW>` è la root validata e `<PRJ>` la root del progetto:
-sostituiscili coi percorsi reali, non lasciarli letterali.
+Da qui `<FW>` è la root validata e `<PRJ>` la root del progetto: sostituiscili coi percorsi reali, non lasciarli letterali.
 
 ## Passo 1 — Rileva il tipo di installazione
 
@@ -44,17 +35,12 @@ sostituiscili coi percorsi reali, non lasciarli letterali.
 ls -A | head -50
 ```
 
-- **Progetto vuoto** (o solo file di configurazione): l'adattamento
-  parte da un'**idea**, che l'utente descrive a parole. Vai al Passo 3.
-- **Codebase esistente**: l'adattamento parte dal **codice**. Vai al Passo 2.
+- **Progetto vuoto** (o solo configurazione): l'adattamento parte da un'**idea**, che l'utente descrive a parole → Passo 3.
+- **Codebase esistente:** l'adattamento parte dal **codice** → Passo 2.
 
 ## Passo 2 — Ricognizione a costo basso (solo se c'è codice)
 
-**Non leggere il repository tu.** Delega a `explorer` — il framework predica il
-contesto pre-digerito, e la sua installazione è il primo posto in cui deve
-praticarlo.
-
-Prompt per `explorer`, nella struttura obbligatoria:
+**Non leggere il repository tu:** delega a `explorer`. Prompt nella struttura obbligatoria:
 
 ```
 TASK: mappare questo repository per adattare un framework di lavoro.
@@ -77,14 +63,11 @@ VINCOLI:
 DONE QUANDO: i 7 punti sopra, in forma compatta, con file:riga dove serve.
 ```
 
-Se il repository è grande, più `explorer` in parallelo su sottoalberi disgiunti:
-è l'unico agente per cui il parallelismo è libero.
+Repository grande → più `explorer` in parallelo su sottoalberi disgiunti: è l'unico agente a parallelismo libero.
 
 ## Passo 3 — Questionario
 
-**Una domanda alla volta**, non un blocco unico. Ogni risposta può cambiare le
-domande successive. Proponi opzioni concrete e una raccomandazione motivata dal
-codice o dall'idea, quando ce l'hai.
+**Una domanda alla volta**, non un blocco unico: ogni risposta può cambiare le successive. Proponi opzioni concrete e una raccomandazione motivata dal codice o dall'idea.
 
 ### Sempre — quattro domande
 
@@ -98,17 +81,11 @@ codice o dall'idea, quando ce l'hai.
 | `research` | il prodotto è evidenza riproducibile, non software che gira |
 | `data` | pipeline di acquisizione, trasformazione, indicizzazione |
 
-Se nessuno calza, chiedi all'utente di descrivere il campo e costruisci il roster
-a mano partendo dal profilo più vicino.
+Se nessuno calza, chiedi all'utente di descrivere il campo e costruisci il roster a mano dal profilo più vicino.
 
-**2. Superficie critica** — *«qual è la superficie critica di questo lavoro, cioè
-cosa lo rende sbagliato anche a codice perfetto?»* Determina il revisore, e se ne
-attiva **uno**.
+**2. Superficie critica** — *«qual è la superficie critica di questo lavoro, cioè cosa lo rende sbagliato anche a codice perfetto?»* Determina il revisore, e se ne attiva **uno**.
 
-Il profilo scelto ne dichiara già una in `critical_surface`: è quella del
-**campo**, nota prima di conoscere il progetto. Leggila all'utente come punto di
-partenza — non come risposta data — e falla confermare, restringere o
-sostituire. Un progetto può averne una che il suo campo non implica.
+Il profilo ne dichiara già una in `critical_surface`: è quella del **campo**, nota prima del progetto. Leggila all'utente come punto di partenza, non come risposta data, e falla confermare, restringere o sostituire — un progetto può averne una che il suo campo non implica.
 
 | risposta | revisore |
 |---|---|
@@ -120,35 +97,19 @@ sostituire. Un progetto può averne una che il suo campo non implica.
 
 Due revisori solo se il progetto ha davvero due superfici critiche distinte.
 
-**Se la risposta non è in tabella** — il contratto pubblico che non si rompe,
-l'accessibilità, il costo operativo — **non si inventa un agente**: sarebbe un
-ruolo pagato da tutti per un caso solo. La superficie va scritta in due posti:
-nella sezione *Superficie critica* di `CLAUDE.md`, e nel contesto di progetto di
-`final-reviewer`, come una riga di «qui verificato significa anche». Il punto 4
-della sua checklist copre già i consumatori esterni e i contratti; quello che
-senza questa riga non sa è **quale** superficie, in questo progetto, viene prima
-delle altre.
+**Se la risposta non è in tabella** — contratto pubblico, accessibilità, costo operativo — **non si inventa un agente**: sarebbe un ruolo pagato da tutti per un caso solo. La superficie si scrive in due posti: la sezione *Superficie critica* di `CLAUDE.md`, e il contesto di progetto di `final-reviewer`, come una riga «qui verificato significa anche». Il punto 4 della sua checklist copre già consumatori esterni e contratti; ciò che senza quella riga non sa è **quale** superficie, qui, viene prima delle altre.
 
 **3. Stile delle risposte in chat**, su **due assi indipendenti**:
 
-*Forma* — telegrafica (conclusione prima, zero prosa) · sintetica ma completa
-(default) · esplicativa (si spiega sempre il **perché** di una scelta) ·
-discorsiva.
+*Forma* — telegrafica (conclusione prima, zero prosa) · sintetica ma completa (default) · esplicativa (si spiega sempre il **perché**) · discorsiva.
 
-*Base di conoscenza assunta* — cosa si può dare per noto e cosa va introdotto
-alla prima comparsa. È l'asse che conta di più: dice **cosa non spiegare**.
-Chiedilo così: *«cosa dovrei dare per scontato che sai già, e cosa preferisci che
-ti spieghi ogni volta?»*
+*Base di conoscenza assunta* — cosa dare per noto e cosa introdurre alla prima comparsa. È l'asse che conta di più, perché dice **cosa non spiegare**. Chiedilo così: *«cosa dovrei dare per scontato che sai già, e cosa preferisci che ti spieghi ogni volta?»*
 
-**4. Autonomia** — cosa si può fare senza chiedere. Default conservativo: **nulla
-di tutto questo**. Commit · pubblicazione · installazione di dipendenze ·
-esecuzioni lunghe o costose · modifiche irreversibili.
+**4. Autonomia** — cosa si può fare senza chiedere. Default conservativo: **nulla di tutto questo**. Commit · pubblicazione · installazione di dipendenze · esecuzioni lunghe o costose · modifiche irreversibili.
 
 ### Condizionali — solo per ciò che il profilo non installa già
 
-**Chiedi solo di agenti che il roster non ha.** Calcolalo prima (Passo 4) e
-salta ogni domanda la cui risposta è già installata: una domanda che non può
-cambiare niente insegna all'utente che il questionario è una formalità.
+**Chiedi solo di agenti che il roster non ha.** Calcolalo prima (Passo 4) e salta le domande già risolte: una domanda che non può cambiare niente insegna all'utente che il questionario è una formalità.
 
 C'è un'interfaccia? → `frontend` · Entrano dati esterni? → `data-ingestion` ·
 Ci sono misure da interpretare? → `results-analyst` · Serve letteratura o
@@ -157,27 +118,15 @@ semplice o infrastruttura definita come codice? → `deploy` **oppure** `infra`,
 mai entrambi · Ci sono operazioni pesanti che lancia l'utente e non l'agente? →
 va nei comandi.
 
-Vincoli normativi e requisiti di prestazione stanno nella **domanda 2**, non qui:
-sono superfici critiche, non contorni del profilo.
+Vincoli normativi e requisiti di prestazione stanno nella **domanda 2**: sono superfici critiche, non contorni del profilo.
 
 ## Passo 4 — Roster e installazione selettiva
 
-Si installa **solo l'attivo**. Il master resta in `<FW>/agents/`: un agente
-non scelto non è cancellato, è *non ancora installato*, e si aggiungerà più tardi
-già aggiornato con `framework-sync --activate`.
+Si installa **solo l'attivo**. Il master resta in `<FW>/agents/`: un agente non scelto non è cancellato, è *non ancora installato*, e si aggiunge più tardi già aggiornato con `framework-sync --activate`. Motivo: nome e `description` di ogni file in `.claude/agents/` entrano nel contesto del coordinatore a ogni sessione.
 
-Motivo: nome e `description` di ogni file in `.claude/agents/` finiscono nel
-contesto del coordinatore a ogni sessione. Tenerne 19 invece di 11 è costo puro
-sul file più caro del sistema.
+**Sei non si tolgono** — `explorer`, `architect`, `implementer`, `tester`, `refactorer`, `final-reviewer`: sono il ciclo del codice, e `drop` li ignora di proposito. Tutti gli altri sono opzionali e si riprendono con `--activate`.
 
-**Sei non si tolgono** — `explorer`, `architect`, `implementer`, `tester`,
-`refactorer`, `final-reviewer`: sono il ciclo del codice, e un progetto che ne
-salta uno non sta scegliendo un roster, sta scegliendo di non avere il ciclo.
-`drop` li ignora di proposito. Tutti gli altri sono opzionali e si riprendono
-con `--activate`, già aggiornati.
-
-I comandi partono da `<FW>/tools`: lì la root del framework è `..`, quella del
-progetto è `<PRJ>`.
+I comandi partono da `<FW>/tools`: lì la root del framework è `..`, quella del progetto è `<PRJ>`.
 
 ```bash
 cd <FW>/tools && python -c "
@@ -191,18 +140,14 @@ print('conflitti:', profile.check_exclusive(profile.roster(prof, [], [])))
 
 ## Passo 5 — Generazione
 
-Si generano **due** documenti con regione kernel, non uno. La differenza è il
-destinatario, e da lì discende tutto il resto.
+Si generano **due** documenti con regione kernel, non uno. La differenza è il destinatario:
 
 | documento | sorgente del kernel | chi lo legge | costo |
 |---|---|---|---|
 | `CLAUDE.md` | `<FW>/method/` | **tutti**, a ogni spawn | pagato sempre |
 | `.claude/shared/orchestration.md` | `<FW>/coordinator/` | solo chi delega | on-demand |
 
-**Non mettere mai in `CLAUDE.md`** la tabella di routing, il ciclo di lavoro, le
-regole di delega o i livelli di stato: sono istruzioni che un `tester` o un
-`explorer` paga a ogni spawn e non può usare. Il doctor lo rileva
-(`COORDINATOR_LEAK`).
+**Mai in `CLAUDE.md`:** tabella di routing, ciclo di lavoro, regole di delega, livelli di stato. Sono istruzioni che un `tester` o un `explorer` paga a ogni spawn senza poterle usare, e il doctor le rileva (`COORDINATOR_LEAK`).
 
 ### `CLAUDE.md` — sezioni di progetto
 
@@ -268,64 +213,33 @@ P.joinpath('.claude/shared/orchestration.md').write_text(
 "
 ```
 
-**Agenti attivi** — per ciascuno: leggi il sorgente con `assemble.split_source`,
-**compila il blocco `## Contesto di progetto`** con le direttive specifiche
-(ogni blocco dichiara nel segnaposto cosa metterci), riassembla con
-`assemble.build_agent`, scrivi in `.claude/agents/`.
+**Agenti attivi** — per ciascuno: leggi il sorgente con `assemble.split_source`, **compila il blocco `## Contesto di progetto`** con le direttive specifiche (ogni segnaposto dichiara cosa metterci), riassembla con `assemble.build_agent`, scrivi in `.claude/agents/`.
 
-**Cicli di dominio** — se il profilo dichiara `cycles`, i file corrispondenti di
-`<FW>/cycles/` si accodano alla regione kernel della guida del coordinatore
-(`extra=assemble.cycle_files(...)`): sono orchestrazione, non esecuzione, quindi
-non vanno in `CLAUDE.md`.
+**Cicli di dominio** — se il profilo dichiara `cycles`, i file di `<FW>/cycles/` si accodano alla regione kernel della guida del coordinatore (`extra=assemble.cycle_files(...)`): sono orchestrazione, non esecuzione, quindi mai in `CLAUDE.md`.
 
-**Guide** — copia da `<FW>/shared/` quelle del profilo **più quelle che gli
-agenti scelti citano**, compilando anche lì il blocco di progetto. Un extra
-porta le sue: senza, la scheda esce con un pointer morto e il doctor lo vede
-solo a installazione già scritta (`SHARED_MISSING`).
+**Guide** — copia da `<FW>/shared/` quelle del profilo **più quelle che gli agenti scelti citano**, compilando anche lì il blocco di progetto. Un extra porta le sue: senza, la scheda esce con un pointer morto che il doctor vede solo a installazione già scritta (`SHARED_MISSING`).
 
 ```python
 sorted(set(prof.shared) | set(profile.required_guides(F, roster)))
 ```
 
-**Skill di ciclo di vita** — copia `<FW>/skills/framework-doctor` e
-`framework-sync` in `.claude/skills/`. Senza, non sono invocabili nel progetto e
-il doctor lo segnala (`SKILLS_MISSING`).
+**Skill di ciclo di vita** — copia `<FW>/skills/framework-doctor` e `framework-sync` in `.claude/skills/`. Senza, non sono invocabili e il doctor lo segnala (`SKILLS_MISSING`).
 
 **`.claude/settings.json`** — serializza `Profile.settings` in JSON.
 
-**`.claude/framework.json`** — `source`, `version` e `profile`: è come
-`framework-doctor` e `framework-sync` ritrovano il sorgente più tardi, e l'unico
-posto in cui resta scritto **di cosa** è fatta l'installazione. Senza il
-profilo, «rigenera i permessi del profilo del progetto» è un'istruzione che non
-si può eseguire. La forma **non la scrivi tu**: `source.manifest` rende il
-percorso relativo quando il sorgente sta dentro il progetto — primo dei tre modi
-previsti — e assoluto solo quando sta fuori. Un assoluto su un sorgente interno
-è la macchina di chi ha installato, e muore al primo clone.
+**`.claude/framework.json`** — `source`, `version`, `profile`: è come le due skill ritrovano il sorgente, e l'unico posto in cui resta scritto **di cosa** è fatta l'installazione. Senza il profilo, «rigenera i permessi del profilo del progetto» non è eseguibile. La forma **non la scrivi tu**: `source.manifest` rende il percorso relativo quando il sorgente sta dentro il progetto e assoluto solo quando sta fuori — un assoluto su un sorgente interno è la macchina di chi ha installato, e muore al primo clone.
 
 ```python
 source.manifest(PRJ, FW, version, prof.name)
 ```
 
-Il campo `accepted` **non si scrive all'installazione**: nasce vuoto e lo
-aggiunge chi decide di convivere con un avviso. Cosa ci va e cosa no: skill
-`framework-doctor`.
+Il campo `accepted` **non si scrive all'installazione**: nasce vuoto e lo aggiunge chi decide di convivere con un avviso (→ skill `framework-doctor`).
 
-**File di stato** — copia i tre template in `docs/` e compila **subito** ogni
-blocco `[DA COMPILARE — …]`: la prima voce reale e il primo passo in `TODO.md`
-con la data di oggi, il primo obiettivo col suo criterio in `roadmap.md`.
-`status.md` nasce vuoto per costruzione — ci si scrive quando qualcosa si
-chiude. Le sezioni che possono restare vuote (in attesa, bloccati, decisioni
-aperte) non hanno segnaposto: portano già il testo giusto per una sezione vuota,
-e si sostituisce quando ci sarà qualcosa. Va fatto qui, non dopo: al Passo 6 un
-segnaposto residuo è un `PLACEHOLDER`, e `TODO.md` è il file che ogni sessione
-futura legge per primo.
+**File di stato** — copia i tre template in `docs/` e compila **subito** ogni blocco `[DA COMPILARE — …]`: prima voce e primo passo in `TODO.md` con la data di oggi, primo obiettivo col suo criterio in `roadmap.md`. `status.md` nasce vuoto per costruzione — ci si scrive quando qualcosa si chiude. Le sezioni che possono restare vuote (in attesa, bloccati, decisioni aperte) non hanno segnaposto: portano già il testo giusto e si sostituisce quando ci sarà qualcosa. Va fatto qui: al Passo 6 un segnaposto residuo è un `PLACEHOLDER`, e `TODO.md` è il file che ogni sessione futura legge per primo.
 
 ### Nota sugli `@import`
 
-Se `CLAUDE.md` supporta gli `@import` nella versione di Claude Code in uso,
-l'assemblaggio potrebbe restare virtuale. **Va verificato, non assunto.** Il
-default è la concatenazione fisica, che non dipende da nessuna funzionalità
-dell'harness. Non introdurre `@import` senza aver prima verificato che funzionino.
+Se `CLAUDE.md` supporta gli `@import` nella versione di Claude Code in uso, l'assemblaggio potrebbe restare virtuale. **Va verificato, non assunto:** il default è la concatenazione fisica, che non dipende da nessuna funzionalità dell'harness. Non introdurre `@import` senza averli verificati.
 
 ## Passo 6 — Verifica
 
@@ -333,6 +247,4 @@ dell'harness. Non introdurre `@import` senza aver prima verificato che funzionin
 cd <FW>/tools && python -m fwbuild doctor --strict <PRJ>
 ```
 
-Deve stampare `OK — nessun rilievo` e uscire con 0. `--strict` rende meccanica
-la regola: **finché resta un rilievo, di qualunque gravità, l'installazione non
-è completa.** Cosa significa ogni codice e cosa farne: skill `framework-doctor`.
+Deve stampare `OK — nessun rilievo` e uscire con 0. `--strict` rende meccanica la regola: **finché resta un rilievo, di qualunque gravità, l'installazione non è completa.** Cosa significa ogni codice: skill `framework-doctor`.

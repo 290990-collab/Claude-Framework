@@ -1,36 +1,27 @@
 ## The code cycle
 
-**Understand → Design → Implement → Verify → Integrate.**
+**Understand → Design → Implement → Verify → Integrate**
 
-1. `explorer` locates the relevant files (cheap, parallelisable); `api-scout`
-   if signatures of external libraries are needed.
-2. `architect` if the task touches ≥3 files or a contract; ambiguous requests →
-   plan mode first. Otherwise it is skipped: a plan the coordinator writes in
-   three lines is not worth a spawn.
-3. `implementer`, **one task at a time**: complete, verify, move to the next.
-   Test-first when the desired behaviour is expressible as a test (new
-   features, well-defined bug fixes, business or API logic). Excluded for
-   refactoring, UI, prototypes, dependencies, documentation.
-4. `tester` extends coverage beyond the implementer's mini-tests. Few tests
-   that assert something true, never many weak ones.
-5. If the diff touches the **critical surface** declared by the project, first
-   the reviewer of that surface; then `final-reviewer`, which verifies from
-   scratch without trusting the reports.
-6. The coordinator resolves the findings and integrates. Commit only on
-   request.
+1. **Understand:** `explorer` (repo) and/or `api-scout` (external libraries and docs).
+2. **Design:** `architect` ONLY IF the task touches ≥3 files or a contract, or if the request is ambiguous. *Otherwise it is skipped:* a three-line plan is written by the coordinator.
+3. **Implement:** `implementer`, one task at a time.
+   - *Test-first mandatory:* new features, well-defined bug fixes, business or API logic.
+   - *Test-first excluded:* refactoring, UI, prototypes, dependencies, documentation.
+4. **Verify:** `tester` extends coverage beyond the implementer's mini-tests (few solid tests on the domain's boundaries).
+5. **Review:** if the diff touches the **critical surface** → first the reviewer of that surface, then `final-reviewer`, which verifies from scratch without trusting the reports.
+6. **Integrate:** the coordinator resolves the findings and integrates. Commit ONLY at the user's request.
 
-The cycle is skipped where it is not needed: for a small low-risk change the
-coordinator executes it directly.
+*Note:* for small low-risk changes (≤2-3 files) the coordinator runs the whole cycle itself, with no spawn.
 
 ## Choosing between agents that look close
 
-| Doubt | Discriminator |
+| Doubt | Decision |
 |---|---|
-| `explorer` or I read it myself | You need >2 files or you do not know where to look → `explorer`. You already know the path → read it yourself: spawning costs more |
-| `explorer` or `api-scout` | Inside the repo → `explorer`. Outside the repo (libraries, services) → `api-scout` |
-| `architect` or I decide | It touches structure or a contract → `architect`. Otherwise it is a three-line plan, and you write it |
-| `implementer` or `debugger` | The cause is known → `implementer`. The cause is unknown → `debugger`, which delivers the diagnosis |
-| `implementer` or `refactorer` | It changes behaviour or adds → `implementer`. Observable behaviour unchanged → `refactorer` |
-| `implementer` or `frontend` | What decides is the heart of the task: views, markup, style, motion → `frontend`; logic and services with touch-ups to the interface → `implementer`. If it weighs on both, the architect splits it in two |
-| `deploy` or `infra` | Simple hosting, a push updates it → `deploy`. Resources defined as code, multiple environments → `infra`. They do not coexist |
-| critical reviewer or `final-reviewer` | "Is the code correct?" → `final-reviewer`. "Is this safe / valid / is the data right?" → the reviewer of the critical surface, **first** |
+| You need >2 files or do not know where to look | **`explorer`** \| Path already known → the coordinator reads it: spawning costs more |
+| Information inside or outside the repo | Repo → **`explorer`** \| Libraries, services, docs → **`api-scout`** |
+| Impact on structure or contracts | Real impact → **`architect`** \| Trivial change → the coordinator decides |
+| Cause of the defect | Unknown → **`debugger`**, which delivers the diagnosis \| Known → **`implementer`** |
+| Nature of the change | Adds or changes behaviour → **`implementer`** \| Observable behaviour unchanged → **`refactorer`** |
+| Frontend or logic | Views, markup, style, motion → **`frontend`** \| Logic and services → **`implementer`** (if it weighs on both, `architect` splits the task) |
+| Publishing | Simple hosting, a push updates it → **`deploy`** \| Resources as code, multiple environments → **`infra`**. They do not coexist |
+| Type of review | "Is the code correct?" → **`final-reviewer`** \| "Is it safe / valid / is the data right?" → the reviewer of the critical surface, FIRST |

@@ -1,35 +1,27 @@
 ## Il ciclo del codice
 
-**Capire → Progettare → Implementare → Verificare → Integrare.**
+**Capire → Progettare → Implementare → Verificare → Integrare**
 
-1. `explorer` individua i file rilevanti (economico, parallelizzabile);
-   `api-scout` se servono firme di librerie esterne.
-2. `architect` se il task tocca ≥3 file o un contratto; richieste ambigue → plan
-   mode prima. Altrimenti si salta: un piano che il coordinatore scrive in tre
-   righe non vale uno spawn.
-3. `implementer`, **un task alla volta**: completa, verifica, passa al
-   successivo. Test-first quando il comportamento desiderato è esprimibile come
-   test (nuove feature, bug fix ben definiti, logica di business o di API).
-   Escluso per refactoring, UI, prototipi, dipendenze, documentazione.
-4. `tester` estende la copertura oltre i mini-test dell'implementer. Pochi test
-   che asseriscono qualcosa di vero, mai molti test deboli.
-5. Se il diff tocca la **superficie critica** dichiarata dal progetto, prima il
-   revisore di quella superficie; poi `final-reviewer`, che verifica da zero
-   senza fidarsi dei report.
-6. Il coordinatore risolve i finding e integra. Commit solo su richiesta.
+1. **Capire:** `explorer` (repo) e/o `api-scout` (librerie e docs esterne).
+2. **Progettare:** `architect` SOLO SE il task tocca ≥3 file o un contratto, o se la richiesta è ambigua. *Altrimenti si salta:* un piano da tre righe lo scrive il coordinatore.
+3. **Implementare:** `implementer`, un task alla volta.
+   - *Test-first obbligatorio:* nuove feature, bug fix definiti, logica di business o di API.
+   - *Test-first escluso:* refactoring, UI, prototipi, dipendenze, documentazione.
+4. **Verificare:** `tester` estende la copertura oltre i mini-test dell'implementer (pochi test solidi sui confini del dominio).
+5. **Review:** se il diff tocca la **superficie critica** → prima il revisore di quella superficie, poi `final-reviewer`, che verifica da zero senza fidarsi dei report.
+6. **Integrare:** il coordinatore risolve i finding e integra. Commit SOLO su richiesta dell'utente.
 
-Il ciclo si salta dove non serve: per una modifica piccola a basso rischio lo
-esegue direttamente il coordinatore.
+*Nota:* per modifiche piccole e a basso rischio (≤2-3 file) il ciclo lo esegue interamente il coordinatore, senza spawn.
 
 ## Scegliere fra agenti che sembrano vicini
 
-| Dubbio | Discriminante |
+| Dubbio | Decisione |
 |---|---|
-| `explorer` o leggo io | Servono >2 file o non sai dove guardare → `explorer`. Sai già il path → leggi tu: spawnare costa di più |
-| `explorer` o `api-scout` | Dentro il repo → `explorer`. Fuori dal repo (librerie, servizi) → `api-scout` |
-| `architect` o decido io | Tocca struttura o un contratto → `architect`. Altrimenti è un piano da tre righe, e lo scrivi tu |
-| `implementer` o `debugger` | La causa è nota → `implementer`. La causa è ignota → `debugger`, che consegna la diagnosi |
-| `implementer` o `refactorer` | Cambia il comportamento o aggiunge → `implementer`. Comportamento osservabile invariato → `refactorer` |
-| `implementer` o `frontend` | Decide il cuore del task: viste, markup, stile, movimento → `frontend`; logica e servizi con ritocchi all'interfaccia → `implementer`. Se pesa su entrambi, l'architect lo spezza in due |
-| `deploy` o `infra` | Hosting semplice, un push aggiorna → `deploy`. Risorse definite come codice, ambienti multipli → `infra`. Non coesistono |
-| revisore critico o `final-reviewer` | «Il codice è corretto?» → `final-reviewer`. «Questo è sicuro / valido / il dato è giusto?» → il revisore della superficie critica, **prima** |
+| Servono >2 file o non sai dove guardare | **`explorer`** \| Path già noto → legge il coordinatore: spawnare costa di più |
+| Info dentro o fuori dal repo | Repo → **`explorer`** \| Librerie, servizi, docs → **`api-scout`** |
+| Impatto su struttura o contratti | Impatto reale → **`architect`** \| Cambio banale → decide il coordinatore |
+| Causa del difetto | Ignota → **`debugger`**, che consegna la diagnosi \| Nota → **`implementer`** |
+| Natura della modifica | Aggiunge o cambia comportamento → **`implementer`** \| Comportamento osservabile invariato → **`refactorer`** |
+| Frontend o logica | Viste, markup, stile, movimento → **`frontend`** \| Logica e servizi → **`implementer`** (se pesa su entrambi, `architect` spezza il task) |
+| Pubblicazione | Hosting semplice, un push aggiorna → **`deploy`** \| Risorse come codice, ambienti multipli → **`infra`**. Non coesistono |
+| Tipo di review | «Il codice è corretto?» → **`final-reviewer`** \| «È sicuro / valido / il dato è giusto?» → revisore della superficie critica, PRIMA |

@@ -1,61 +1,29 @@
 # Orchestrazione — guida del coordinatore
 
-Contenuto **azionabile solo da chi delega**. I subagent non lo leggono: per loro
-vale ciò che sta in `CLAUDE.md`, che non contiene nulla di tutto questo proprio
-per non farglielo pagare a ogni spawn.
+Contenuto azionabile **solo dal coordinatore**. I subagent NON leggono questo file.
 
-> Da leggere a inizio sessione **se la sessione prevede delega**. Per una
-> modifica da due file la tabella di routing in fondo basta.
+> Da leggere a inizio sessione **se la sessione delega**. Per una modifica da due file basta la tabella di routing in fondo.
 
 ## Chi fa cosa
 
-Il coordinatore pianifica, delega, verifica e integra. Esegue **direttamente**
-solo le modifiche piccole a basso rischio — ≤2-3 file, poche decine di righe,
-nessun contratto toccato: lì delegare costa più che fare.
-
-I subagent eseguono un task e riportano. Non spawnano nulla. Quando un report
-apre una domanda fuori dal mandato di chi l'ha scritto, la domanda torna al
-coordinatore: non si passa lateralmente da un agente all'altro.
+- **Coordinatore:** pianifica, delega, verifica e integra.
+- **Esecuzione diretta:** modifiche piccole (≤2-3 file, poche decine di righe, nessun contratto toccato) si eseguono direttamente: delegare costa di più.
+- **Subagent:** eseguono il task e riportano al coordinatore. Non spawnano subagent né comunicano lateralmente: una domanda fuori mandato torna al coordinatore.
 
 ## Economia dei token — le dieci regole della delega
 
-Lista canonica e completa. Vive **solo qui**: gli obblighi di chi esegue sono
-un'altra cosa e stanno in `CLAUDE.md`, non sono un sottoinsieme rinumerato di
-queste.
+Lista canonica e completa, vive **solo qui**. Gli obblighi di chi esegue stanno in `CLAUDE.md` e sono un'altra cosa, non un sottoinsieme rinumerato di queste.
 
-1. **Parallelismo.** `architect` uno alla volta, mai in parallelo con altri
-   agenti né rilanciato sullo stesso task: è il più costoso e ragiona
-   sull'intero contesto. Gli altri agenti su modello Opus in sequenza; max 2 in
-   parallelo solo su task **indipendenti** (file disgiunti, nessun output
-   incrociato — altrimenti si pagano due volte le stesse letture e i risultati
-   vanno riconciliati a mano). Parallelismo libero solo per `explorer`.
-   Il vincolo è legato al **ruolo**, mai a un modello: un vincolo che nomina un
-   modello muore col modello.
-2. **Modello al task, non al ruolo.** Niente `architect` per decisioni ovvie né
-   `debugger` per cause evidenti. Su lavoro meccanico e senza giudizio, declassa
-   il modello dello spawn a Sonnet (override per-spawn: cambia il modello,
-   l'effort della scheda resta). Solo dove non ci sono decisioni non banali: un
-   modello troppo debole sbaglia e il giro a vuoto costa più del premium.
-3. **Contesto pre-digerito agli agenti costosi.** `explorer` (dentro il repo) e
-   `api-scout` (fuori dal repo) esplorano una volta a costo basso e consegnano
-   estratti pronti — firme, righe attorno al punto, `file:riga` esatti — così
-   l'agente caro legge poco a prezzo pieno. Meglio un explorer accurato in più
-   che un agente caro a caccia su file interi.
-4. **Passa i range, non i file.** Nel prompt vanno gli estratti e i `file:riga`
-   esatti; l'agente che li riceve è tenuto a non allargare la lettura.
-5. **Prompt digerito per primacy/recency.** Struttura obbligatoria in
-   `20-prompt.md`. Mai seppellire un `file:riga` nella prosa.
-6. **Load-on-demand, non front-loading.** Ciò che non è universale sta dietro un
-   pointer che l'agente recupera se serve, non pre-caricato nel prompt.
-7. **Un task per agente**, con criterio di completamento esplicito. Niente task
-   ombrello «sistema tutto»: producono report vaghi e lavoro non verificabile.
-8. **Continuare, non ri-spawnare.** Per un secondo giro — l'implementer dopo i
-   finding del reviewer, l'explorer a cui serve un dettaglio in più — si riusa
-   l'agente con il contesto intatto: ripartire da freddo ri-digerisce tutto da
-   capo. È la regola che più spesso viene dimenticata, ed è fra le più care.
-9. **Una sola review**: il revisore finale **oppure** una skill di review nativa,
-   mai entrambe. Le skill native pesanti si lanciano solo su richiesta
-   dell'utente.
-10. **Niente ri-verifiche ridondanti anche per interposto agente.** L'obbligo
-    vale per chi esegue; qui vale in più che non si spawna un agente per
-    rifare una verifica già passata e ancora valida.
+1. **Parallelismo per ruolo** — il vincolo è del ruolo, mai di un modello: un vincolo che nomina un modello muore col modello.
+   - `architect`: max 1 alla volta. Mai in parallelo, mai rilanciato sullo stesso task.
+   - Altri agenti ad alto reasoning: in sequenza. Max 2 in parallelo SOLO su task e file completamente disgiunti.
+   - `explorer`: parallelismo libero.
+2. **Agente e modello al task, non al ruolo:** niente `architect` per decisioni ovvie né `debugger` per cause evidenti. Per task meccanici, privi di decisioni o a basso rischio, declassa il modello dello spawn a uno più leggero (l'effort della scheda resta). Un modello troppo debole sbaglia, e il giro a vuoto costa più del premium.
+3. **Pre-digerire il contesto:** prima `explorer` (repo) o `api-scout` (librerie, servizi, docs) a costo basso per estrarre `file:riga` e firme precise, poi passa gli estratti agli agenti costosi.
+4. **Passa range, non file:** nel prompt solo estratti e `file:riga` esatti; chi li riceve non allarga la lettura.
+5. **Struttura del prompt:** tassativa, sezione «Come si scrive un prompt di delega». Istruzioni ai bordi, dati ed estratti al centro.
+6. **Load-on-demand:** passa i pointer a risorse e guide. L'agente le apre se e quando servono.
+7. **Un task per agente,** con criterio di completamento verificabile. Zero task ombrello («sistema X»).
+8. **Riuso della sessione, mai ri-spawn:** per iterare sullo stesso task manda il delta allo STESSO agente senza chiuderlo. Ripartire da freddo ridigerisce tutto e costa il doppio.
+9. **Una sola review:** il revisore finale **oppure** una skill di review nativa, mai entrambe. Le skill native pesanti si lanciano solo su richiesta dell'utente.
+10. **Zero ri-verifiche inutili:** non spawnare agenti per rieseguire build/test appena passati se nulla è cambiato.

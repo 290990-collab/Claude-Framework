@@ -1,34 +1,23 @@
 ## How to write a delegation prompt
 
-The edge rule — instructions at the margins, reference material in the middle —
-holds here more than anywhere else. Mandatory structure:
+The edge rule, non-negotiable: **operative instructions at the margins, data and reference material in the middle.**
+
+### Mandatory structure
 
 ```
-1. TASK          one sentence: what to do
-2. DONE WHEN     the completion criterion, verifiable
-3. CONSTRAINTS   the hard prohibitions — few, explicit
-4. MATERIAL      excerpts with exact file:line (the long part: it sits in the
-                 middle because it is consulted, not because it matters less)
-5. DONE WHEN     repeated, verbatim
+1. TASK:        [one sentence: what to do]
+2. DONE WHEN:   [verifiable completion criterion]
+3. CONSTRAINTS: [hard prohibitions, few and specific]
+4. MATERIAL:    [excerpts and a list of exact file:line]
+5. DONE WHEN:   [repeated identically to point 2]
 ```
 
-The criterion is written twice on purpose: it opens and closes. **If an agent
-misses the target, almost always the criterion was implicit or sat in the
-middle.**
+The criterion opens and closes on purpose: if an agent misses the target, almost always it was implicit or sat in the middle.
 
-Practical rules:
+### Non-negotiable rules
 
-- **Never a `file:line` buried in prose.** It goes in a list, in the material
-  block.
-- **Few, hard constraints.** Ten constraints amount to no constraint: the ones
-  that matter are chosen, not accumulated.
-- **No echo and no context the agent will not use** — what is in `CLAUDE.md` it
-  already has, and every extra line pushes towards the middle something that
-  belonged on an edge.
-- **The criterion must be verifiable by whoever receives it.** "Do a good job"
-  is not a criterion; "the tests in `tests/x.py` pass and the build is clean"
-  is.
-
-For a second round on the same agent, rule 8 applies: you continue the existing
-conversation and send **only the delta** — the findings to resolve — not a new
-prompt that re-digests the context from scratch.
+- **Zero `file:line` in prose:** they go only in a list, in the MATERIAL block.
+- **Essential constraints:** few and hard. Ten constraints amount to no constraint.
+- **Zero echo:** do not repeat what is already in `CLAUDE.md`. Pass only the task's delta.
+- **Objective criterion:** verifiable by whoever receives it ("the tests in `tests/x.py` pass and the build is clean"), not "do a good job".
+- **Second round (rule 8):** for corrections or iterations continue the existing session sending ONLY the findings. Never rebuild the prompt from scratch.

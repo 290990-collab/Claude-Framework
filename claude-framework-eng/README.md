@@ -64,18 +64,15 @@ Copy-Item -Recurse $HOME\.claude\framework\skills\framework-install $HOME\.claud
 ```
 
 The destination is named `framework/` because that is one of the three places
-Step 0 looks in. To leave it where it is, point at it with `$CLAUDE_FRAMEWORK`.
+Step 0 looks in; to leave it where it is, point at it with `$CLAUDE_FRAMEWORK`.
 
 **Copied into the project** — this folder, renamed `framework/`, in the
 project root, plus `cp -r framework/skills/* .claude/skills/`. Step 0 finds
 it first.
 
-From then on, every new project is **only** `/framework-install`. Step 0
+From then on, every new project is **only** `/framework-install`: Step 0
 validates the source before writing anything, Step 6 checks the result with
-`doctor --strict`.
-
-The source can also be pointed at with `$CLAUDE_FRAMEWORK`. To check that a
-candidate is valid:
+`doctor --strict`. To check a candidate source by hand:
 
 ```bash
 cd <source>/tools && python -m fwbuild source ..
@@ -105,7 +102,7 @@ cd <source>/tools && python -m fwbuild report <folder-of-repositories>
 every agent, the method lives inside a delimited region:
 
 ```html
-<!-- FRAMEWORK:KERNEL v1.0.0 sha256:a3f9c1e4 — generated, do not edit by hand -->
+<!-- FRAMEWORK:KERNEL v1.1.1 sha256:a3f9c1e4 — generated, do not edit by hand -->
 …
 <!-- /FRAMEWORK:KERNEL -->
 ```

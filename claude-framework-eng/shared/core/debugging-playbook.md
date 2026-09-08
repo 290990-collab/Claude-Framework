@@ -1,8 +1,6 @@
 # Diagnosis playbook
 
-Symptom → suspects map. It serves to **narrow down fast**, not to jump to the
-hypothesis: every suspect must be confirmed with evidence on the real flow
-before touching a line.
+Symptom → suspects map: it serves to **narrow down**, not to jump to the hypothesis. Every suspect must be confirmed with evidence on the real flow before touching a line.
 
 ## Map
 
@@ -22,28 +20,18 @@ before touching a line.
 
 ## Techniques, in order of cost
 
-1. **Read the code of the real path** — not the one that looks relevant by
-   name. Most defects are visible by reading the correct flow.
-2. **Bisection** — on the data (half the input), on history (which change
-   introduced it), on the path (where the value is still right and where it is
-   no longer).
-3. **Make the state observable** at the suspected boundary, instead of
-   deducing it.
-4. **Reduce to the minimal case** that reproduces: every element removed that
-   leaves the defect is an element excluded from the diagnosis.
-5. **Compare two runs**, one that works and one that does not, and look for the
-   first difference — not the last.
+1. **Read the code of the real path**, not the one that looks relevant by name.
+2. **Bisection** — on the data (half the input), on history (which change introduced it), on the path (where the value is still right and where it is no longer).
+3. **Make the state observable** at the suspected boundary, instead of deducing it.
+4. **Reduce to the minimal case** that reproduces: every element removed that leaves the defect is excluded from the diagnosis.
+5. **Compare two runs**, one that works and one that does not: what counts is the **first** difference, not the last.
 
 ## Traps
 
-- **Hunting for confirmations of a single hypothesis.** Formulate two and ask
-  yourself which observation distinguishes them.
-- **Confusing coincidence and cause**: if the explanation does not cover *all*
-  the symptoms, it is not the cause yet.
-- **Fixing the symptom**: a check added to avoid the error, while the wrong
-  value keeps being produced upstream.
-- **Trial-and-error fixes**: they cost more than the diagnosis and leave
-  unmotivated changes in the code.
+- **Hunting for confirmations of a single hypothesis:** formulate two and ask yourself which observation distinguishes them.
+- **Confusing coincidence and cause:** if the explanation does not cover *all* the symptoms, it is not the cause yet.
+- **Fixing the symptom:** a check that avoids the error while upstream the wrong value keeps being produced.
+- **Trial-and-error fixes:** they cost more than the diagnosis and leave unmotivated changes in the code.
 
 ## In this project
 

@@ -1,11 +1,8 @@
 # TODO
 
-Only the **state**: where we are now. The *what* and the *how* live in
-[roadmap.md](roadmap.md); closed results in [status.md](status.md).
+Only the **state**: where we are now. The plan lives in [roadmap.md](roadmap.md), closed results in [status.md](status.md).
 
-> First file at session start, last at task end. Ceiling ~60 lines: **compress
-> before adding**, the long trace goes down into `status.md`.
-> You add or tick off, you do not rewrite.
+> First file at session start, last at task end. Ceiling ~60 lines: compress before adding, the long trace goes down into `status.md`. You add or tick off, you do not rewrite.
 
 ## In progress
 
@@ -17,18 +14,15 @@ Only the **state**: where we are now. The *what* and the *how* live in
 
 ## Waiting
 
-*Nothing waiting.* This is where long or asynchronous operations launched by
-the user go: what started, when, and **what it must answer**.
+*Nothing waiting.* Here go long or asynchronous operations launched by the user: what started, when, and **what it must answer**.
 
 ## Blocked
 
-*Nothing blocked.* This is where what cannot proceed goes, with the
-dependency that unblocks it.
+*Nothing blocked.* Here goes what cannot proceed, with the dependency that unblocks it.
 
 ## Open decisions
 
-*No open decisions.* This is where deliberately deferred choices go: the
-options, what unblocks it, what it blocks.
+*No open decisions.* Here go deliberately deferred choices: the options and what unblocks them.
 
 ---
 

@@ -1,25 +1,16 @@
-# Status — what has been closed
+# Status — closed decisions and results
 
-A record of what **has been decided, measured or refuted**. It is not a work
-diary: you write here when something closes, not while you work.
-
-> You append at the bottom, you do not rewrite above. One entry per closed fact.
-> What is still in progress lives in [TODO.md](TODO.md); the plan in
-> [roadmap.md](roadmap.md).
->
-> **Refutations get written too.** A fallen hypothesis is acquired information:
-> not recording it means paying its cost again in two months.
+Append-only record of what has been **decided, measured or refuted**. It is not a work diary: you write here when something closes, not while you work. Refutations too: a fallen hypothesis is acquired information.
 
 ## Format of an entry
 
-```
-## <number>. <title> — <date>
+```text
+## <number>. <title> — <YYYY-MM-DD>
 
-**Question:** what we wanted to know or decide.
-**Outcome:** confirmed | refuted | decided | deferred.
-**Evidence:** where the fact lives — file, output, measurement. Never a number
-from memory.
-**Consequence:** what changes from here on.
+**Question:** what we wanted to know or decide
+**Outcome:** CONFIRMED | REFUTED | DECIDED | DEFERRED
+**Evidence:** file, output, real measurement. Never a number from memory
+**Consequence:** what changes from here on
 ```
 
 ---

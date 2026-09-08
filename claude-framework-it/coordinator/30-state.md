@@ -1,42 +1,26 @@
 ## Lo stato che si aggiorna da solo
 
-Senza uno stato scritto, ogni sessione riparte a indovinare. Quattro livelli,
-ognuno con il suo ritmo e il suo tetto.
+Lo stato lo scrive **esclusivamente il coordinatore**: chi lo scrive deve aver visto il quadro intero, e un agente che ha visto un task solo non ce l'ha. I subagent riportano e basta.
 
-**Lo scrive il coordinatore.** I subagent riportano e basta: chi scrive lo stato
-deve aver visto il quadro intero, e un agente che ha visto un task solo non ce
-l'ha. È anche il motivo per cui questa sezione sta qui e non in `CLAUDE.md`.
-
-| Liv. | File | Contiene | Si aggiorna | Tetto |
+| Liv. | File | Contenuto | Aggiornamento | Tetto |
 |---|---|---|---|---|
-| 1 | `docs/TODO.md` | dove siamo **adesso**: in corso, in attesa, prossimo passo, bloccati | a **ogni** step | ~60 righe |
-| 2 | `docs/status.md` | decisioni chiuse, risultati misurati, ipotesi confermate o smentite | quando qualcosa si chiude | 1 voce |
-| 3 | `CLAUDE.md § Stato attuale` | il quadro: cosa sa il progetto oggi | solo se **cambia il quadro** | ~25 righe |
-| 4 | memoria persistente | fatti che valgono **fra** sessioni: chi è l'utente, direttive, decisioni | a ogni scoperta o cambio strutturale | 1 file |
+| 1 | `docs/TODO.md` | stato operativo immediato: in corso, in attesa, prossimo passo, bloccati | a ogni step | ~60 righe |
+| 2 | `docs/status.md` | decisioni chiuse, risultati misurati, ipotesi confermate o smentite | quando un task si chiude | voce telegrafica |
+| 3 | `CLAUDE.md § Stato attuale` | il quadro del progetto (sta **fuori dalla regione kernel**: aggiornarlo non deve produrre drift) | solo se cambia il quadro | ~25 righe |
+| 4 | memoria persistente | fatti fra sessioni: direttive dell'utente, preferenze, decisioni strutturali | a ogni scoperta o cambio strutturale | 1 fatto per file |
 
-`docs/roadmap.md` **non è un livello**: i livelli dicono dove siamo, la roadmap
-dove andiamo — obiettivi, ordine di dipendenza, criteri di completamento. Si
-tocca quando un obiettivo si chiude o se ne aggiunge uno, non a ogni step.
+*Nota su `docs/roadmap.md`:* non è un livello. I livelli dicono dove siamo, la roadmap dove andiamo — obiettivi, dipendenze, criteri. Si tocca alla chiusura o all'aggiunta di un obiettivo.
 
-**Regole:**
+## Regole di aggiornamento
 
 - **Si aggiunge o si spunta, non si riscrive.**
-- **Si comprime prima di aggiungere** quando il tetto è raggiunto. La traccia
-  lunga scende di livello, non gonfia quello corrente.
-- **Inizio sessione:** livello 1 per primo, sempre. **Fine task:** livello 1
-  sempre; livello 2 se qualcosa si è chiuso; livello 3 se una conclusione è
-  cambiata.
-- **Niente duplicazione fra livelli.** TODO = stato, `status.md` = risultati,
-  `CLAUDE.md` = quadro, memoria = ciò che sopravvive alla sessione.
-- **Operazioni lunghe o asincrone**: appena parte qualcosa che l'utente deve
-  lanciare o attendere, la riga va in *In attesa* con cosa deve rispondere.
-- ⚠️ Il livello 3 sta dentro la parte di progetto di `CLAUDE.md`, **fuori dalla
-  regione kernel**: aggiornarlo non deve mai produrre un rilievo di drift.
+- **Compressione al tetto:** raggiunto il tetto si comprime prima di aggiungere; la traccia lunga scende di livello, non gonfia quello corrente.
+- **Inizio sessione:** livello 1 per primo, sempre. **Fine task:** livello 1 sempre; livello 2 se qualcosa si è chiuso; livello 3 se cambia il quadro.
+- **Operazioni lunghe o asincrone:** appena parte qualcosa che l'utente deve lanciare o attendere, la riga va in *In attesa* sul livello 1, con cosa deve riportare.
+- **Zero duplicazione:** TODO = operativo | `status.md` = risultati | `CLAUDE.md` = quadro | memoria = ciò che sopravvive alla sessione.
 
-**Il livello 4 va rivisitato, non solo riempito.** A ogni cambiamento
-significativo — path, contratti, moduli spostati — e a ogni scoperta che chiude o
-smentisce un'ipotesi, chiedersi *«questo supera una memoria?»* e, se sì,
-correggerla o annotarla come superata **subito**. Anche la memoria è compatta: un
-fatto per file, nessun numero duplicato dal repo, nessun path che non esiste più.
-⚠️ **In conflitto vince il repo**: una memoria vecchia non annotata è un bias
-attivo, fa ripartire la sessione successiva con la visione di un mese prima.
+## Manutenzione della memoria persistente (livello 4)
+
+- **Va rivisitata, non solo riempita:** a ogni cambio di path, contratti o moduli e a ogni ipotesi smentita, chiediti *«questo supera una memoria?»* e correggila o annotala come superata subito.
+- **Memoria compatta:** un fatto per file, nessun numero duplicato dal repo, nessun path che non esiste più.
+- **In conflitto vince il repo:** una memoria vecchia non annotata è un bias attivo, fa ripartire la sessione successiva con la visione di un mese prima.

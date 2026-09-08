@@ -1,8 +1,6 @@
 # Playbook di diagnosi
 
-Mappa sintomo → sospetti. Serve a **restringere in fretta**, non a saltare
-all'ipotesi: ogni sospetto va confermato con evidenza sul flusso reale prima di
-toccare una riga.
+Mappa sintomo → sospetti: serve a **restringere**, non a saltare all'ipotesi. Ogni sospetto va confermato con evidenza sul flusso reale prima di toccare una riga.
 
 ## Mappa
 
@@ -22,29 +20,19 @@ toccare una riga.
 
 ## Tecniche, in ordine di costo
 
-1. **Leggere il codice del percorso reale** — non quello che sembra pertinente
-   per nome. La maggior parte dei difetti si vede leggendo il flusso corretto.
-2. **Bisezione** — sui dati (metà input), sulla storia (quale modifica l'ha
-   introdotto), sul percorso (dove il valore è ancora giusto e dove non lo è più).
+1. **Leggere il codice del percorso reale**, non quello che sembra pertinente per nome.
+2. **Bisezione** — sui dati (metà input), sulla storia (quale modifica l'ha introdotto), sul percorso (dove il valore è ancora giusto e dove non lo è più).
 3. **Rendere osservabile lo stato** al confine sospetto, invece di dedurlo.
-4. **Ridurre al caso minimo** che riproduce: ogni elemento eliminato che lascia
-   il difetto è un elemento escluso dalla diagnosi.
-5. **Confrontare due esecuzioni**, una che funziona e una no, e cercare la prima
-   differenza — non l'ultima.
+4. **Ridurre al caso minimo** che riproduce: ogni elemento tolto che lascia il difetto è escluso dalla diagnosi.
+5. **Confrontare due esecuzioni**, una che funziona e una no: conta la **prima** differenza, non l'ultima.
 
 ## Trappole
 
-- **Cercare conferme di una sola ipotesi.** Formulane due e chiediti quale
-  osservazione le distingue.
-- **Confondere concomitanza e causa**: se la spiegazione non copre *tutti* i
-  sintomi, non è ancora la causa.
-- **Correggere il sintomo**: un controllo aggiunto per evitare l'errore, mentre
-  il valore sbagliato continua a essere prodotto a monte.
-- **Fix a tentativi**: costano più della diagnosi e lasciano modifiche non
-  motivate nel codice.
+- **Cercare conferme di una sola ipotesi:** formulane due e chiediti quale osservazione le distingue.
+- **Confondere concomitanza e causa**: se la spiegazione non copre *tutti* i sintomi, non è ancora la causa.
+- **Correggere il sintomo:** un controllo che evita l'errore mentre a monte il valore sbagliato continua a essere prodotto.
+- **Fix a tentativi:** costano più della diagnosi e lasciano modifiche non motivate nel codice.
 
 ## In questo progetto
 
-[DA COMPILARE — i guasti già visti e la loro causa reale, dove vivono i log e
-come si leggono, cosa è riproducibile in locale e cosa no, quali stati
-persistono fra le esecuzioni, quali componenti sono già noti come fragili.]
+[DA COMPILARE — i guasti già visti e la loro causa reale, dove vivono i log e come si leggono, cosa è riproducibile in locale e cosa no, quali stati persistono fra le esecuzioni, quali componenti sono già noti come fragili.]
