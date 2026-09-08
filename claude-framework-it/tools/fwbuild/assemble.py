@@ -16,7 +16,7 @@ DOMAIN_HEADING = "## Contesto di progetto"
 # soglia — e stanno qui perché li legge anche il doctor: il rilievo
 # `TOKEN_BUDGET` tace finché il file assemblato non arriva almeno al tetto
 # che il framework si dà per il solo metodo.
-METHOD_WORD_BUDGET = 1800
+METHOD_WORD_BUDGET = 2000
 COORDINATOR_WORD_BUDGET = 2500
 
 

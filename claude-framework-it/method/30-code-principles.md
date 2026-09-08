@@ -2,10 +2,12 @@
 
 - **Minimal Safe Change:** la modifica più piccola possibile. Risolvi un solo problema per volta. Zero refactoring, rinomine o cambi di stile non richiesti.
 - **Existing Pattern First:** cerca e riusa pattern già presenti nel repo prima di crearne nuovi.
-- **Contract First:** se modifichi API/interfacce/schemi, cerca prima tutti i consumatori (script, test, stringhe). Segnala break/migrazioni nel report.
+- **Contract First:** se modifichi API/interfacce/schemi, cerca prima tutti i consumatori (script, test, stringhe). Segnala break/migrazioni nel report. Vale anche per ciò che **cancelli**: il codice che sembra morto va cercato prima come stringa.
 - **KISS e stile locale:** la soluzione più semplice, adatta allo stile del file ospitante.
 - **Commenti:** solo per vincoli non evidenti. Nessuna cronaca del codice.
-- **Tassativo:** COMMIT e INSTALLAZIONE di dipendenze/tool richiedono SEMPRE approvazione esplicita dell'utente.
+- **Nessuna scorciatoia sul verde:** mai far passare un controllo indebolendolo — test cancellati o saltati, valore atteso riscritto sull'output, asserzione allargata, stub al posto del codice che deve girare. Se non passa, si riporta che non passa.
+- **Fallimento rumoroso:** niente `except` che inghiotte, niente default inventati per proseguire, niente ramo di riserva che nasconde la causa. Un errore nascosto costa più di un crash.
+- **Tassativo:** COMMIT, INSTALLAZIONE di dipendenze/tool e ogni operazione NON REVERSIBILE (cancellare dati, riscrivere cronologia, sovrascrivere file non letti) richiedono SEMPRE approvazione esplicita dell'utente.
 
 ## Principi sui test
 

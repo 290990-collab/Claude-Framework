@@ -8,7 +8,7 @@ when the installation has drifted and carries good edits back into the source.
 ```
 claude-framework-eng/          the versioned source — a project gets a generated copy
 │
-├── method/                    4 files → CLAUDE.md, loaded in EVERY context (≤1800 words)
+├── method/                    4 files → CLAUDE.md, loaded in EVERY context (≤2000 words)
 ├── coordinator/               4 files → .claude/shared/orchestration.md, opened only by
 │                              whoever delegates (≤2500 words)
 ├── cycles/                    design · research — appended to the coordinator by profile
