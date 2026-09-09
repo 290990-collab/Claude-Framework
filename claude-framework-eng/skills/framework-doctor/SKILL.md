@@ -101,7 +101,7 @@ The kernel regions do not all declare the same version, or the project is on a d
 
 ### `SKILLS_MISSING` — WARNING
 
-`framework-doctor` or `framework-sync` are not in `.claude/skills/`: they exist in the source but are not invocable here. Nobody notices until they are needed, that is, when something has already gone wrong.
+`framework-doctor`, `framework-sync` or `framework-memory` are not in `.claude/skills/`: they exist in the source but are not invocable here. Nobody notices until they are needed, that is, when something has already gone wrong.
 
 **What to do:** copy them from `<FW>/skills/`. No adaptation: they are framework files, copied verbatim.
 

@@ -275,8 +275,26 @@ class TestRealFramework(unittest.TestCase):
         _, _, domain = assemble.split_source(text)
         self.assertIn("critical surface", domain)
 
-    def test_three_skills_present_with_matching_name(self):
-        for name in ("framework-install", "framework-doctor", "framework-sync"):
+    def test_the_memory_skill_pairs_every_conflict_with_the_repo(self):
+        """Memory lives outside the repository: no finding sees it, and a
+        conflict declared without the line that contradicts it becomes an
+        invented alarm that survives across sessions. The paired column is the
+        only thing preventing that, and it is prose: it would vanish in a
+        rewrite."""
+        text = (FRAMEWORK / "skills" / "framework-memory" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        block = text[text.index("## Step 4") : text.index("## Step 5")]
+        self.assertIn("| the repo says |", block)
+        self.assertIn("does not get written", block)
+
+    def test_every_skill_is_present_with_matching_name(self):
+        for name in (
+            "framework-install",
+            "framework-doctor",
+            "framework-sync",
+            "framework-memory",
+        ):
             p = FRAMEWORK / "skills" / name / "SKILL.md"
             self.assertTrue(p.is_file(), name)
             self.assertIn(f"name: {name}", p.read_text(encoding="utf-8"))

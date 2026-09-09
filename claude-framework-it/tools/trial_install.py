@@ -12,7 +12,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from fwbuild import assemble, profile, source
+from fwbuild import assemble, doctor, profile, source
 
 FRAMEWORK = Path(__file__).resolve().parents[1]
 # Fuori dal sorgente: nel pacchetto entra il codice che fa la prova, non la prova.
@@ -325,7 +325,7 @@ def install(out: Path) -> int:
 
     # Le skill di ciclo di vita vanno dove Claude Code le cerca, altrimenti
     # non sono invocabili nel progetto.
-    for skill in ("framework-doctor", "framework-sync"):
+    for skill in doctor.LIFECYCLE_SKILLS:
         shutil.copytree(FRAMEWORK / "skills" / skill, out / ".claude" / "skills" / skill)
 
     print(f"installato: {len(roster)} agenti, {len(prof.shared)} guide -> {out}")

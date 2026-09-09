@@ -269,8 +269,25 @@ class TestRealFramework(unittest.TestCase):
         _, _, domain = assemble.split_source(text)
         self.assertIn("superficie critica", domain)
 
-    def test_three_skills_present_with_matching_name(self):
-        for name in ("framework-install", "framework-doctor", "framework-sync"):
+    def test_the_memory_skill_pairs_every_conflict_with_the_repo(self):
+        """La memoria è fuori dal repository: nessun rilievo la vede, e un
+        conflitto dichiarato senza la riga che lo smentisce diventa un allarme
+        inventato che sopravvive alle sessioni. La colonna appaiata è l'unica
+        cosa che lo impedisce, ed è prosa: sparirebbe a una riscrittura."""
+        text = (FRAMEWORK / "skills" / "framework-memory" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        blocco = text[text.index("## Passo 4") : text.index("## Passo 5")]
+        self.assertIn("| il repo dice |", blocco)
+        self.assertIn("non si scrive", blocco)
+
+    def test_every_skill_is_present_with_matching_name(self):
+        for name in (
+            "framework-install",
+            "framework-doctor",
+            "framework-sync",
+            "framework-memory",
+        ):
             p = FRAMEWORK / "skills" / name / "SKILL.md"
             self.assertTrue(p.is_file(), name)
             self.assertIn(f"name: {name}", p.read_text(encoding="utf-8"))

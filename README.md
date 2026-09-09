@@ -20,7 +20,7 @@ claude-framework-eng/          the versioned source — a project gets a generat
 │   ├── core/                  6 cross-project guides → .claude/shared/core/
 │   └── domain/                data · design · research → .claude/shared/domain/
 ├── templates/                 TODO · status · roadmap → docs/, the state between sessions
-├── skills/                    framework-install · framework-doctor · framework-sync
+├── skills/                    framework-install · framework-doctor · framework-sync · framework-memory
 │                              → .claude/skills/, invoked as slash commands
 └── tools/fwbuild/             assemble · kernel · profile · doctor · source · report
                                Python stdlib only · 160 tests
@@ -87,6 +87,7 @@ Set `CLAUDE_FRAMEWORK` to keep the source elsewhere. To check it is valid:
 | `/framework-install` | Once per project | Reads the repo, runs the questionnaire, picks the roster, generates everything, verifies it |
 | `/framework-doctor` | When something is off | 18 checks on the installation, each with its remedy |
 | `/framework-sync` | Maintenance | Versions **down** into the project, improvements **up** into the source, agents on and off |
+| `/framework-memory` | When a memory looks old | Lists the project's persistent memory and pairs every conflict with the line in the repo that contradicts it |
 
 `--down`, `--up`, `--activate <agent>`, `--deactivate <agent>` are asked of the
 skill in natural language.
@@ -156,7 +157,7 @@ elsewhere.
 
 ## Status
 
-**Version 1.2.0.** The test suite shows the installation is coherent.
+**Version 1.3.0.** The test suite shows the installation is coherent.
 Quantified results are planned for a future release.
 
 ## Licence

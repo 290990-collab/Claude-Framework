@@ -43,7 +43,7 @@ def make_project(
             json.dumps(data), encoding="utf-8"
         )
     if skills:
-        for name in ("framework-doctor", "framework-sync"):
+        for name in doctor.LIFECYCLE_SKILLS:
             d = root / ".claude" / "skills" / name
             d.mkdir(parents=True)
             (d / "SKILL.md").write_text(f"name: {name}\n", encoding="utf-8")

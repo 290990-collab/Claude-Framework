@@ -13,10 +13,10 @@ shared/core/         generic guides, loaded on demand
 shared/domain/       domain guides (design, research, data)
 profiles/            5 profiles: domain → roster, guides, cycles, permissions
 templates/           the state files, generated empty but structured
-skills/              framework-install · framework-doctor · framework-sync
+skills/              framework-install · framework-doctor · framework-sync · framework-memory
 tools/fwbuild/       assembly, hashing, checks — pure Python stdlib
 tools/trial_install.py  the proof: installs a fake project, which the doctor checks
-tools/tests/         161 tests
+tools/tests/         162 tests
 ```
 
 ## The separation that matters: by recipient, not by subject

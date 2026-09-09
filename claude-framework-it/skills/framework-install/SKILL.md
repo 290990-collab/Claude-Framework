@@ -261,7 +261,7 @@ P.joinpath('.claude/shared/orchestration.md').write_text(
 sorted(set(prof.shared) | set(profile.required_guides(F, roster)))
 ```
 
-**Skill di ciclo di vita** — copia `<FW>/skills/framework-doctor` e `framework-sync` in `.claude/skills/`. Senza, non sono invocabili e il doctor lo segnala (`SKILLS_MISSING`).
+**Skill di ciclo di vita** — copia `<FW>/skills/framework-doctor`, `framework-sync` e `framework-memory` in `.claude/skills/`. Senza, non sono invocabili e il doctor lo segnala (`SKILLS_MISSING`).
 
 **`.claude/settings.json`** — serializza `Profile.settings` in JSON.
 

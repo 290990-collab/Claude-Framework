@@ -37,6 +37,10 @@ ROUTING_AGENT_RE = re.compile(r"^\|[^|]*\|\s*`([a-z-]+)`\s*\|", re.MULTILINE)
 FABLE_RE = re.compile(r"^model:\s*fable\s*$", re.MULTILINE)
 SHARED_REF_RE = re.compile(r"\.claude/shared/([A-Za-z0-9_./-]+\.md)")
 STATE_FILES = ("TODO.md", "status.md", "roadmap.md")
+# The skills every installation receives. One single list: duplicating it in
+# the tooling and in the tests means adding one and discovering from the red
+# where the copies were.
+LIFECYCLE_SKILLS = ("framework-doctor", "framework-sync", "framework-memory")
 ORCHESTRATION = "shared/orchestration.md"
 
 # Titles that belong to the coordinator's guide. If they reappear in
@@ -324,7 +328,7 @@ def check(root: Path) -> list[Finding]:
                 )
             )
 
-    for skill in ("framework-doctor", "framework-sync"):
+    for skill in LIFECYCLE_SKILLS:
         if not (root / ".claude" / "skills" / skill / "SKILL.md").is_file():
             out.append(
                 Finding(

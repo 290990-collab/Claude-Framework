@@ -13,10 +13,10 @@ shared/core/         guide generiche, caricate on-demand
 shared/domain/       guide di dominio (design, ricerca, dati)
 profiles/            5 profili: dominio → roster, guide, cicli, permessi
 templates/           i file di stato, generati vuoti ma strutturati
-skills/              framework-install · framework-doctor · framework-sync
+skills/              framework-install · framework-doctor · framework-sync · framework-memory
 tools/fwbuild/       assemblaggio, hash, verifiche — Python stdlib puro
 tools/trial_install.py  la prova: installa un progetto finto, che il doctor verifica
-tools/tests/         161 test
+tools/tests/         162 test
 ```
 
 ## La separazione che conta: per destinatario, non per argomento

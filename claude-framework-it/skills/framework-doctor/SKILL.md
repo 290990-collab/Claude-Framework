@@ -101,7 +101,7 @@ Manca `.claude/settings.json` con agenti installati. È il file che porta i perm
 
 ### `SKILLS_MISSING` — AVVISO
 
-`framework-doctor` o `framework-sync` non sono in `.claude/skills/`: esistono nel sorgente ma non sono invocabili qui. Nessuno se ne accorge finché non servono, cioè quando qualcosa è già andato storto.
+`framework-doctor`, `framework-sync` o `framework-memory` non sono in `.claude/skills/`: esistono nel sorgente ma non sono invocabili qui. Nessuno se ne accorge finché non servono, cioè quando qualcosa è già andato storto.
 
 **Cosa fare:** copiale da `<FW>/skills/`. Non si adattano: sono file di framework, si copiano alla lettera.
 

@@ -262,7 +262,7 @@ P.joinpath('.claude/shared/orchestration.md').write_text(
 sorted(set(prof.shared) | set(profile.required_guides(F, roster)))
 ```
 
-**Lifecycle skills** — copy `<FW>/skills/framework-doctor` and `framework-sync` into `.claude/skills/`. Without them they are not invocable and the doctor flags it (`SKILLS_MISSING`).
+**Lifecycle skills** — copy `<FW>/skills/framework-doctor`, `framework-sync` and `framework-memory` into `.claude/skills/`. Without them they are not invocable and the doctor flags it (`SKILLS_MISSING`).
 
 **`.claude/settings.json`** — serialise `Profile.settings` to JSON.
 
