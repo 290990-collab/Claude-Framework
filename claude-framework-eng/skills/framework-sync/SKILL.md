@@ -11,7 +11,7 @@ description: >
 
 Connects the **source** (the master) to the **installations** (the projects). Requirement: the source must be reachable from the machine; if it is not, only `doctor` is usable.
 
-`--down`, `--up`, `--activate`, `--deactivate` are **modes of this skill**, not shell flags: `fwbuild` has `doctor`, `source`, `cost` and `report`. The divergence report across several repositories — `python -m fwbuild report <folder>` — is from the shell instead: it reads many projects and modifies none.
+`--down`, `--up`, `--upgrade`, `--activate`, `--deactivate` are **modes of this skill**, not shell flags: `fwbuild` has `doctor`, `source`, `cost` and `report`. The divergence report across several repositories — `python -m fwbuild report <folder>` — is from the shell instead: it reads many projects and modifies none.
 
 The snippets start from `<FW>/tools`. `<PRJ>` is the project root; `<FW>` is the `source` field of `.claude/framework.json` (if missing, `./framework/`), which may be **relative to the project root**, not to the directory you run from: resolve it with `source.dereference(<PRJ>, source)`.
 
@@ -62,11 +62,85 @@ p.write_text(assemble.build_document(Path('../method'), version, sections), enco
    | reference material of a domain | `<FW>/shared/` |
 
    Getting this wrong costs: a delegation rule in `method/` is paid by every subagent at every spawn without being usable; an execution rule in `coordinator/` will never be seen by whoever executes.
-4. **Increment `<FW>/VERSION`:** correction → patch; new or reworded rule → minor; structural change → major.
-5. **State what changed**, so whoever updates knows what they receive.
-6. **Realign the originating project** with `--down`, so the hash matches again.
+4. **Record the base, if it is not there already**, **before** touching `VERSION`:
+
+   ```bash
+   cd <FW>/tools && python -c "
+   from pathlib import Path
+   from fwbuild import upgrade
+   F = Path('..')
+   if upgrade.read_record(F) is None:
+       print(upgrade.write_record(F, (F/'VERSION').read_text(encoding='utf-8').strip(),
+                                  '<EDITION>', '<repository URL>'))
+   "
+   ```
+
+   From here on `VERSION` is no longer a published number, and without this line nobody knows which release the source came from any more: it is the only thing that makes your work recoverable at the next upgrade (→ `--upgrade`). **If the record is already there it is not touched:** the base stays what it is, however many promotions you make.
+5. **Increment `<FW>/VERSION`:** correction → patch; new or reworded rule → minor; structural change → major.
+6. **State what changed**, so whoever updates knows what they receive.
+7. **Realign the originating project** with `--down`, so the hash matches again.
 
 ⚠️ **A translation of this source is a source of its own**, with its own `VERSION`: `--up` does not reach it. A rule that holds in every language has to be carried across by hand — until it is, the two editions say different things.
+
+---
+
+## `--upgrade` — bringing a new release over a modified source
+
+Only for those who have used `--up`: an untouched source is updated by replacing it. The absence of `upstream.json` **is** that answer, not a fault.
+
+1. **Get the new release** where it disturbs nothing, and from there `<NEW>` is the edition folder inside the clone:
+
+   ```bash
+   git clone <repo> <NEW>   # or: git -C <existing clone> pull
+   ```
+
+2. **Rebuild the base**, that is the edition as it was at the release your source came from. `upgrade.base_version(<FW>)` gives the number; in the clone, the base is the commit where that edition's `VERSION` held that number, extracted where it touches nothing:
+
+   ```bash
+   git -C <NEW> log --format=%H -- <EDITION>/VERSION   # newest first
+   git -C <NEW> show <commit>:<EDITION>/VERSION        # until it matches
+   git -C <NEW> worktree add --detach <BASE> <commit>
+   ```
+
+   **Wrong base, useless comparison:** if no commit matches — wrong repository, truncated history, a number never published — stop and ask. Do not fall back on `VERSION`: that is the right answer only when `upstream.json` is missing.
+
+3. **Classify**, writing nothing:
+
+   ```bash
+   cd <FW>/tools && python -c "
+   from pathlib import Path
+   from fwbuild import upgrade
+   plan = upgrade.classify(Path('<BASE>/<EDITION>'), Path('<FW>'), Path('<NEW>/<EDITION>'))
+   for name in ('theirs', 'yours', 'conflict'):
+       print(name, len(getattr(plan, name)), getattr(plan, name)[:20])
+   "
+   ```
+
+   | outcome | what it means | what you do |
+   |---|---|---|
+   | `same` | you and the release say the same thing — including when your addition landed upstream identical | nothing |
+   | `theirs` | you left it as it was and upstream changed it | copy from the release |
+   | `yours` | you changed it and upstream did not | **keep yours** |
+   | `conflict` | changed by both, differently | the user decides |
+
+4. **Show the plan before applying it**, with the counts and the conflicting paths. `same`, `theirs` and `yours` are mechanical: the second are applied by copying from the release, the third by not touching them.
+5. **One conflict at a time:** read the three versions — base, yours, new — and propose a merge that keeps your addition *inside* the new text, not beside it. If your change is already covered by the new text, take that and say so. No conflict is resolved without showing the user what they lose.
+6. **`VERSION` is not a conflict:** you take the release's. A source declaring a number that was never published is what created the problem.
+7. **Rewrite the record** with the release just taken: it is the base of the next upgrade.
+
+   ```bash
+   cd <FW>/tools && python -c "
+   from pathlib import Path
+   from fwbuild import upgrade
+   F = Path('..')
+   print(upgrade.write_record(F, (F/'VERSION').read_text(encoding='utf-8').strip(),
+                              '<EDITION>', '<repository URL>'))
+   "
+   ```
+
+8. **Close with `--down` on the projects**, which are now one version behind, and with `doctor` on each.
+
+⚠️ The source is upgraded **in place**: copy it aside before applying. It is the only operation of this skill that touches the master, and it has no undo.
 
 ---
 

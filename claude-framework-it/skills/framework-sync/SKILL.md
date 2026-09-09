@@ -12,7 +12,7 @@ description: >
 
 Collega il **sorgente** (il master) alle **installazioni** (i progetti). Requisito: il sorgente dev'essere raggiungibile dalla macchina; se non lo è, solo `doctor` è utilizzabile.
 
-`--down`, `--up`, `--activate`, `--deactivate` sono **modalità di questa skill**, non flag da shell: `fwbuild` ha `doctor`, `source`, `cost` e `report`. Il rapporto di divergenza su più repository — `python -m fwbuild report <cartella>` — è invece da shell: legge molti progetti e non ne modifica nessuno.
+`--down`, `--up`, `--upgrade`, `--activate`, `--deactivate` sono **modalità di questa skill**, non flag da shell: `fwbuild` ha `doctor`, `source`, `cost` e `report`. Il rapporto di divergenza su più repository — `python -m fwbuild report <cartella>` — è invece da shell: legge molti progetti e non ne modifica nessuno.
 
 I frammenti partono da `<FW>/tools`. `<PRJ>` è la root del progetto; `<FW>` è il campo `source` di `.claude/framework.json` (se manca, `./framework/`), che può essere **relativo alla root del progetto**, non alla directory da cui giri: scioglilo con `source.dereference(<PRJ>, source)`.
 
@@ -62,11 +62,85 @@ p.write_text(assemble.build_document(Path('../method'), version, sezioni), encod
    | materiale di consultazione di un dominio | `<FW>/shared/` |
 
    Sbagliare qui costa: una regola di delega in `method/` la pagano tutti i subagent a ogni spawn senza poterla usare; una regola di esecuzione in `coordinator/` non la vedrà mai chi esegue.
-4. **Incrementa `<FW>/VERSION`:** correzione → patch; regola nuova o riformulata → minor; cambio strutturale → major.
-5. **Dichiara cosa è cambiato**, così chi aggiorna sa cosa riceve.
-6. **Riallinea il progetto di origine** con `--down`, perché l'hash torni.
+4. **Registra la base, se non c'è già**, **prima** di toccare `VERSION`:
+
+   ```bash
+   cd <FW>/tools && python -c "
+   from pathlib import Path
+   from fwbuild import upgrade
+   F = Path('..')
+   if upgrade.read_record(F) is None:
+       print(upgrade.write_record(F, (F/'VERSION').read_text(encoding='utf-8').strip(),
+                                  '<EDIZIONE>', '<URL del repository>'))
+   "
+   ```
+
+   Da qui in avanti `VERSION` non è più un numero pubblicato, e senza questa riga nessuno sa più da quale release il sorgente veniva: è la sola cosa che rende recuperabile il tuo lavoro al prossimo aggiornamento (→ `--upgrade`). **Se il record c'è già non si tocca:** la base resta quella, per quante promozioni tu faccia.
+5. **Incrementa `<FW>/VERSION`:** correzione → patch; regola nuova o riformulata → minor; cambio strutturale → major.
+6. **Dichiara cosa è cambiato**, così chi aggiorna sa cosa riceve.
+7. **Riallinea il progetto di origine** con `--down`, perché l'hash torni.
 
 ⚠️ **Una traduzione di questo sorgente è un sorgente a sé**, col proprio `VERSION`: `--up` non la raggiunge. Una regola che vale in ogni lingua va portata a mano anche là — finché non lo è, le due edizioni dicono cose diverse.
+
+---
+
+## `--upgrade` — portare una release nuova sopra un sorgente modificato
+
+Serve solo a chi ha usato `--up`: un sorgente intatto si aggiorna sostituendolo. L'assenza di `upstream.json` **è** quella risposta, non un guasto.
+
+1. **Prendi la release nuova** dove non disturba, e da lì `<NEW>` è la cartella di edizione dentro il clone:
+
+   ```bash
+   git clone <repo> <NEW>   # oppure: git -C <clone esistente> pull
+   ```
+
+2. **Ricostruisci la base**, cioè l'edizione com'era alla release da cui il tuo sorgente veniva. `upgrade.base_version(<FW>)` dà il numero; nel clone, la base è il commit in cui `VERSION` di quell'edizione valeva quel numero, estratto dove non tocca niente:
+
+   ```bash
+   git -C <NEW> log --format=%H -- <EDIZIONE>/VERSION   # dal più recente
+   git -C <NEW> show <commit>:<EDIZIONE>/VERSION        # finché non corrisponde
+   git -C <NEW> worktree add --detach <BASE> <commit>
+   ```
+
+   **Base sbagliata, confronto inutile:** se nessun commit corrisponde — repository sbagliato, storia troncata, numero mai pubblicato — fermati e chiedi. Non ripiegare su `VERSION`: quella è la risposta giusta solo quando `upstream.json` manca.
+
+3. **Classifica**, senza scrivere niente:
+
+   ```bash
+   cd <FW>/tools && python -c "
+   from pathlib import Path
+   from fwbuild import upgrade
+   plan = upgrade.classify(Path('<BASE>/<EDIZIONE>'), Path('<FW>'), Path('<NEW>/<EDIZIONE>'))
+   for nome in ('theirs', 'yours', 'conflict'):
+       print(nome, len(getattr(plan, nome)), getattr(plan, nome)[:20])
+   "
+   ```
+
+   | esito | cosa vuol dire | cosa si fa |
+   |---|---|---|
+   | `same` | tu e la release dite la stessa cosa — anche quando la tua aggiunta è arrivata a monte identica | niente |
+   | `theirs` | l'hai lasciato com'era e a monte è cambiato | si copia dalla release |
+   | `yours` | l'hai cambiato tu e a monte no | **si tiene il tuo** |
+   | `conflict` | cambiato da tutti e due, in modo diverso | lo decide l'utente |
+
+4. **Mostra il piano prima di applicarlo**, coi conteggi e i percorsi in conflitto. `same`, `theirs` e `yours` sono meccanici: si applicano copiando dalla release i primi, non toccando i secondi.
+5. **Un conflitto per volta:** leggi le tre versioni — base, tua, nuova — e proponi una fusione che tenga la tua aggiunta *dentro* il testo nuovo, non accanto. Se la tua modifica è già coperta dal testo nuovo, si prende quello e lo si dice. Nessun conflitto si risolve senza mostrare all'utente cosa perde.
+6. **`VERSION` non è un conflitto:** si prende quella della release. Un sorgente che dichiara un numero mai pubblicato è ciò che ha creato il problema.
+7. **Riscrivi il record** con la release appena presa: è la base del prossimo aggiornamento.
+
+   ```bash
+   cd <FW>/tools && python -c "
+   from pathlib import Path
+   from fwbuild import upgrade
+   F = Path('..')
+   print(upgrade.write_record(F, (F/'VERSION').read_text(encoding='utf-8').strip(),
+                              '<EDIZIONE>', '<URL del repository>'))
+   "
+   ```
+
+8. **Chiudi con `--down` sui progetti**, che ora sono indietro di una versione, e con `doctor` su ciascuno.
+
+⚠️ Il sorgente si aggiorna **sul posto**: prima di applicare, copialo da parte. È l'unica operazione della skill che tocca il master, e non ha un annulla.
 
 ---
 

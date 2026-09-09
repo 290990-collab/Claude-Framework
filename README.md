@@ -86,11 +86,11 @@ Set `CLAUDE_FRAMEWORK` to keep the source elsewhere. To check it is valid:
 |---|---|---|
 | `/framework-install` | Once per project | Reads the repo, runs the questionnaire, picks the roster, generates everything, verifies it |
 | `/framework-doctor` | When something is off | 18 checks on the installation, each with its remedy |
-| `/framework-sync` | Maintenance | Versions **down** into the project, improvements **up** into the source, agents on and off |
+| `/framework-sync` | Maintenance | Versions **down** into the project, improvements **up** into the source, a new release **over** a source you have changed, agents on and off |
 | `/framework-memory` | When a memory looks old | Lists the project's persistent memory and pairs every conflict with the line in the repo that contradicts it |
 
-`--down`, `--up`, `--activate <agent>`, `--deactivate <agent>` are asked of the
-skill in natural language.
+`--down`, `--up`, `--upgrade`, `--activate <agent>`, `--deactivate <agent>` are
+asked of the skill in natural language.
 
 ### Five profiles
 
