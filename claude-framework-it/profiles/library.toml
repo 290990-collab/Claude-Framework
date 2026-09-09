@@ -14,6 +14,10 @@ shared = [
   "core/review-checklist.md",
 ]
 
+[settings]
+# Stile di risposta: governa solo ciò che l'utente legge.
+outputStyle = "Reporting"
+
 [settings.permissions]
 deny = [
   "Read(./**/.env)", "Read(./**/.env.*)", "Read(./**/*.env)",

@@ -213,7 +213,7 @@ class TestRealFramework(unittest.TestCase):
         skill = (FRAMEWORK / "skills" / "framework-install" / "SKILL.md").read_text(
             encoding="utf-8"
         )
-        block = skill[skill.index("**2. Critical surface**") : skill.index("**3. Style")]
+        block = skill[skill.index("**2. Critical surface**") : skill.index("**3. Assumed")]
         for name in sorted(SURFACE_ONLY):
             self.assertIn(f"`{name}`", block, name)
 
@@ -239,7 +239,7 @@ class TestRealFramework(unittest.TestCase):
         skill = (FRAMEWORK / "skills" / "framework-install" / "SKILL.md").read_text(
             encoding="utf-8"
         )
-        block = skill[skill.index("**2. Critical surface**") : skill.index("**3. Style")]
+        block = skill[skill.index("**2. Critical surface**") : skill.index("**3. Assumed")]
         # More permissive than `doctor.ROUTING_AGENT_RE`, and on purpose: that
         # one accepts lowercase only, so a rename with a capital letter would
         # escape the row instead of making it fail.
@@ -302,6 +302,45 @@ class TestRealFramework(unittest.TestCase):
     def test_state_templates_present(self):
         for name in ("TODO.md", "status.md", "roadmap.md"):
             self.assertTrue((FRAMEWORK / "templates" / name).is_file(), name)
+
+    def test_every_profile_selects_the_style_that_exists(self):
+        """`outputStyle` names the style by **name**, not by path: if the
+        frontmatter is renamed on one side only, Claude Code finds nothing and
+        falls back to Default without saying so. The style stays installed, the
+        communication goes back to what it was, and no finding sees it.
+
+        `keep-coding-instructions` matters too: without it a custom style
+        **drops** the built-in software engineering instructions."""
+        text = (FRAMEWORK / "output-styles" / "reporting.md").read_text(
+            encoding="utf-8"
+        )
+        name = re.search(r"^name:\s*(.+)$", text, re.MULTILINE).group(1).strip()
+        self.assertIn("keep-coding-instructions: true", text)
+        for path in sorted((FRAMEWORK / "profiles").glob("*.toml")):
+            self.assertEqual(
+                profile.load(path).settings.get("outputStyle"), name, path.name
+            )
+
+    def test_an_unfilled_response_style_is_a_finding(self):
+        """The style has no kernel region and is not tracked: the only thing
+        demanding that it be adapted is `_markdown_files` scanning it. Narrowing
+        that list (today it excludes the skills alone) would switch the check
+        off without breaking anything, and the project block would stay empty on
+        the installer's disk."""
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d) / "trial"
+            with redirect_stdout(io.StringIO()):
+                trial_install.install(root)
+            rel = ".claude/output-styles/reporting.md"
+            self.assertEqual(doctor.check(root), [])
+            (root / rel).write_text(
+                (FRAMEWORK / "output-styles" / "reporting.md").read_text(
+                    encoding="utf-8"
+                ),
+                encoding="utf-8",
+            )
+            codes = [(f.code, f.message) for f in doctor.check(root)]
+            self.assertIn(("PLACEHOLDER", f"{rel}: placeholder not filled in"), codes)
 
     def test_review_checklist_keeps_generic_block_separable(self):
         text = (FRAMEWORK / "shared" / "core" / "review-checklist.md").read_text(

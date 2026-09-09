@@ -15,6 +15,10 @@ shared = [
   "domain/data-guide.md",
 ]
 
+[settings]
+# Reply style: it governs only what the user reads.
+outputStyle = "Reporting"
+
 [settings.permissions]
 deny = [
   "Read(./**/.env)", "Read(./**/.env.*)", "Read(./**/*.env)",

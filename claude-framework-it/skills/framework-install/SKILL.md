@@ -126,11 +126,7 @@ Due revisori solo se il progetto ha davvero due superfici critiche distinte.
 
 **Se la risposta non è in tabella** — contratto pubblico, accessibilità, costo operativo — **non si inventa un agente**: sarebbe un ruolo pagato da tutti per un caso solo. La superficie si scrive in due posti: la sezione *Superficie critica* di `CLAUDE.md`, e il contesto di progetto di `final-reviewer`, come una riga «qui verificato significa anche». Il punto 4 della sua checklist copre già consumatori esterni e contratti; ciò che senza quella riga non sa è **quale** superficie, qui, viene prima delle altre.
 
-**3. Stile delle risposte in chat**, su **due assi indipendenti**:
-
-*Forma* — telegrafica (conclusione prima, zero prosa) · sintetica ma completa (default) · esplicativa (si spiega sempre il **perché**) · discorsiva.
-
-*Base di conoscenza assunta* — cosa dare per noto e cosa introdurre alla prima comparsa. È l'asse che conta di più, perché dice **cosa non spiegare**. Chiedilo così: *«cosa dovrei dare per scontato che sai già, e cosa preferisci che ti spieghi ogni volta?»*
+**3. Base di conoscenza assunta** — cosa dare per noto e cosa introdurre alla prima comparsa. Chiedilo così: *«cosa dovrei dare per scontato che sai già, e cosa preferisci che ti spieghi ogni volta?»* La risposta va nel blocco `## Questo progetto` dello stile `Reporting`, non in `CLAUDE.md`: la forma delle risposte la fissa già lo stile, e riguarda solo il coordinatore.
 
 **4. Autonomia** — cosa si può fare senza chiedere. Default conservativo: **nulla di tutto questo**. Commit · pubblicazione · installazione di dipendenze · esecuzioni lunghe o costose · modifiche irreversibili.
 
@@ -183,6 +179,7 @@ Vale ovunque, ma qui è dove si perde roba: **nessuno di questi file si sovrascr
 - **`CLAUDE.md` che c'era già:** il suo contenuto è materiale di progetto. Le direttive tenute al Passo 2 vanno nelle sezioni di progetto, il resto (comandi, architettura, stato, vincoli) nella sezione che gli corrisponde. Solo allora si scrive il file nuovo, che ora contiene anche il vecchio. Ciò che non trova posto si chiede, non si butta.
 - **`docs/TODO.md`, `status.md`, `roadmap.md` che c'erano già:** si compila il template **col loro contenuto**, invece di copiarci sopra quello vuoto. Un TODO cancellato all'installazione è il primo file che il framework promette di far leggere a ogni sessione.
 - **Skill già presenti in `.claude/skills/`:** non si toccano e non si spostano. Elencale in `CLAUDE.md` accanto alle due di ciclo di vita, una riga a testa: una skill che nessuno sa di avere non viene invocata.
+- **Output style già presenti in `.claude/output-styles/`, o un `outputStyle` già scritto nei settings:** l'utente ha già scelto come vuole essere parlato. Mostraglielo accanto a `Reporting` e chiedi quale vale; il perdente resta sul disco, non si cancella.
 
 ### `CLAUDE.md` — sezioni di progetto
 
@@ -212,10 +209,9 @@ sessione delega. Poi **una riga per guida installata**: cosa contiene — la si
 copia dalla riga sotto il titolo della guida, non la si inventa — e quando
 aprirla. Un elenco di soli percorsi non è consultabile: per decidere se aprirla
 bisogna già sapere cosa c'è dentro
-
-## Stile delle risposte
-forma e base di conoscenza assunta, dalle risposte al Passo 3
 ```
+
+**Lo stile delle risposte non sta qui.** È un output style — `.claude/output-styles/` — e Claude Code lo applica **solo alla conversazione principale**: un subagent gira col proprio system prompt. Scriverlo in `CLAUDE.md` lo farebbe pagare a ogni spawn da chi non parla mai con l'utente.
 
 ### `.claude/shared/orchestration.md` — sezioni di progetto
 
@@ -242,7 +238,7 @@ from pathlib import Path
 from fwbuild import assemble
 F = Path('..'); V = (F/'VERSION').read_text(encoding='utf-8').strip()
 P = Path('<PRJ>')
-for d in ('.claude/shared', '.claude/agents', '.claude/skills', 'docs'):
+for d in ('.claude/shared', '.claude/agents', '.claude/skills', '.claude/output-styles', 'docs'):
     P.joinpath(d).mkdir(parents=True, exist_ok=True)
 P.joinpath('CLAUDE.md').write_text(
     assemble.build_document(F/'method', V, SEZIONI_PROGETTO), encoding='utf-8')
@@ -263,7 +259,9 @@ sorted(set(prof.shared) | set(profile.required_guides(F, roster)))
 
 **Skill di ciclo di vita** — copia `<FW>/skills/framework-doctor`, `framework-sync` e `framework-memory` in `.claude/skills/`. Senza, non sono invocabili e il doctor lo segnala (`SKILLS_MISSING`).
 
-**`.claude/settings.json`** — serializza `Profile.settings` in JSON.
+**Stile delle risposte** — copia `<FW>/output-styles/reporting.md` in `.claude/output-styles/` e **compila il blocco `## Questo progetto`** con la risposta alla domanda 3. Non compilato è un `PLACEHOLDER`: il doctor legge ogni `.md` sotto `.claude/` tranne le skill.
+
+**`.claude/settings.json`** — serializza `Profile.settings` in JSON. Porta `outputStyle`, cioè il nome dello stile appena copiato: senza, il file è installato e nessuno lo seleziona.
 
 **`.claude/framework.json`** — `source`, `version`, `profile`: è come le due skill ritrovano il sorgente, e l'unico posto in cui resta scritto **di cosa** è fatta l'installazione. Senza il profilo, «rigenera i permessi del profilo del progetto» non è eseguibile. La forma **non la scrivi tu**: `source.manifest` rende il percorso relativo quando il sorgente sta dentro il progetto e assoluto solo quando sta fuori — un assoluto su un sorgente interno è la macchina di chi ha installato, e muore al primo clone.
 

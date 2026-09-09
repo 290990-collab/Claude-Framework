@@ -198,12 +198,10 @@ Da aprire quando il task rientra nel dominio:
 - `.claude/shared/core/testing-guide.md` — come si applica «pochi test sensati, mai molti test deboli».
 - `.claude/shared/core/debugging-playbook.md` — mappa sintomo → sospetti, su un guasto a causa ignota.
 - `.claude/shared/core/review-checklist.md` — cosa si guarda in una review, in chiusura di task.
+"""
 
-## Stile delle risposte
-
-Sintetica ma completa, con il perché delle scelte non ovvie. Si danno per noti
-Python, i test e la riga di comando; si introduce alla prima comparsa tutto ciò
-che riguarda il comportamento dei descrittori di file e degli encoding.
+STILE_PROGETTO = """Si danno per noti Python, i test e la riga di comando; si introduce alla prima
+comparsa tutto ciò che riguarda i descrittori di file e gli encoding.
 """
 
 ROUTING = """## Roster di questo progetto
@@ -242,6 +240,7 @@ def install(out: Path) -> int:
         shutil.rmtree(out)
     (out / ".claude" / "agents").mkdir(parents=True)
     (out / ".claude" / "shared" / "core").mkdir(parents=True)
+    (out / ".claude" / "output-styles").mkdir(parents=True)
     (out / "docs").mkdir(parents=True)
 
     prof = profile.load(FRAMEWORK / "profiles" / "software.toml")
@@ -327,6 +326,13 @@ def install(out: Path) -> int:
     # non sono invocabili nel progetto.
     for skill in doctor.LIFECYCLE_SKILLS:
         shutil.copytree(FRAMEWORK / "skills" / skill, out / ".claude" / "skills" / skill)
+
+    # Lo stile di risposta: `outputStyle` nei settings lo nomina, questo file lo
+    # definisce. Il blocco di progetto si compila subito, come ogni segnaposto.
+    stile = (FRAMEWORK / "output-styles" / "reporting.md").read_text(encoding="utf-8")
+    (out / ".claude" / "output-styles" / "reporting.md").write_text(
+        fill(stile, STILE_PROGETTO), encoding="utf-8"
+    )
 
     print(f"installato: {len(roster)} agenti, {len(prof.shared)} guide -> {out}")
     return len(roster)

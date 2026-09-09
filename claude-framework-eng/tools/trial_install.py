@@ -200,11 +200,9 @@ To be opened when the task falls in their domain:
 - `.claude/shared/core/testing-guide.md` — how to apply "few meaningful tests, never many weak ones".
 - `.claude/shared/core/debugging-playbook.md` — symptom → suspects map, on a failure with an unknown cause.
 - `.claude/shared/core/review-checklist.md` — what a review looks at, when closing a task.
+"""
 
-## Reply style
-
-Concise but complete, with the reason for non-obvious choices. Python, tests
-and the command line are taken as known; everything concerning the behaviour of
+PROJECT_STYLE = """Python, tests and the command line are taken as known; everything concerning
 file descriptors and encodings is introduced at first mention.
 """
 
@@ -244,6 +242,7 @@ def install(out: Path) -> int:
         shutil.rmtree(out)
     (out / ".claude" / "agents").mkdir(parents=True)
     (out / ".claude" / "shared" / "core").mkdir(parents=True)
+    (out / ".claude" / "output-styles").mkdir(parents=True)
     (out / "docs").mkdir(parents=True)
 
     prof = profile.load(FRAMEWORK / "profiles" / "software.toml")
@@ -329,6 +328,13 @@ def install(out: Path) -> int:
     # are not invocable in the project.
     for skill in doctor.LIFECYCLE_SKILLS:
         shutil.copytree(FRAMEWORK / "skills" / skill, out / ".claude" / "skills" / skill)
+
+    # The reply style: `outputStyle` in the settings names it, this file defines
+    # it. The project block is filled in at once, like every placeholder.
+    style = (FRAMEWORK / "output-styles" / "reporting.md").read_text(encoding="utf-8")
+    (out / ".claude" / "output-styles" / "reporting.md").write_text(
+        fill(style, PROJECT_STYLE), encoding="utf-8"
+    )
 
     print(f"installed: {len(roster)} agents, {len(prof.shared)} guides -> {out}")
     return len(roster)
