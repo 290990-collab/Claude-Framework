@@ -38,8 +38,11 @@ ls -A | head -50
 
 - **Empty project** (or only configuration): the adaptation starts from an **idea**, which the user describes in words → Step 3.
 - **Existing codebase:** the adaptation starts from the **code** → Step 2.
+- **Instructions already written** — `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.claude/skills/`, `docs/TODO.md`, `docs/status.md`, `docs/roadmap.md` — in **both** cases → Step 2, block *Instructions already there*. They are the only files the installation can destroy: here you look whether they exist, at Step 5 you decide what to do with them.
 
-## Step 2 — Low-cost reconnaissance (only if there is code)
+## Step 2 — Low-cost reconnaissance
+
+### The code — only if there is any
 
 **Do not read the repository yourself:** delegate to `explorer`. Prompt in the mandatory structure:
 
@@ -65,6 +68,30 @@ DONE WHEN: the 7 points above, in compact form, with file:line where needed.
 ```
 
 Large repository → several `explorer`s in parallel on disjoint subtrees: it is the only agent with free parallelism.
+
+### Instructions already there — only if there are any
+
+These you **read yourself**: they are few files, and judging what the framework already covers is not delegated. Read the ones listed at Step 1 and nothing else — one `.md` per folder on a large repo costs more than the whole installation.
+
+Then show the user **one single table**:
+
+| directive found | where | does the framework cover it? |
+|---|---|---|
+| one change at a time, no unrequested refactoring | `CLAUDE.md:12` | yes — `method/30-code-principles.md`, *Minimal Safe Change* |
+| commit messages in English | `CLAUDE.md:40` | no |
+
+**A "yes" is cited, not asserted:** the column carries the framework file that covers that directive. Without it, it is a statement from memory — exactly what the evidence rules forbid, and the installation cannot be the first to break them. When in doubt: "no", and it gets integrated.
+
+On the "no" rows ask **one single question** — which ones to keep — and for those:
+
+| the directive is about… | it goes in |
+|---|---|
+| anyone executing a task | project sections of `CLAUDE.md` |
+| delegation, work cycle, state | project sections of `.claude/shared/orchestration.md` |
+| a whole domain (data, security, style, application domain) | a guide in `.claude/shared/`, a new one if needed |
+| one role only | the `## Project context` block of that agent |
+
+They are rewritten in the **most compressed form that keeps the meaning**: these are words paid at every spawn, and a verbose imported directive costs more than it is worth. Never inside the kernel region — there the text comes from the source and the assembly at Step 5 rewrites it. A new guide must be cited by at least one agent and listed in `CLAUDE.md § Shared guides`, or it is born orphaned (`SHARED_ORPHAN`).
 
 ## Step 3 — Questionnaire
 
@@ -149,6 +176,14 @@ print('conflicts:', profile.check_exclusive(profile.roster(prof, [], [])))
 | `.claude/shared/orchestration.md` | `<FW>/coordinator/` | only whoever delegates | on demand |
 
 **Never in `CLAUDE.md`:** the routing table, the work cycle, the delegation rules, the state levels. They are instructions a `tester` or an `explorer` pays for at every spawn without being able to use them, and the doctor detects them (`COORDINATOR_LEAK`).
+
+### Pre-existing material — read before writing
+
+It holds everywhere, but this is where things get lost: **none of these files is overwritten before being read.**
+
+- **A `CLAUDE.md` that was already there:** its content is project material. The directives kept at Step 2 go into the project sections, the rest (commands, architecture, state, constraints) into the section it belongs to. Only then do you write the new file, which now contains the old one too. Whatever finds no place is asked about, not thrown away.
+- **`docs/TODO.md`, `status.md`, `roadmap.md` that were already there:** you fill in the template **with their content**, instead of copying the empty one over them. A TODO deleted at installation is the first file the framework promises every session will read.
+- **Skills already in `.claude/skills/`:** they are not touched and not moved. List them in `CLAUDE.md` next to the two lifecycle ones, one line each: a skill nobody knows they have never gets invoked.
 
 ### `CLAUDE.md` — project sections
 

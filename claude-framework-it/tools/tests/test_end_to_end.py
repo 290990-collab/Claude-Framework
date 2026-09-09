@@ -243,6 +243,23 @@ class TestRealFramework(unittest.TestCase):
         for name in revisori:
             self.assertTrue((FRAMEWORK / "agents" / f"{name}.md").is_file(), name)
 
+    def test_the_install_skill_protects_material_that_was_already_there(self):
+        """L'installazione è l'unico passo che può cancellare lavoro altrui:
+        `CLAUDE.md` lo scrive e i tre template li copia in `docs/`. Su un
+        progetto che aveva già istruzioni, la regola che lo impedisce vive solo
+        nella prosa della skill — sparirebbe a una riscrittura, e il difetto si
+        vedrebbe a file già persi, sulla macchina di chi installa."""
+        text = (FRAMEWORK / "skills" / "framework-install" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        blocco = text[
+            text.index("### Materiale preesistente") : text.index(
+                "### `CLAUDE.md` — sezioni di progetto"
+            )
+        ]
+        for path in ("CLAUDE.md", "TODO.md", "status.md", "roadmap.md", ".claude/skills/"):
+            self.assertIn(path, blocco, path)
+
     def test_final_reviewer_asks_for_the_uncovered_critical_surface(self):
         """Le superfici senza revisore dedicato (contratto pubblico,
         accessibilità) non hanno un agente e non devono averne uno: finiscono

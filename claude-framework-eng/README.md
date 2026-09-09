@@ -16,7 +16,7 @@ templates/           the state files, generated empty but structured
 skills/              framework-install · framework-doctor · framework-sync
 tools/fwbuild/       assembly, hashing, checks — pure Python stdlib
 tools/trial_install.py  the proof: installs a fake project, which the doctor checks
-tools/tests/         160 tests
+tools/tests/         161 tests
 ```
 
 ## The separation that matters: by recipient, not by subject

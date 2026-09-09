@@ -37,8 +37,11 @@ ls -A | head -50
 
 - **Progetto vuoto** (o solo configurazione): l'adattamento parte da un'**idea**, che l'utente descrive a parole → Passo 3.
 - **Codebase esistente:** l'adattamento parte dal **codice** → Passo 2.
+- **Istruzioni già scritte** — `CLAUDE.md`, `AGENTS.md`, `.cursorrules`, `.github/copilot-instructions.md`, `.claude/skills/`, `docs/TODO.md`, `docs/status.md`, `docs/roadmap.md` — in **entrambi** i casi → Passo 2, blocco *Istruzioni già presenti*. Sono gli unici file che l'installazione può distruggere: qui si guarda se esistono, al Passo 5 si decide cosa farne.
 
-## Passo 2 — Ricognizione a costo basso (solo se c'è codice)
+## Passo 2 — Ricognizione a costo basso
+
+### Il codice — solo se ce n'è
 
 **Non leggere il repository tu:** delega a `explorer`. Prompt nella struttura obbligatoria:
 
@@ -65,6 +68,30 @@ DONE QUANDO: i 7 punti sopra, in forma compatta, con file:riga dove serve.
 
 Repository grande → più `explorer` in parallelo su sottoalberi disgiunti: è l'unico agente a parallelismo libero.
 
+### Istruzioni già presenti — solo se ce ne sono
+
+Questi **leggili tu**: sono pochi file e giudicare cosa il framework copre già non si delega. Leggi quelli elencati al Passo 1 e basta — un `.md` per cartella su un repo grande costa più dell'installazione intera.
+
+Poi mostra all'utente **una tabella sola**:
+
+| direttiva trovata | dove | il framework la copre? |
+|---|---|---|
+| una modifica per volta, niente refactoring non chiesto | `CLAUDE.md:12` | sì — `method/30-code-principles.md`, *Minimal Safe Change* |
+| messaggi di commit in inglese | `CLAUDE.md:40` | no |
+
+**Il «sì» si cita, non si afferma:** la colonna porta il file del framework che copre quella direttiva. Senza, è una dichiarazione a memoria — esattamente ciò che le regole di evidenza vietano, e l'installazione non può essere la prima a violarle. Nel dubbio: «no», e la si integra.
+
+Sulle righe con «no» fai **una domanda sola** — quali tenere — e per quelle scelte:
+
+| la direttiva riguarda… | va in |
+|---|---|
+| chiunque esegua un task | sezioni di progetto di `CLAUDE.md` |
+| delega, ciclo di lavoro, stato | sezioni di progetto di `.claude/shared/orchestration.md` |
+| un dominio intero (dati, sicurezza, stile, dominio applicativo) | una guida in `.claude/shared/`, nuova se serve |
+| un ruolo solo | il blocco `## Contesto di progetto` di quell'agente |
+
+Si riscrivono nella forma **più compressa che conserva il senso**: sono parole pagate a ogni spawn, e una direttiva importata verbosa costa più di quanto valga. Mai dentro la regione kernel — lì il testo viene dal sorgente e l'assemblaggio del Passo 5 lo riscrive. Una guida nuova va citata da almeno un agente e messa in `CLAUDE.md § Guide condivise`, o nasce orfana (`SHARED_ORPHAN`).
+
 ## Passo 3 — Questionario
 
 **Una domanda alla volta**, non un blocco unico: ogni risposta può cambiare le successive. Proponi opzioni concrete e una raccomandazione motivata dal codice o dall'idea.
@@ -83,7 +110,7 @@ Repository grande → più `explorer` in parallelo su sottoalberi disgiunti: è 
 
 Se nessuno calza, chiedi all'utente di descrivere il campo e costruisci il roster a mano dal profilo più vicino.
 
-**2. Superficie critica** — *«qual è la superficie critica di questo lavoro, cioè cosa lo rende sbagliato anche a codice perfetto?»* Determina il revisore, e se ne attiva **uno**.
+**2. Superficie critica** — *«qual è la superficie critica di questo lavoro?»* Determina il revisore, e se ne attiva **uno**.
 
 Il profilo ne dichiara già una in `critical_surface`: è quella del **campo**, nota prima del progetto. Leggila all'utente come punto di partenza, non come risposta data, e falla confermare, restringere o sostituire — un progetto può averne una che il suo campo non implica.
 
@@ -148,6 +175,14 @@ Si generano **due** documenti con regione kernel, non uno. La differenza è il d
 | `.claude/shared/orchestration.md` | `<FW>/coordinator/` | solo chi delega | on-demand |
 
 **Mai in `CLAUDE.md`:** tabella di routing, ciclo di lavoro, regole di delega, livelli di stato. Sono istruzioni che un `tester` o un `explorer` paga a ogni spawn senza poterle usare, e il doctor le rileva (`COORDINATOR_LEAK`).
+
+### Materiale preesistente — si legge prima di scrivere
+
+Vale ovunque, ma qui è dove si perde roba: **nessuno di questi file si sovrascrive prima di averlo letto.**
+
+- **`CLAUDE.md` che c'era già:** il suo contenuto è materiale di progetto. Le direttive tenute al Passo 2 vanno nelle sezioni di progetto, il resto (comandi, architettura, stato, vincoli) nella sezione che gli corrisponde. Solo allora si scrive il file nuovo, che ora contiene anche il vecchio. Ciò che non trova posto si chiede, non si butta.
+- **`docs/TODO.md`, `status.md`, `roadmap.md` che c'erano già:** si compila il template **col loro contenuto**, invece di copiarci sopra quello vuoto. Un TODO cancellato all'installazione è il primo file che il framework promette di far leggere a ogni sessione.
+- **Skill già presenti in `.claude/skills/`:** non si toccano e non si spostano. Elencale in `CLAUDE.md` accanto alle due di ciclo di vita, una riga a testa: una skill che nessuno sa di avere non viene invocata.
 
 ### `CLAUDE.md` — sezioni di progetto
 

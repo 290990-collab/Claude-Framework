@@ -248,6 +248,23 @@ class TestRealFramework(unittest.TestCase):
         for name in reviewers:
             self.assertTrue((FRAMEWORK / "agents" / f"{name}.md").is_file(), name)
 
+    def test_the_install_skill_protects_material_that_was_already_there(self):
+        """Installation is the only step that can delete someone else's work:
+        it writes `CLAUDE.md` and copies the three templates into `docs/`. On a
+        project that already had instructions, the rule that prevents it lives
+        only in the skill's prose — it would vanish in a rewrite, and the defect
+        would show up with the files already lost, on the installer's machine."""
+        text = (FRAMEWORK / "skills" / "framework-install" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        block = text[
+            text.index("### Pre-existing material") : text.index(
+                "### `CLAUDE.md` — project sections"
+            )
+        ]
+        for path in ("CLAUDE.md", "TODO.md", "status.md", "roadmap.md", ".claude/skills/"):
+            self.assertIn(path, block, path)
+
     def test_final_reviewer_asks_for_the_uncovered_critical_surface(self):
         """The surfaces without a dedicated reviewer (public contract,
         accessibility) have no agent and must not have one: they end up in the
