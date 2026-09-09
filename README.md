@@ -156,7 +156,7 @@ elsewhere.
 
 ## Status
 
-**Version 1.1.1.** The test suite shows the installation is coherent.
+**Version 1.2.0.** The test suite shows the installation is coherent.
 Quantified results are planned for a future release.
 
 ## Licence
