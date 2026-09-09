@@ -40,7 +40,8 @@ p.write_text(assemble.build_document(Path('../method'), version, sections), enco
 
 4. **Same operation on `.claude/shared/orchestration.md`**, with the kernel from `<FW>/coordinator/`: the versioned documents are **two**, updating only one leaves them misaligned. There the domain cycles are **inside** the region and the project does not record which profile it was born from: they must be passed again with `extra=assemble.installed_cycles(region.body, Path('..'))`, or they disappear without any finding seeing it.
 5. **Same operation on every installed agent**, with `split_source` and `build_agent`: front matter and the `## Project context` block stay the project's, the method comes from the master.
-6. **Verify** with `doctor`: it must exit 0.
+6. **Update `version` in `.claude/framework.json`**, leaving `source`, `profile` and `accepted` as they are. No step did it: the manifest kept declaring the previous version, and it is the only one readable without opening a generated document. The doctor now sees it (`VERSION_MISMATCH`).
+7. **Verify** with `doctor`: it must exit 0.
 
 **Conflicts are presented, they do not resolve themselves:** on a region modified locally the user must see both versions and decide.
 

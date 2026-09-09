@@ -41,7 +41,8 @@ p.write_text(assemble.build_document(Path('../method'), version, sezioni), encod
 
 4. **Stessa operazione su `.claude/shared/orchestration.md`**, col kernel da `<FW>/coordinator/`: i documenti versionati sono **due**, aggiornarne uno solo li lascia disallineati. Lì i cicli di dominio stanno **dentro** la regione e il progetto non registra da quale profilo è nato: vanno ripassati con `extra=assemble.installed_cycles(region.body, Path('..'))`, o spariscono senza che nessun rilievo lo veda.
 5. **Stessa operazione su ogni agente installato**, con `split_source` e `build_agent`: frontmatter e blocco `## Contesto di progetto` restano del progetto, il metodo viene dal master.
-6. **Verifica** con `doctor`: deve uscire con 0.
+6. **Aggiorna `version` in `.claude/framework.json`**, lasciando `source`, `profile` e `accepted` come sono. Nessun passo lo faceva: il manifesto restava a dichiarare la versione di prima, ed è l'unica leggibile senza aprire un documento generato. Il doctor ora lo vede (`VERSION_MISMATCH`).
+7. **Verifica** con `doctor`: deve uscire con 0.
 
 **I conflitti si presentano, non si risolvono da soli:** su una regione modificata localmente l'utente deve vedere entrambe le versioni e decidere.
 

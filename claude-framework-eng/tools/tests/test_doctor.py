@@ -352,6 +352,21 @@ class TestDoctor(unittest.TestCase):
             self._rewrap(p / ".claude" / "agents" / "explorer.md", "0.3.0")
             self.assertIn("VERSION_MISMATCH", codes(doctor.check(p)))
 
+    def test_detects_a_manifest_left_on_the_previous_version(self):
+        """`--down` reassembles the markers and for six versions left
+        `framework.json` declaring the previous one. It is the version readable
+        without opening a generated document — the fleet report starts from it
+        — and no finding looked at it."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            path = p / ".claude" / "framework.json"
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["version"] = "0.3.0"
+            path.write_text(json.dumps(data), encoding="utf-8")
+            found = [f for f in doctor.check(p) if f.code == "VERSION_MISMATCH"]
+            self.assertEqual([f.severity for f in found], ["WARN"])
+            self.assertIn("framework.json", found[0].message)
+
     def test_detects_installation_behind_the_source(self):
         """An old but internally consistent method: it is the fork between
         projects, and before this check no finding saw it."""

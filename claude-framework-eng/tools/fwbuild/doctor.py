@@ -327,6 +327,19 @@ def check(root: Path) -> list[Finding]:
                     "the installation no longer knows what it was born from",
                 )
             )
+        # No update ever wrote the version declared in the manifest:
+        # `--down` reassembles the markers and leaves it as it was. The file
+        # ends up naming a version the project no longer has, and it is the
+        # only one readable without opening a generated document.
+        elif declared and manifest["version"].strip() not in declared:
+            out.append(
+                Finding(
+                    "VERSION_MISMATCH",
+                    "WARN",
+                    f".claude/framework.json declares v{manifest['version'].strip()}, "
+                    f"the markers say v{'/'.join(declared)}",
+                )
+            )
 
     for skill in LIFECYCLE_SKILLS:
         if not (root / ".claude" / "skills" / skill / "SKILL.md").is_file():

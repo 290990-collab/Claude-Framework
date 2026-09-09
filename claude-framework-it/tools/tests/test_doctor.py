@@ -349,6 +349,21 @@ class TestDoctor(unittest.TestCase):
             self._rewrap(p / ".claude" / "agents" / "explorer.md", "0.3.0")
             self.assertIn("VERSION_MISMATCH", codes(doctor.check(p)))
 
+    def test_detects_a_manifest_left_on_the_previous_version(self):
+        """`--down` riassembla i marker e per sei versioni ha lasciato
+        `framework.json` a dichiarare quella di prima. È la versione che si
+        legge senza aprire un documento generato — il rapporto di flotta parte
+        da lì — e nessun rilievo la guardava."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            path = p / ".claude" / "framework.json"
+            data = json.loads(path.read_text(encoding="utf-8"))
+            data["version"] = "0.3.0"
+            path.write_text(json.dumps(data), encoding="utf-8")
+            found = [f for f in doctor.check(p) if f.code == "VERSION_MISMATCH"]
+            self.assertEqual([f.severity for f in found], ["WARN"])
+            self.assertIn("framework.json", found[0].message)
+
     def test_detects_installation_behind_the_source(self):
         """Metodo vecchio ma internamente coerente: è la biforcazione fra
         progetti, e prima di questo check nessun rilievo la vedeva."""
