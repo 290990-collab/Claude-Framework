@@ -116,6 +116,12 @@ GUIDES = {
     ),
 }
 
+RIGA_DECISIONE = (
+    "| D1 | [DA COMPILARE — la scelta in poche parole] | cosa cambierebbe | "
+    "i file che tocca | cosa la rende necessaria | cosa la rende rischiosa, "
+    "o cosa manca per deciderla |\n"
+)
+
 PRIMO_TASK = (
     "coprire `core/follow.py` sulla rotazione del file durante il follow "
     "(regressione nota, `tests/test_follow.py`)"
@@ -128,17 +134,14 @@ PRIMO_PASSO = (
 
 # Il Passo 5 vuole il primo obiettivo col suo criterio, non lo scheletro: un
 # segnaposto residuo è un PLACEHOLDER al Passo 6.
-PRIMO_OBIETTIVO = """### 1. Follow affidabile su file ruotato
-
-**Perché:** è la regressione che rende `logtail -f` inservibile in produzione, e
-blocca ogni lavoro sui filtri incrementali.
-**Fatto quando:** `tests/test_follow.py` copre rotazione, troncamento e
-ricreazione del file, e passa su `fixtures/big.log` a memoria costante.
-**Dipende da:** —
-**Rischi:** il comportamento della rotazione dipende dal filesystem — va provato
-anche su volume di rete.
-
-"""
+PRIMO_OBIETTIVO = (
+    "| 1 | Follow affidabile su file ruotato | segue il file oltre rotazione, "
+    "troncamento e ricreazione | `core/follow.py`, `tests/test_follow.py` | è la "
+    "regressione che rende `logtail -f` inservibile in produzione, e blocca ogni "
+    "lavoro sui filtri incrementali | `tests/test_follow.py` copre i tre casi e "
+    "passa su `fixtures/big.log` a memoria costante | il comportamento della "
+    "rotazione dipende dal filesystem: da provare anche su volume di rete |"
+)
 
 PROJECT_SECTIONS = """## Il progetto
 
@@ -187,12 +190,14 @@ Progetto appena inizializzato. Nessuna conclusione consolidata.
 `.claude/shared/orchestration.md` — quando delegare e a chi, il ciclo di lavoro,
 come si scrive un prompt, come si tiene aggiornato lo stato.
 
-Da aprire quando il task rientra nel dominio: `.claude/shared/core/conventions.md`
-· `.claude/shared/core/coding-standards.md` ·
-`.claude/shared/core/architecture-guide.md` ·
-`.claude/shared/core/testing-guide.md` ·
-`.claude/shared/core/debugging-playbook.md` ·
-`.claude/shared/core/review-checklist.md`
+Da aprire quando il task rientra nel dominio:
+
+- `.claude/shared/core/conventions.md` — regole trasversali di forma: nomi, commit, commenti.
+- `.claude/shared/core/coding-standards.md` — come si struttura il codice, più il blocco dello stack di questo progetto. Prima di scrivere codice.
+- `.claude/shared/core/architecture-guide.md` — confini, contratti, direzione delle dipendenze. Prima di cambiare un contratto.
+- `.claude/shared/core/testing-guide.md` — come si applica «pochi test sensati, mai molti test deboli».
+- `.claude/shared/core/debugging-playbook.md` — mappa sintomo → sospetti, su un guasto a causa ignota.
+- `.claude/shared/core/review-checklist.md` — cosa si guarda in una review, in chiusura di task.
 
 ## Stile delle risposte
 
@@ -300,17 +305,20 @@ def install(out: Path) -> int:
             "[DA COMPILARE — il passo successivo, in ordine di dipendenza]",
             PRIMO_PASSO,
         )
-        .replace("[DA COMPILARE — la data di oggi]", date.today().isoformat()),
+        .replace("[DA COMPILARE — la data di oggi]", date.today().isoformat())
+        # Nessuna decisione aperta alla nascita: la riga di esempio se ne va,
+        # l'intestazione resta a dire la forma.
+        .replace(RIGA_DECISIONE, ""),
         encoding="utf-8",
     )
 
     roadmap = out / "docs" / "roadmap.md"
     roadmap.write_text(
         re.sub(
-            r"### 1\. \[DA COMPILARE[^\]]*\].*?(?=## Fuori ambito)",
-            lambda _: PRIMO_OBIETTIVO,
+            r"^\| 1 \| \[DA COMPILARE.*|^\*\*Ordine:\*\* \[DA COMPILARE[^\]]*\]",
+            lambda m: PRIMO_OBIETTIVO if m.group().startswith("| 1 |") else "**Ordine:** 1",
             roadmap.read_text(encoding="utf-8"),
-            flags=re.DOTALL,
+            flags=re.MULTILINE,
         ),
         encoding="utf-8",
     )

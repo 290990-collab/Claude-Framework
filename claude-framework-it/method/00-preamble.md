@@ -6,4 +6,4 @@ personalizza: ciò che riguarda il progetto sta fuori dai marker.
 **Navigazione:**
 - Coordinatore che delega → prima `.claude/shared/orchestration.md`
 - Ruolo agenti → `.claude/agents/<ruolo>.md`
-- Guide di dominio → `.claude/shared/` (apri SOLO se il task rientra nel dominio)
+- Guide di dominio → `.claude/shared/` (apri SOLO se il task rientra nel dominio); cosa contiene ciascuna: `CLAUDE.md § Guide condivise`

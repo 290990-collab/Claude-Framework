@@ -6,12 +6,13 @@ The **what** and the **how**: goals, in what order and why in that order. Progre
 
 ## Goals
 
-### 1. [TO FILL IN — title of the first objective]
+| # | question | what it does | what it changes | why | done when | limits |
+|---|---|---|---|---|---|---|
+| 1 | [TO FILL IN — the goal in a few words] | what concretely changes | the files it touches | what it unblocks, or which problem it closes | verifiable criterion, decided now and not after the fact | what could make it fail or drag on |
 
-- **Why:** what it unblocks, or which problem it closes.
-- **Done when:** verifiable criterion, decided now and not after the fact.
-- **Depends on:** none, or the number of the goal that must precede it.
-- **Risks:** what could make it fail or drag on.
+**Order:** [TO FILL IN — `1 --> 2 --> 3`]
+
+`A --> B` A then B · `B <-- A` B depends on A · `A || B` can run in parallel.
 
 ## Deliberately out of scope
 

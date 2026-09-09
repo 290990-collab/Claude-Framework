@@ -174,7 +174,10 @@ empty at birth — it is level 3 of the self-updating state
 
 ## Shared guides
 first line: `orchestration.md`, only for the coordinator and first if the
-session delegates. Then the domain guides installed, with when to open them
+session delegates. Then **one line per installed guide**: what it holds — copied
+from the line under the guide's title, not invented — and when to open it. A
+list of bare paths is not usable: to decide whether to open a guide you would
+already have to know what is inside
 
 ## Reply style
 form and assumed knowledge base, from the answers to Step 3

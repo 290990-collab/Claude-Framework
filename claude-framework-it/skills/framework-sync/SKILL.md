@@ -105,7 +105,7 @@ Chiudi sempre con `doctor`.
 Un progetto non resta dov'è nato: una libreria si fa una demo, uno strumento diventa un servizio. Il campo sta in `profile` dentro `.claude/framework.json`, unico posto che lo sa. Nessuna modalità apposta: sono le stesse quattro operazioni dell'installazione, sul profilo nuovo.
 
 1. **Roster** — `--activate` per ciò che il campo nuovo implica, `--deactivate` per il resto. Controlla i conflitti dopo.
-2. **Guide** — copia quelle del profilo nuovo più quelle che gli agenti attivati citano (`profile.required_guides`). Le vecchie che nessuno cita più le trova il doctor come `SHARED_ORPHAN`.
+2. **Guide** — copia quelle del profilo nuovo più quelle che gli agenti attivati citano (`profile.required_guides`), e aggiungi la riga in `CLAUDE.md § Guide condivise`: cosa contiene la guida, presa dalla riga sotto il suo titolo. Il doctor pretende che il percorso sia citato (`SHARED_ORPHAN`), non che la riga sia scritta bene: quella è responsabilità di chi installa.
 3. **Cicli** — riassembla la guida del coordinatore accodando quelli del campo nuovo (`assemble.cycle_files`), o senza se ne toglie. Stanno **dentro** la regione kernel: nessun rilievo li vede sparire.
 4. **Permessi** — rigenera `.claude/settings.json` da `Profile.settings` del profilo nuovo.
 

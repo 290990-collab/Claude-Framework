@@ -22,7 +22,13 @@ Only the **state**: where we are now. The plan lives in [roadmap.md](roadmap.md)
 
 ## Open decisions
 
-*No open decisions.* Here go deliberately deferred choices: the options and what unblocks them.
+*No open decisions.* Here go deliberately deferred choices, one row per choice:
+
+| # | question | what it does | what it changes | why | limits |
+|---|---|---|---|---|---|
+| D1 | [TO FILL IN — the choice in a few words] | what would change | the files it touches | what makes it necessary | what makes it risky, or what is missing to decide it |
+
+**Order:** `D1 --> D2` D1 first · `D2 <-- D1` D2 depends on D1 · `D1 || D2` can run in parallel.
 
 ---
 

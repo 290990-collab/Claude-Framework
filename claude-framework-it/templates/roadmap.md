@@ -6,12 +6,13 @@ Il **cosa** e il **come**: obiettivi, in che ordine e perché in quell'ordine. L
 
 ## Obiettivi
 
-### 1. [DA COMPILARE — titolo del primo obiettivo]
+| # | questione | cosa fa | cosa modifica | perché | fatto quando | limitazioni |
+|---|---|---|---|---|---|---|
+| 1 | [DA COMPILARE — l'obiettivo in poche parole] | cosa cambia concretamente | i file che tocca | cosa sblocca, o quale problema chiude | criterio verificabile, deciso adesso e non a posteriori | cosa può farlo fallire o allungare |
 
-- **Perché:** cosa sblocca, o quale problema chiude.
-- **Fatto quando:** criterio verificabile, deciso adesso e non a posteriori.
-- **Dipende da:** nessuna, oppure il numero dell'obiettivo che deve precederlo.
-- **Rischi:** cosa potrebbe farlo fallire o allungare.
+**Ordine:** [DA COMPILARE — `1 --> 2 --> 3`]
+
+`A --> B` prima A poi B · `B <-- A` B dipende da A · `A || B` parallelizzabili.
 
 ## Fuori ambito, di proposito
 

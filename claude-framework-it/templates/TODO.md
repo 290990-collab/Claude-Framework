@@ -22,7 +22,13 @@ Solo lo **stato**: dove siamo adesso. Il piano sta in [roadmap.md](roadmap.md), 
 
 ## Decisioni aperte
 
-*Nessuna decisione aperta.* Qui le scelte rinviate di proposito: le opzioni e cosa le sblocca.
+*Nessuna decisione aperta.* Qui le scelte rinviate di proposito, una riga per scelta:
+
+| # | questione | cosa fa | cosa modifica | perché | limitazioni |
+|---|---|---|---|---|---|
+| D1 | [DA COMPILARE — la scelta in poche parole] | cosa cambierebbe | i file che tocca | cosa la rende necessaria | cosa la rende rischiosa, o cosa manca per deciderla |
+
+**Ordine:** `D1 --> D2` prima D1 · `D2 <-- D1` D2 dipende da D1 · `D1 || D2` parallelizzabili.
 
 ---
 

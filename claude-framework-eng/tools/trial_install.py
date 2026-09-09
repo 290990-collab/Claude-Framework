@@ -116,6 +116,12 @@ GUIDES = {
     ),
 }
 
+DECISION_ROW = (
+    "| D1 | [TO FILL IN — the choice in a few words] | what would change | "
+    "the files it touches | what makes it necessary | what makes it risky, "
+    "or what is missing to decide it |\n"
+)
+
 FIRST_TASK = (
     "cover `core/follow.py` on file rotation during follow "
     "(known regression, `tests/test_follow.py`)"
@@ -128,17 +134,15 @@ FIRST_STEP = (
 
 # Step 5 wants the first goal with its criterion, not the skeleton: a residual
 # placeholder is a PLACEHOLDER at Step 6.
-FIRST_GOAL = """### 1. Reliable follow on a rotated file
-
-**Why:** it is the regression that makes `logtail -f` unusable in production,
-and it blocks any work on incremental filters.
-**Done when:** `tests/test_follow.py` covers rotation, truncation and
-recreation of the file, and passes on `fixtures/big.log` at constant memory.
-**Depends on:** —
-**Risks:** rotation behaviour depends on the filesystem — it must be tried on a
-network volume too.
-
-"""
+FIRST_GOAL = (
+    "| 1 | Reliable follow on a rotated file | keeps following the file across "
+    "rotation, truncation and recreation | `core/follow.py`, "
+    "`tests/test_follow.py` | it is the regression that makes `logtail -f` "
+    "unusable in production, and it blocks any work on incremental filters | "
+    "`tests/test_follow.py` covers the three cases and passes on "
+    "`fixtures/big.log` at constant memory | rotation behaviour depends on the "
+    "filesystem: it must be tried on a network volume too |"
+)
 
 PROJECT_SECTIONS = """## The project
 
@@ -189,12 +193,13 @@ Project just initialised. No consolidated conclusions.
 cycle, how to write a prompt, how state is kept up to date.
 
 To be opened when the task falls in their domain:
-`.claude/shared/core/conventions.md` ·
-`.claude/shared/core/coding-standards.md` ·
-`.claude/shared/core/architecture-guide.md` ·
-`.claude/shared/core/testing-guide.md` ·
-`.claude/shared/core/debugging-playbook.md` ·
-`.claude/shared/core/review-checklist.md`
+
+- `.claude/shared/core/conventions.md` — cross-cutting rules of form: names, commits, comments.
+- `.claude/shared/core/coding-standards.md` — how code is structured, plus this project's stack block. Before writing code.
+- `.claude/shared/core/architecture-guide.md` — boundaries, contracts, direction of dependencies. Before changing a contract.
+- `.claude/shared/core/testing-guide.md` — how to apply "few meaningful tests, never many weak ones".
+- `.claude/shared/core/debugging-playbook.md` — symptom → suspects map, on a failure with an unknown cause.
+- `.claude/shared/core/review-checklist.md` — what a review looks at, when closing a task.
 
 ## Reply style
 
@@ -302,17 +307,20 @@ def install(out: Path) -> int:
             "[TO FILL IN — the next step, in dependency order]",
             FIRST_STEP,
         )
-        .replace("[TO FILL IN — today's date]", date.today().isoformat()),
+        .replace("[TO FILL IN — today's date]", date.today().isoformat())
+        # No open decisions at birth: the example row goes, the header stays
+        # to state the shape.
+        .replace(DECISION_ROW, ""),
         encoding="utf-8",
     )
 
     roadmap = out / "docs" / "roadmap.md"
     roadmap.write_text(
         re.sub(
-            r"### 1\. \[TO FILL IN[^\]]*\].*?(?=## Deliberately out of scope)",
-            lambda _: FIRST_GOAL,
+            r"^\| 1 \| \[TO FILL IN.*|^\*\*Order:\*\* \[TO FILL IN[^\]]*\]",
+            lambda m: FIRST_GOAL if m.group().startswith("| 1 |") else "**Order:** 1",
             roadmap.read_text(encoding="utf-8"),
-            flags=re.DOTALL,
+            flags=re.MULTILINE,
         ),
         encoding="utf-8",
     )

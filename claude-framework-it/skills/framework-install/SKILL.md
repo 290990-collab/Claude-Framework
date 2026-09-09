@@ -173,7 +173,10 @@ vuoto alla nascita — è il livello 3 dello stato auto-aggiornante
 
 ## Guide condivise
 prima riga: `orchestration.md`, solo per il coordinatore e per primo se la
-sessione delega. Poi le guide di dominio installate, con quando aprirle
+sessione delega. Poi **una riga per guida installata**: cosa contiene — la si
+copia dalla riga sotto il titolo della guida, non la si inventa — e quando
+aprirla. Un elenco di soli percorsi non è consultabile: per decidere se aprirla
+bisogna già sapere cosa c'è dentro
 
 ## Stile delle risposte
 forma e base di conoscenza assunta, dalle risposte al Passo 3

@@ -105,7 +105,7 @@ Always close with `doctor`.
 A project does not stay where it was born: a library grows a demo, a tool becomes a service. The field lives in `profile` inside `.claude/framework.json`, the only place that knows it. No dedicated mode: these are the same four operations of an installation, on the new profile.
 
 1. **Roster** — `--activate` what the new field implies, `--deactivate` the rest. Check for conflicts afterwards.
-2. **Guides** — copy the new profile's guides plus the ones the activated agents cite (`profile.required_guides`). The old ones nobody cites any more are found by the doctor as `SHARED_ORPHAN`.
+2. **Guides** — copy the new profile's guides plus the ones the activated agents cite (`profile.required_guides`), and add the line in `CLAUDE.md § Shared guides`: what the guide holds, taken from the line under its title. The doctor demands that the path be cited (`SHARED_ORPHAN`), not that the line be written well: that is on whoever installs.
 3. **Cycles** — reassemble the coordinator's guide appending the new field's (`assemble.cycle_files`), or without them if it drops them. They live **inside** the kernel region: no finding sees them vanish.
 4. **Permissions** — regenerate `.claude/settings.json` from the new profile's `Profile.settings`.
 
