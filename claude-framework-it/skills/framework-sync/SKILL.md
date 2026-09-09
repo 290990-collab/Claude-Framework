@@ -107,6 +107,6 @@ Un progetto non resta dov'è nato: una libreria si fa una demo, uno strumento di
 1. **Roster** — `--activate` per ciò che il campo nuovo implica, `--deactivate` per il resto. Controlla i conflitti dopo.
 2. **Guide** — copia quelle del profilo nuovo più quelle che gli agenti attivati citano (`profile.required_guides`), e aggiungi la riga in `CLAUDE.md § Guide condivise`: cosa contiene la guida, presa dalla riga sotto il suo titolo. Il doctor pretende che il percorso sia citato (`SHARED_ORPHAN`), non che la riga sia scritta bene: quella è responsabilità di chi installa.
 3. **Cicli** — riassembla la guida del coordinatore accodando quelli del campo nuovo (`assemble.cycle_files`), o senza se ne toglie. Stanno **dentro** la regione kernel: nessun rilievo li vede sparire.
-4. **Permessi** — rigenera `.claude/settings.json` da `Profile.settings` del profilo nuovo.
+4. **Permessi** — rigenera `.claude/settings.json` da `Profile.settings` del profilo nuovo, **unendolo** al file esistente: il `deny` del campo vecchio se ne va, ciò che ha aggiunto l'utente resta. Una rigenerazione secca cancella permessi che nessun profilo ha mai scritto.
 
 Poi aggiorna `profile` in `framework.json`. Saltarlo lascia il progetto a dichiarare un campo che non ha più: la prossima manutenzione rigenera i permessi sbagliati e nessun rilievo se ne accorge — il file dichiara, non verifica.

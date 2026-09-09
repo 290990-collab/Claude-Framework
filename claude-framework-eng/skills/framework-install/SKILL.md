@@ -180,6 +180,7 @@ It holds everywhere, but this is where things get lost: **none of these files is
 - **A `CLAUDE.md` that was already there:** its content is project material. The directives kept at Step 2 go into the project sections, the rest (commands, architecture, state, constraints) into the section it belongs to. Only then do you write the new file, which now contains the old one too. Whatever finds no place is asked about, not thrown away.
 - **`docs/TODO.md`, `status.md`, `roadmap.md` that were already there:** you fill in the template **with their content**, instead of copying the empty one over them. A TODO deleted at installation is the first file the framework promises every session will read.
 - **Skills already in `.claude/skills/`:** they are not touched and not moved. List them in `CLAUDE.md` next to the two lifecycle ones, one line each: a skill nobody knows they have never gets invoked.
+- **A `.claude/settings.json` that was already there:** the permissions inside it are the user's, and serialising `Profile.settings` over them deletes them. The profile's `deny` is **merged** into theirs; any other key already present is shown and asked about, not overwritten.
 - **Output styles already in `.claude/output-styles/`, or an `outputStyle` already written in the settings:** the user has already chosen how they want to be spoken to. Show it next to `Reporting` and ask which one holds; the loser stays on disk, it is not deleted.
 
 ### `CLAUDE.md` — project sections
@@ -262,7 +263,7 @@ sorted(set(prof.shared) | set(profile.required_guides(F, roster)))
 
 **Reply style** — copy `<FW>/output-styles/reporting.md` into `.claude/output-styles/` and **fill in the `## This project` block** with the answer to question 3. Left unfilled it is a `PLACEHOLDER`: the doctor reads every `.md` under `.claude/` except the skills.
 
-**`.claude/settings.json`** — serialise `Profile.settings` to JSON. It carries `outputStyle`, the name of the style just copied: without it the file is installed and nobody selects it.
+**`.claude/settings.json`** — serialise `Profile.settings` to JSON, **merging** it into whatever was there (→ *Pre-existing material*). It carries `outputStyle`, the name of the style just copied: without it the file is installed and nobody selects it.
 
 **`.claude/framework.json`** — `source`, `version`, `profile`: it is how the two skills find the source again, and the only place that records **what** the installation is made of. Without the profile, "regenerate the permissions of the project's profile" cannot be carried out. The shape **is not written by you**: `source.manifest` makes the path relative when the source sits inside the project and absolute only when it sits outside — an absolute path to an internal source is the machine of whoever installed it, and it dies at the first clone.
 

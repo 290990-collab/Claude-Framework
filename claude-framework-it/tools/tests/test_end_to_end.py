@@ -257,7 +257,15 @@ class TestRealFramework(unittest.TestCase):
                 "### `CLAUDE.md` — sezioni di progetto"
             )
         ]
-        for path in ("CLAUDE.md", "TODO.md", "status.md", "roadmap.md", ".claude/skills/"):
+        for path in (
+            "CLAUDE.md",
+            "TODO.md",
+            "status.md",
+            "roadmap.md",
+            ".claude/skills/",
+            ".claude/settings.json",
+            ".claude/output-styles/",
+        ):
             self.assertIn(path, blocco, path)
 
     def test_final_reviewer_asks_for_the_uncovered_critical_surface(self):

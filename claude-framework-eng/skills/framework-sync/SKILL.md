@@ -107,6 +107,6 @@ A project does not stay where it was born: a library grows a demo, a tool become
 1. **Roster** — `--activate` what the new field implies, `--deactivate` the rest. Check for conflicts afterwards.
 2. **Guides** — copy the new profile's guides plus the ones the activated agents cite (`profile.required_guides`), and add the line in `CLAUDE.md § Shared guides`: what the guide holds, taken from the line under its title. The doctor demands that the path be cited (`SHARED_ORPHAN`), not that the line be written well: that is on whoever installs.
 3. **Cycles** — reassemble the coordinator's guide appending the new field's (`assemble.cycle_files`), or without them if it drops them. They live **inside** the kernel region: no finding sees them vanish.
-4. **Permissions** — regenerate `.claude/settings.json` from the new profile's `Profile.settings`.
+4. **Permissions** — regenerate `.claude/settings.json` from the new profile's `Profile.settings`, **merging** it into the existing file: the old field's `deny` goes, whatever the user added stays. A flat regeneration deletes permissions no profile ever wrote.
 
 Then update `profile` in `framework.json`. Skipping it leaves the project declaring a field it no longer has: the next maintenance regenerates the wrong permissions and no finding notices — the file declares, it does not verify.
