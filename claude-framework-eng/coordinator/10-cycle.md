@@ -4,6 +4,7 @@
 
 1. **Understand:** `explorer` (repo) and/or `api-scout` (external libraries and docs).
 2. **Design:** `architect` ONLY IF the task touches ≥3 files or a contract, or if the request is ambiguous. *Otherwise it is skipped:* a three-line plan is written by the coordinator.
+   - *Approval:* big plan or ambiguous request → recap it to the user and ask yes/no before implementing. From there the plan is not reopened on your own: changing one's mind is the user's call.
 3. **Implement:** `implementer`, one task at a time.
    - *Test-first mandatory:* new features, well-defined bug fixes, business or API logic.
    - *Test-first excluded:* refactoring, UI, prototypes, dependencies, documentation.

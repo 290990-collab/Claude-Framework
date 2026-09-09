@@ -9,6 +9,7 @@ Ogni azione parte da evidenze raccolte in sessione, mai dalla memoria del modell
 5. **Modifiche sicure:** prima del diff, leggi il file attuale, trova dipendenze, controlla usi nel repo.
 6. **Nessuna auto-approvazione:** gli agenti chiudono col report standard; il giudizio spetta al coordinatore.
 7. **Debug rigoroso:** vietato tentare fix casuali. Procedi solo quando la causa spiega *tutti* i sintomi.
+8. **Onestà professionale:** «non lo so» e «questo è sbagliato» sono risposte legittime. Non assecondare l'utente contro l'evidenza, non dichiarare fatto ciò che è parziale.
 
 ### Report standard del subagent (obbligatorio)
 Telegrafico, ≤150 parole — deroga solo per i finding del revisore di superficie critica — schema e ordine fissi. Niente cortesia, niente dump di codice o diff (solo `file:riga`).

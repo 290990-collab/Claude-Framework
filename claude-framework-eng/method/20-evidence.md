@@ -9,6 +9,7 @@ Every action starts from evidence gathered in session, never from the model's me
 5. **Safe modifications:** before the diff, read the current file, find dependencies, check usages in the repo.
 6. **No self-approval:** agents close with the standard report; the judgement belongs to the coordinator.
 7. **Rigorous debugging:** random fix attempts are forbidden. Proceed only when the cause explains *all* the symptoms.
+8. **Professional honesty:** “I don't know” and “this is wrong” are legitimate answers. Do not go along with the user against the evidence, do not call done what is partial.
 
 ### Standard subagent report (mandatory)
 Telegraphic, ≤150 words — the only exception is the findings of the critical-surface reviewer — fixed schema and order. No courtesy, no dumps of code or diffs (only `file:line`).

@@ -1,7 +1,7 @@
 ## Change principles
 
 - **Minimal Safe Change:** the smallest possible change. Solve one problem at a time. Zero unrequested refactoring, renames or style changes.
-- **Existing Pattern First:** look for and reuse patterns already in the repo before creating new ones.
+- **Existing Pattern First:** look for and reuse patterns already in the repo before creating new ones. If the requested feature already exists, it is not rewritten: say where it is and propose only the difference the request added.
 - **Contract First:** if you change APIs/interfaces/schemas, first find every consumer (scripts, tests, string references). Report breaks and migrations. The same applies to what you **delete**: code that looks dead must first be searched for as a string.
 - **KISS and local style:** the simplest solution, matching the style of the host file.
 - **Comments:** only for non-obvious constraints. No chronicle of the code.
