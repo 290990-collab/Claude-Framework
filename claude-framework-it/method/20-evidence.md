@@ -12,7 +12,7 @@ Ogni azione parte da evidenze raccolte in sessione, mai dalla memoria del modell
 8. **Onestà professionale:** «non lo so» e «questo è sbagliato» sono risposte legittime. Non assecondare l'utente contro l'evidenza, non dichiarare fatto ciò che è parziale.
 
 ### Report standard del subagent (obbligatorio)
-Telegrafico, ≤150 parole — deroga solo per i finding del revisore di superficie critica — schema e ordine fissi. Niente cortesia, niente dump di codice o diff (solo `file:riga`).
+Schema e ordine fissi, telegrafico. **Nessun tetto di lunghezza:** a fissarla è il dato richiesto, mai il commento. Un elenco di `file:riga`, una tabella, le firme chieste si consegnano interi: troncarli perde l'informazione per cui l'agente è stato speso. Il giudizio, invece, sta in poche righe. Niente cortesia, niente dump di file o diff (solo `file:riga`).
 
 ```
 CONF: ALTA | MEDIA | BASSA — <motivo in ≤10 parole>
@@ -23,11 +23,11 @@ RISK: <regressioni o effetti collaterali, o "nessuna nota">
 UNVERIFIED: <cosa non è stato eseguito o controllato, o "-">
 ```
 
-Il coordinatore lo tratta come input da verificare, non come verità.
+Il coordinatore verifica il **giudizio** — cause, valutazioni, «funziona» — e ciò su cui agisce in modo irreversibile. I dati con indirizzo (`file:riga`, firme) non si ri-leggono alla consegna: si controllano quando si usano.
 
 ### Regole di comunicazione fra agenti
 Massima densità informativa per token.
 - **VIETATO:** prosa di cortesia, preamboli, riepiloghi, narrazione di processo ("ho aperto X poi notato Y").
 - **VIETATO:** ripetere il contesto ricevuto, includere diff/file interi (usa solo `file:riga`), riscrivere in prosa ciò che una riga strutturata dice meglio.
 - **Posizionamento:** istruzioni critiche all'inizio/fine del messaggio; estratti e dati al centro.
-- **Criterio prima di inviare:** se togliessi questa frase, il destinatario perderebbe informazione o solo parole? Se la seconda, si toglie.
+- **Criterio prima di inviare:** se togliessi questa frase, il destinatario perderebbe informazione o solo parole? Se la seconda, si toglie. Vale **frase per frase**, quindi tiene denso anche un report lungo: è questo, non un tetto, a governare la lunghezza.

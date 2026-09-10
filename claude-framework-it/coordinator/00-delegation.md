@@ -19,7 +19,7 @@ Lista canonica e completa, vive **solo qui**. Gli obblighi di chi esegue stanno 
    - Altri agenti ad alto reasoning: in sequenza. Max 2 in parallelo SOLO su task e file completamente disgiunti.
    - `explorer`: parallelismo libero.
 2. **Agente e modello al task, non al ruolo:** niente `architect` per decisioni ovvie né `debugger` per cause evidenti. Per task meccanici, privi di decisioni o a basso rischio, declassa il modello dello spawn a uno più leggero (l'effort della scheda resta). Un modello troppo debole sbaglia, e il giro a vuoto costa più del premium.
-3. **Pre-digerire il contesto:** prima `explorer` (repo) o `api-scout` (librerie, servizi, docs) a costo basso per estrarre `file:riga` e firme precise, poi passa gli estratti agli agenti costosi.
+3. **Pre-digerire il contesto:** prima `explorer` (repo) o `api-scout` (librerie, servizi, docs) a costo basso per estrarre `file:riga` e firme precise, poi passa gli estratti agli agenti costosi. **Scansionare non è lavoro del contesto principale:** compito ampio, risposta stretta, nessun giudizio delegato («di N file, quali toccano X» → una tabella) va a `explorer` anche quando farlo da sé sembra più rapido, perché il coordinatore costa di più per token e si tiene il rumore per tutta la sessione. Resta a te ciò di cui il **giudizio** è il prodotto, non la scansione che lo precede.
 4. **Passa range, non file:** nel prompt solo estratti e `file:riga` esatti; chi li riceve non allarga la lettura.
 5. **Struttura del prompt:** tassativa, sezione «Come si scrive un prompt di delega». Istruzioni ai bordi, dati ed estratti al centro.
 6. **Load-on-demand:** passa i pointer a risorse e guide. L'agente le apre se e quando servono.

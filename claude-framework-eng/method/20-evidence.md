@@ -12,7 +12,7 @@ Every action starts from evidence gathered in session, never from the model's me
 8. **Professional honesty:** “I don't know” and “this is wrong” are legitimate answers. Do not go along with the user against the evidence, do not call done what is partial.
 
 ### Standard subagent report (mandatory)
-Telegraphic, ≤150 words — the only exception is the findings of the critical-surface reviewer — fixed schema and order. No courtesy, no dumps of code or diffs (only `file:line`).
+Fixed schema and order, telegraphic. **No length cap:** length is set by the data asked for, never by the commentary. A list of `file:line`, a table, the signatures requested are delivered whole: truncating them loses the very information the agent was spent on. Judgment, instead, fits in a few lines. No courtesy, no dumps of files or diffs (only `file:line`).
 
 ```
 CONF: HIGH | MEDIUM | LOW — <reason in ≤10 words>
@@ -23,11 +23,11 @@ RISK: <regressions or side effects, or "none noted">
 UNVERIFIED: <what was not run or checked, or "-">
 ```
 
-The coordinator treats it as input to verify, not as truth.
+The coordinator verifies the **judgment** — causes, assessments, “it works” — and whatever it acts on irreversibly. Data that carries its own address (`file:line`, signatures) is not re-read on delivery: it is checked when it is used.
 
 ### Rules of communication between agents
 Maximum information density per token.
 - **FORBIDDEN:** courtesy prose, preambles, summaries, process narration ("I opened X then noticed Y").
 - **FORBIDDEN:** echoing the context received, including whole diffs/files (use only `file:line`), rewriting in prose what one structured line says better.
 - **Placement:** critical instructions at the start/end of the message; excerpts and data in the middle.
-- **Criterion before sending:** if I removed this sentence, would the recipient lose information or only words? If the second, it goes.
+- **Criterion before sending:** if I removed this sentence, would the recipient lose information or only words? If the second, it goes. It applies **sentence by sentence**, so it keeps a long report dense too: this, not a cap, is what governs length.

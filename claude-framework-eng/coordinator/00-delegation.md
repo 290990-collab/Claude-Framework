@@ -19,7 +19,7 @@ Canonical and complete list, it lives **only here**. The obligations of whoever 
    - Other high-reasoning agents: in sequence. Max 2 in parallel ONLY on completely disjoint tasks and files.
    - `explorer`: free parallelism.
 2. **Agent and model to the task, not to the role:** no `architect` for obvious decisions nor `debugger` for evident causes. For mechanical, judgement-free or low-risk tasks, downgrade the spawn's model to a lighter one (the card's effort stays). A model that is too weak gets it wrong, and the wasted round costs more than the premium.
-3. **Pre-digest the context:** first `explorer` (repo) or `api-scout` (libraries, services, docs) at low cost to extract exact `file:line` and signatures, then pass the excerpts to the expensive agents.
+3. **Pre-digest the context:** first `explorer` (repo) or `api-scout` (libraries, services, docs) at low cost to extract exact `file:line` and signatures, then pass the excerpts to the expensive agents. **Scanning is not main-context work:** a broad task, a narrow answer, no judgment delegated (“of N files, which ones touch X” → a table) goes to `explorer` even when doing it yourself looks faster, because the coordinator costs more per token and keeps the noise for the whole session. What stays with you is work whose **judgment** is the product, not the scan that precedes it.
 4. **Pass ranges, not files:** the prompt carries only excerpts and exact `file:line`; whoever receives them does not widen the read.
 5. **Prompt structure:** mandatory, section "How to write a delegation prompt". Instructions at the edges, data and excerpts in the middle.
 6. **Load-on-demand:** pass pointers to resources and guides. The agent opens them if and when needed.
