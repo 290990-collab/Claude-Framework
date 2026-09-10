@@ -48,9 +48,13 @@ p.write_text(assemble.build_document(Path('../method'), version, sezioni), encod
 
 ---
 
-## `--up` — promuovere una modifica locale nel sorgente
+## `--up [cosa]` — promuovere una modifica locale nel sorgente
 
-1. **Individua la modifica:** `doctor` la segnala come `KERNEL_DRIFT`; il contenuto si ottiene confrontando la regione kernel del progetto col sorgente corrispondente.
+**Precondizione: il progetto dev'essere allineato al sorgente.** Se `version` in `.claude/framework.json` non è quella di `<FW>/VERSION`, prima `--down`, poi la promozione. Da un progetto rimasto indietro la regione locale differisce dal sorgente per **due** motivi — la tua modifica, e quella che un altro progetto ha già promosso — e il passo 1 non li distingue: promuovere in blocco cancella la seconda in silenzio. Allineato vuol dire che base e sorgente coincidono, ed è la sola condizione in cui un confronto a due alberi è corretto.
+
+`[cosa]` nomina **una** modifica. Senza argomento, elenca ciò che è promovibile e procedi **una cosa alla volta**: il passo 2 va posto caso per caso, e una promozione in blocco quella domanda non la può porre.
+
+1. **Individua la modifica:** `doctor` la segnala come `KERNEL_DRIFT`; il contenuto si ottiene confrontando la regione kernel del progetto col sorgente corrispondente. **Il drift non vede i file nuovi:** una regione kernel ce l'hanno solo `CLAUDE.md`, `orchestration.md` e le schede agente, quindi elenca anche i file che stanno in `.claude/shared/` o `.claude/agents/` del progetto e mancano dal sorgente. Una guida aggiunta a mano è promovibile e nessun rilievo la nomina.
 2. **Chiedi se vale per tutti.** Un miglioramento del metodo sale, una deroga specifica di quel progetto no: la domanda va posta all'utente, non decisa.
 3. **Applica al sorgente**, e la scelta della destinazione è **per destinatario**:
 

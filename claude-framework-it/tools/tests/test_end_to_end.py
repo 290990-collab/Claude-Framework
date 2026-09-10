@@ -300,6 +300,25 @@ class TestRealFramework(unittest.TestCase):
             self.assertTrue(p.is_file(), name)
             self.assertIn(f"name: {name}", p.read_text(encoding="utf-8"))
 
+    def test_promoting_from_a_stale_project_is_forbidden(self):
+        """Due progetti sullo stesso sorgente promuovono a turno. Chi promuove
+        da un'installazione rimasta indietro ha una regione che differisce dal
+        sorgente per due motivi: la propria modifica e quella che l'altro ha
+        gia' promosso. Il passo 1 confronta due alberi e non li distingue,
+        quindi senza la precondizione la seconda sparisce senza un rilievo.
+
+        Il drift copre solo cio' che ha una regione kernel: una guida nuova in
+        `shared/` non ne ha, e senza la riga che la nomina resta invisibile
+        proprio al caso piu' comune, l'aggiunta."""
+        text = (FRAMEWORK / "skills" / "framework-sync" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        blocco = text[text.index("## `--up") : text.index("## `--upgrade")]
+        self.assertIn("allineato", blocco)
+        self.assertIn("`.claude/framework.json`", blocco)
+        self.assertIn("una cosa alla volta", blocco)
+        self.assertIn("non vede i file nuovi", blocco)
+
     def test_state_templates_present(self):
         for name in ("TODO.md", "status.md", "roadmap.md"):
             self.assertTrue((FRAMEWORK / "templates" / name).is_file(), name)

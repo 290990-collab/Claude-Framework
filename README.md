@@ -89,7 +89,7 @@ Set `CLAUDE_FRAMEWORK` to keep the source elsewhere. To check it is valid:
 | `/framework-sync` | Maintenance | Versions **down** into the project, improvements **up** into the source, a new release **over** a source you have changed, agents on and off |
 | `/framework-memory` | When a memory looks old | Lists the project's persistent memory and pairs every conflict with the line in the repo that contradicts it |
 
-`--down`, `--up`, `--upgrade`, `--activate <agent>`, `--deactivate <agent>` are
+`--down`, `--up [what]`, `--upgrade`, `--activate <agent>`, `--deactivate <agent>` are
 asked of the skill in natural language.
 
 ### Five profiles
