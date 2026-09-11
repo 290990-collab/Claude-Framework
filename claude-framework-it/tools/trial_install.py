@@ -229,7 +229,7 @@ ROUTING = """## Roster di questo progetto
 |---|---|---|
 | Dove sta / chi usa X | `explorer` | haiku low |
 | Design, piani multi-file, contratti | `architect` | opus xhigh |
-| Scrivere codice di produzione | `implementer` | opus high |
+| Scrivere codice di produzione | `implementer` | sonnet high |
 | Estendere i test | `tester` | sonnet medium |
 | Refactoring a comportamento invariato | `refactorer` | sonnet high |
 | Bug a causa ignota | `debugger` | opus high |

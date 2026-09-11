@@ -5,7 +5,7 @@ description: >
   chiaro COSA fare (da un piano dell'architect o da una richiesta precisa) e va
   scritto il codice. Non per debug di cause ignote, non per refactoring a
   comportamento invariato, non per scrivere la suite di test.
-model: opus
+model: sonnet
 effort: high
 tools: Read, Grep, Glob, Edit, Write, Bash
 color: green

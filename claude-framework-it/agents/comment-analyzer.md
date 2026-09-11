@@ -4,7 +4,7 @@ description: >
   Verifica in sola lettura dei commenti contro il codice: commenti falsi,
   riferimenti a simboli che non esistono più, cronaca delle modifiche, parafrasi,
   debito dichiarato. Da usare su un diff o su file indicati, prima della verifica
-  finale. Trova ed elenca, non corregge.
+  finale. Classifica, non corregge.
 model: sonnet
 effort: medium
 tools: Read, Grep, Glob
