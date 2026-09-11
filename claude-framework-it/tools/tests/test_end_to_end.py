@@ -310,6 +310,7 @@ class TestRealFramework(unittest.TestCase):
             "framework-doctor",
             "framework-sync",
             "framework-memory",
+            "framework-comply",
         ):
             p = FRAMEWORK / "skills" / name / "SKILL.md"
             self.assertTrue(p.is_file(), name)

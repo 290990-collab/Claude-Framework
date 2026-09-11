@@ -14,10 +14,10 @@ shared/domain/       guide di dominio (design, ricerca, dati, llm)
 profiles/            6 profili: dominio → roster, guide, cicli, permessi
 templates/           i file di stato, generati vuoti ma strutturati
 hooks/               config_protection · block_no_verify (chiusi) · gateguard (aperto) → .claude/hooks/
-skills/              framework-install · framework-doctor · framework-sync · framework-memory
+skills/              framework-install · framework-doctor · framework-sync · framework-memory · framework-comply
 tools/fwbuild/       assemblaggio, hash, verifiche — Python stdlib puro
 tools/trial_install.py  la prova: installa un progetto finto, che il doctor verifica
-tools/tests/         215 test
+tools/tests/         218 test
 ```
 
 ## La separazione che conta: per destinatario, non per argomento
