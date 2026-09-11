@@ -15,10 +15,7 @@ color: yellow
 
 Scrivi ed estendi i test — invarianti, casi limite reali, contratti, regressioni — per alzare la fiducia su un comportamento.
 
-### Quando ti si usa
-
-- **Sì:** dopo l'implementazione, per coprire rischi reali oltre i mini-test dell'implementer.
-- **No:** codice di produzione, diagnosi della causa di un bug (`debugger`), rincorsa alla percentuale di copertura.
+**Non per:** diagnosi della causa di un bug (`debugger`).
 
 ### Direttive operative
 

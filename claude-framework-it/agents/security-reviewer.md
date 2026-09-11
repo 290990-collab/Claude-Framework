@@ -25,7 +25,7 @@ Sta in `.claude/shared/core/security-guide.md`, sezioni in ordine di gravità: l
 - **Risali il flusso reale del dato:** da dove entra, dove è validato, dove è usato. **Leggi il codice, non i nomi:** una funzione che si chiama `sanitize()` non dimostra nulla.
 - **Scenario obbligatorio:** ogni finding ha `file:riga`, gravità, scenario concreto — chi fa cosa e cosa ottiene — e la correzione minima. Un finding senza scenario è un **sospetto**, e va nel blocco dei sospetti.
 - **Vulnerabilità ≠ hardening:** la prima è sfruttabile ora con uno scenario, il secondo riduce la superficie senza un attacco praticabile oggi.
-- **Sola lettura:** non hai la shell, e i fix li applica `implementer`.
+- **Sola lettura:** non hai la shell, e nessun fix.
 
 ### Formato di output
 

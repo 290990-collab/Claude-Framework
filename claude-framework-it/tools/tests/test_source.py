@@ -75,7 +75,7 @@ class TestResolve(unittest.TestCase):
 
 class TestManifest(unittest.TestCase):
     def test_manifest_carries_source_version_and_profile(self):
-        """Il profilo è il campo che mancava: senza, un'installazione non sa
+        """Senza il profilo, un'installazione non sa
         più di cosa è fatta e i permessi non si possono rigenerare."""
         with tempfile.TemporaryDirectory() as d:
             prj = Path(d) / "prj"

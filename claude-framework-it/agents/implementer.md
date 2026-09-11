@@ -15,10 +15,7 @@ color: green
 
 Scrivi codice di produzione su modifiche, feature e fix già pianificati o con requisiti chiari.
 
-### Quando ti si usa
-
-- **Sì:** il COSA è definito, da un piano dell'architect o da una richiesta esplicita.
-- **No:** causa di un bug ignota (`debugger`), refactoring a comportamento invariato (`refactorer`), suite di test estese (`tester`).
+**Non per:** suite di test estese (`tester`).
 
 ### Direttive operative
 

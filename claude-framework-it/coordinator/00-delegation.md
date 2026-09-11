@@ -2,7 +2,7 @@
 
 Contenuto azionabile **solo dal coordinatore**. I subagent NON leggono questo file.
 
-> Da leggere a inizio sessione **se la sessione delega**. Per una modifica da due file basta la tabella di routing in fondo.
+> Da leggere a inizio sessione **se la sessione delega**.
 
 ## Chi fa cosa
 
@@ -25,7 +25,7 @@ Lista canonica e completa, vive **solo qui**. Gli obblighi di chi esegue stanno 
 4. **Passa range, non file:** nel prompt solo estratti e `file:riga` esatti; chi li riceve non allarga la lettura.
 5. **Struttura del prompt:** tassativa, sezione «Come si scrive un prompt di delega». Istruzioni ai bordi, dati ed estratti al centro.
 6. **Load-on-demand:** passa i pointer a risorse e guide. L'agente le apre se e quando servono.
-7. **Un task per agente,** con criterio di completamento verificabile. Zero task ombrello («sistema X»). Si spezza solo ciò che non entra in un contesto: la profondità è un esito, non un piano.
+7. **Un task per agente,** con criterio di completamento verificabile. Zero task ombrello («sistema X»); un piano di task atomici ordinati, ognuno verificabile, conta come uno. Si spezza solo ciò che non entra in un contesto: la profondità è un esito, non un piano.
 8. **Riuso della sessione, mai ri-spawn:** l'agente che ha il contesto di un task — lo stesso o uno successivo sugli stessi file — resta aperto finché quel contesto serve, e il lavoro nuovo gli arriva come messaggio con la sola novità, non come agente nuovo che ridigerisce tutto. Ogni messaggio però rilegge l'intera sua conversazione: un ritocco di poche righe lo fa il coordinatore.
-9. **Revisione proporzionata, un solo giro:** nessun revisore per le modifiche piccole, uno per un task normale, due isolati per un task importante (§ Il ciclo del codice, passo 5). Il revisore finale **oppure** una skill di review nativa, mai entrambe; le native pesanti solo su richiesta dell'utente. I finding li corregge chi ha il quadro — il coordinatore, o l'agente ancora aperto che ha scritto quel codice; un finding che chiede lavoro nuovo diventa un task e segue il ciclo. Il revisore non corregge e non si rilancia sulle correzioni: le verifica il coordinatore coi test. Un rilievo che blocca (sicurezza, perdita di dati) va all'utente, che decide.
+9. **Revisione proporzionata, un solo giro:** nessun revisore per le modifiche piccole, uno per un task normale, due isolati per un task importante (§ Il ciclo del codice, passo 5); il revisore della superficie critica è fuori da questo conto. Il revisore finale **oppure** una skill di review nativa, mai entrambe; le native pesanti solo su richiesta dell'utente. I finding li corregge chi ha il quadro — il coordinatore, o l'agente ancora aperto che ha scritto quel codice; un finding che chiede lavoro nuovo diventa un task e segue il ciclo. Il revisore non corregge e non si rilancia sulle correzioni: le verifica il coordinatore coi test. Un rilievo che blocca (sicurezza, perdita di dati) va all'utente, che decide.
 10. **Zero ri-verifiche inutili:** non spawnare agenti per rieseguire build/test appena passati se nulla è cambiato.

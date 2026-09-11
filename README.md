@@ -1,165 +1,97 @@
 # Claude Framework
 
-An installable, versioned **working method for Claude Code**: specialised
-subagents, delegation rules, anti-hallucination rules and a context budget per
-role — generated into your project, then **checked by a tool** that tells you
-when the installation has drifted and carries good edits back into the source.
+**A working method for Claude Code, installed in one command and kept honest by a doctor.**
+
+Specialised subagents, delegation rules, evidence-before-action and a context
+budget per role — generated into your project, versioned, and checked by a tool
+that tells you the moment an installation drifts.
 
 ```
-claude-framework-eng/          the versioned source — a project gets a generated copy
-│
-├── method/                    4 files → CLAUDE.md, loaded in EVERY context (≤2000 words)
-├── coordinator/               4 files → .claude/shared/orchestration.md, opened only by
-│                              whoever delegates (≤2500 words)
-├── cycles/                    design · research — appended to the coordinator by profile
-├── agents/                    19 subagent cards: model, effort, tool grants, mandate
-│                              → .claude/agents/, 9–12 of them picked by the profile
-├── profiles/                  software · library · web · data · research
-│                              → roster + guides + .claude/settings.json permissions
+claude-framework-eng/
+├── method/
+├── coordinator/
+├── cycles/
+├── agents/
+├── profiles/
 ├── shared/
-│   ├── core/                  6 cross-project guides → .claude/shared/core/
-│   └── domain/                data · design · research → .claude/shared/domain/
-├── templates/                 TODO · status · roadmap → docs/, the state between sessions
-├── skills/                    framework-install · framework-doctor · framework-sync · framework-memory
-│                              → .claude/skills/, invoked as slash commands
-└── tools/fwbuild/             assemble · kernel · profile · doctor · source · report
-                               Python stdlib only · 160 tests
+│   ├── core/
+│   └── domain/
+├── hooks/
+├── output-styles/
+├── templates/
+├── skills/
+└── tools/
+    └── fwbuild/
 ```
 
 ![The doctor on an installed project: no findings, what the context costs, and the drift a hand edit leaves behind](assets/demo.gif)
 
-*An installed project, checked. The last command runs after someone edits the
-generated method by hand — the finding is information, not a failure.*
-
 ---
 
-## What it solves
+## Why
 
-Claude Code gives you subagents, MCP and skills. It does not give you a
-**method**. Everyone writes that by hand, once per project — then the file
-grows, the rules drift, and the projects stop agreeing with each other.
+Claude Code gives you subagents, hooks and skills. It does not give you a
+**method** — so everyone writes one by hand, per project, and watches it drift.
 
-| Problem | What the framework does |
-|---|---|
-| **Nothing orchestrates the work** | A roster of specialised subagents, a routing table, ten delegation rules and a fixed prompt shape. One task per agent, one explicit done-criterion, no subagent spawning another |
-| **Context is paid blindly** | Every context carries only what its reader needs: the method in `CLAUDE.md`, delegation in a file only the coordinator opens, each mandate in its own card, guides pulled on demand. The kernel has a word ceiling that fails the build; `fwbuild cost` turns those words into tokens and dollars per day |
-| **The model invents** | Evidence-before-action rules in every context, and one fixed report every subagent closes with: confidence, what would disprove it, what it assumed, what it did **not** verify |
-| **The harness is wired by hand** | The profile generates it: cards carrying model and effort, `settings.json` permissions, the skills. The four read-only reviewers get no shell at all — the guarantee is the configuration |
-| **The method forks** | One versioned source. The generated method sits in a hashed **kernel region**: editing it is allowed and becomes *visible*, and `framework-sync` carries the edits worth keeping back up |
+- **Agents that stay in their lane.** A roster picked for your project, a routing
+  table, one task per agent with a verifiable done-criterion, and one fixed report
+  every subagent closes with: confidence, what would disprove it, what it did
+  **not** verify.
+- **Context you actually use.** The method every agent needs lives in
+  `CLAUDE.md`; delegation lives where only the coordinator reads it; guides load
+  on demand. `fwbuild cost` turns the words into tokens and dollars.
+- **Guardrails that don't trust the model.** Hooks block `--no-verify` and edits
+  that loosen an existing linter config. Read-only reviewers get no shell at all.
+- **One method, every project.** The generated method sits in a hashed kernel
+  region: edit it and the doctor sees it, and `framework-sync` carries the edits
+  worth keeping back into the source.
 
 ---
 
 ## Install
 
-**Requirements:** Claude Code · Python 3.11+ (stdlib only, `tomllib`).
-
-Done **once per machine**; from then on a new project is one line. Two
-self-standing editions — swap `claude-framework-eng` for `claude-framework-it`
-to work in Italian.
-
-**macOS / Linux**
+Once per machine. Requires Claude Code and Python 3.11+ — stdlib only, nothing to
+install. Two self-standing editions: swap `claude-framework-eng` for
+`claude-framework-it` to work in Italian.
 
 ```bash
 git clone https://github.com/290990-collab/Claude-Framework.git ~/.claude/claude-framework
 cp -r ~/.claude/claude-framework/claude-framework-eng ~/.claude/framework
 mkdir -p ~/.claude/skills
 cp -r ~/.claude/framework/skills/framework-install ~/.claude/skills/
+cp -r ~/.claude/framework/skills/framework-comply ~/.claude/skills/
 ```
-
-**Windows (PowerShell)**
 
 ```powershell
 git clone https://github.com/290990-collab/Claude-Framework.git $HOME\.claude\claude-framework
 Copy-Item -Recurse $HOME\.claude\claude-framework\claude-framework-eng $HOME\.claude\framework
 New-Item -ItemType Directory -Force $HOME\.claude\skills | Out-Null
 Copy-Item -Recurse $HOME\.claude\framework\skills\framework-install $HOME\.claude\skills\framework-install
+Copy-Item -Recurse $HOME\.claude\framework\skills\framework-comply $HOME\.claude\skills\framework-comply
 ```
 
-Set `CLAUDE_FRAMEWORK` to keep the source elsewhere. To check it is valid:
-`cd ~/.claude/framework/tools && python -m fwbuild source ..`
+Then, in any project: `/framework-install`.
 
 ---
 
-## Use it
+## Use
 
-| Slash command | When | What it does |
-|---|---|---|
-| `/framework-install` | Once per project | Reads the repo, runs the questionnaire, picks the roster, generates everything, verifies it |
-| `/framework-doctor` | When something is off | 18 checks on the installation, each with its remedy |
-| `/framework-sync` | Maintenance | Versions **down** into the project, improvements **up** into the source, a new release **over** a source you have changed, agents on and off |
-| `/framework-memory` | When a memory looks old | Lists the project's persistent memory and pairs every conflict with the line in the repo that contradicts it |
-
-`--down`, `--up [what]`, `--upgrade`, `--activate <agent>`, `--deactivate <agent>` are
-asked of the skill in natural language.
-
-### Five profiles
-
-| Profile | Agents | Added cycle | For |
-|---|---:|---|---|
-| `software` | 9 | — | Applications and services |
-| `library` | 9 | — | Libraries and packages |
-| `web` | 11 | design | Sites and interfaces |
-| `data` | 12 | — | Pipelines and data |
-| `research` | 11 | research | Experiments and measurements |
-
-Six agents are always there — `explorer`, `architect`, `implementer`, `tester`,
-`refactorer`, `final-reviewer`: they are the code cycle. The other 13 live in
-the source and are added later with `--activate`.
-
-The framework writes `CLAUDE.md`, `.claude/` and `docs/`, and nothing else: it
-does not touch your code, your build or your dependencies, and it installs
-nothing.
-
----
-
-## Commands
-
-All run from `<source>/tools`.
-
-| Command | Answers |
+| Slash command | What it does |
 |---|---|
-| `python -m fwbuild doctor <project>` | "Does this installation hold?" |
-| `python -m fwbuild source <source>` | "Is this source valid?" |
-| `python -m fwbuild cost <project>` | "What does the common context cost?" |
-| `python -m fwbuild report <folder>` | "How many versions are out there, and where?" |
+| `/framework-install` | Reads the repo, asks a short questionnaire, picks the roster, generates everything, verifies it |
+| `/framework-doctor` | Checks the installation; every finding comes with its remedy |
+| `/framework-sync` | New versions **down** into the project, improvements **up** into the source, agents on and off |
+| `/framework-memory` | Pairs every stale memory with the repo line that contradicts it |
+| `/framework-comply` | Measures whether a rule is actually followed, across real `claude -p` runs |
 
-Findings land at three levels. **ERROR** — broken installation, always fails.
-**WARN** — needs a human call. **NOTE** — a warning the project declared
-acceptable in `framework.json`, with a written reason: visible, no longer
-failing. Errors cannot be waived.
+**Profiles:** `software` · `library` · `web` · `data` · `research` · `llm` — each
+sets the roster, the guides and the permissions for its field.
 
----
-
-## The maintenance loop
-
-The generated method lives inside a delimited region:
-
-```html
-<!-- FRAMEWORK:KERNEL v1.1.1 sha256:a3f9c1e4 — generated, do not edit by hand -->
-…
-<!-- /FRAMEWORK:KERNEL -->
-```
-
-It is not locked. Edit it and the hash stops matching: the doctor reports
-`KERNEL_DRIFT`, which is **not an error** but information. One question follows:
-
-> An improvement that holds for every project, or a waiver for this one?
-
-- **Improvement** → `/framework-sync --up`: the change rises into the source,
-  the version is bumped, the next project is born with it inside.
-- **Local waiver** → annotated, so whoever reads the finding next knows it was
-  deliberate.
-
-That upward direction is the one usually missing, and it is why methods fork
-elsewhere.
+The framework writes `CLAUDE.md`, `.claude/` and `docs/`, and nothing else. Your
+code, build and dependencies stay untouched.
 
 ---
 
-## Status
-
-**Version 1.3.0.** The test suite shows the installation is coherent.
-Quantified results are planned for a future release.
-
-## Licence
+## Version 1.4.0
 
 MIT — see [LICENSE](LICENSE).

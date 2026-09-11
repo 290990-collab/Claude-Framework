@@ -96,10 +96,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "doctor":
         findings = doctor.check(args.path)
         # L'uscita si decide sui soli rilievi bloccanti, e si decide **una
-        # volta**: `--json` è un formato, non una postura. Calcolarla dopo il
-        # ramo «nessun rilievo» faceva uscire 1 una CI che aggiungeva il flag a
-        # un'installazione pulita — cioè esattamente il contrario di ciò che il
-        # flag promette.
+        # volta**: `--json` è un formato, non una postura. Calcolata dopo il
+        # ramo «nessun rilievo», farebbe uscire 1 una CI che aggiunge il flag a
+        # un'installazione pulita.
         blocking = [f for f in findings if f.blocking]
         code = 1 if (args.strict and blocking) or any(
             f.severity == "ERROR" for f in findings

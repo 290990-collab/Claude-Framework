@@ -22,15 +22,15 @@ from . import assemble, kernel, profile, source
 
 # Un marker solo, e non `{{...}}`: quella è la sintassi di mezzo mondo dei
 # template (Vue, Angular, Jinja, Handlebars), e un progetto che la nomina nei
-# propri vincoli si prendeva un ERROR senza via d'uscita.
+# propri vincoli prenderebbe un ERROR senza via d'uscita.
 PLACEHOLDER_RE = re.compile(r"DA COMPILARE")
-# Il formato del report prima di D3: la confidenza **come** percentuale, cioè
-# `CONF:` seguito dal segnaposto di allora (`<0-100%>`) o da una cifra. Un
-# progetto installato allora se lo tiene finché non passa da `framework-sync
-# --down`: nessun altro check lo vede, perché l'hash del kernel torna — torna su
-# quello vecchio. Il valore dev'essere la percentuale: `CONF: ALTA — copertura
-# all'80%` è un giudizio categorico che cita un numero nel motivo, ed è testo
-# legittimo che il pattern non deve toccare.
+# Il formato superato del report: la confidenza **come** percentuale, cioè
+# `CONF:` seguito da un segnaposto con `%` (`<0-100%>`) o da una cifra. Un
+# progetto installato con quel formato se lo tiene finché non passa da
+# `framework-sync --down`: nessun altro check lo vede, perché l'hash del kernel
+# torna su quel testo. Il valore dev'essere la percentuale: `CONF: ALTA —
+# copertura all'80%` è un giudizio categorico che cita un numero nel motivo, ed
+# è testo legittimo che il pattern non deve toccare.
 CONF_PERCENT_RE = re.compile(r"CONF:\s*(?:<[^>\n]*%|\d[^%\n]*%)")
 ROUTING_AGENT_RE = re.compile(r"^\|[^|]*\|\s*`([a-z-]+)`\s*\|", re.MULTILINE)
 FABLE_RE = re.compile(r"^model:\s*fable\s*$", re.MULTILINE)
@@ -85,7 +85,8 @@ def _source_version() -> str | None:
     """La versione del sorgente, dedotta dalla posizione del pacchetto.
 
     `fwbuild` vive nella cartella `tools/` del sorgente: la root è due livelli
-    sopra. Il nome della cartella del sorgente non è assunto da nessuna parte. Se non è raggiungibile il check si salta — il doctor deve restare
+    sopra. Il nome della cartella del sorgente non è assunto da nessuna parte.
+    Se non è raggiungibile il check si salta — il doctor deve restare
     utilizzabile senza il sorgente.
     """
     p = Path(__file__).resolve().parents[2] / "VERSION"
@@ -137,9 +138,9 @@ class Measure:
 def measure(claude_text: str) -> Measure:
     """Misura una CLAUDE.md separando regione kernel e sezioni di progetto.
 
-    Senza marker — la variante B, legittima — le due parti non sono
-    distinguibili: si riporta il totale e si dichiara che la separazione non
-    c'è, invece di attribuire tutto a una delle due e far scattare un rilievo
+    Senza marker — installazione senza tracking, legittima — le due parti non
+    sono distinguibili: si riporta il totale e si dichiara che la separazione
+    non c'è, invece di attribuire tutto a una delle due e far scattare un rilievo
     su un'installazione sana.
     """
     region = kernel.parse(claude_text)
@@ -342,9 +343,6 @@ def check(root: Path) -> list[Finding]:
         if not (root / "docs" / name).is_file():
             out.append(Finding("STATE_MISSING", "ERROR", f"docs/{name} assente"))
 
-    # `framework.json` non lo guardava nessun rilievo: un'installazione senza
-    # passava `--strict` pulita, e poi `framework-sync` non ritrovava il
-    # sorgente e il rapporto di flotta non la contava nemmeno come installazione.
     manifest = source.read_manifest(root)
     if manifest is None:
         out.append(
@@ -370,10 +368,9 @@ def check(root: Path) -> list[Finding]:
                     "l'installazione non sa più da cosa è nata",
                 )
             )
-        # La versione dichiarata nel manifesto non la scriveva nessun
-        # aggiornamento: `--down` riassembla i marker e la lascia com'era. Il
-        # file finisce a dire una versione che il progetto non ha più, ed è
-        # l'unica che si legge senza aprire un documento generato.
+        # La versione del manifesto è l'unica che si legge senza aprire un
+        # documento generato: se diverge dai marker, dichiara una versione che
+        # il progetto non ha.
         elif declared and manifest["version"].strip() not in declared:
             out.append(
                 Finding(
@@ -423,8 +420,7 @@ def check(root: Path) -> list[Finding]:
     #
     # Sotto il tetto che il framework si dà per il solo metodo il rilievo tace:
     # su un file piccolo il rapporto è vero e irrilevante, e un avviso su undici
-    # token è rumore. Nessun caso reale ci finisce — con un kernel da ~1275
-    # parole, «progetto oltre il kernel» significa già più di 2500 in tutto.
+    # token è rumore.
     m = measure(claude_text)
     if (
         m.has_region

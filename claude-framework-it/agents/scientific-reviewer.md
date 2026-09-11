@@ -29,7 +29,7 @@ Sei il revisore di validità. Verifichi che i numeri prodotti significhino ciò 
 ### Regole d'azione
 
 - **Codice, non convenzioni:** analizza la logica reale di suddivisione e di calcolo delle metriche, non i nomi delle variabili.
-- **Guida di dominio:** `.claude/shared/domain/research-principles.md`, se il progetto la installa.
+- **Guida di dominio:** `.claude/shared/domain/research-principles.md`.
 - **Sola lettura:** nessun fix, nessuna riesecuzione degli esperimenti.
 
 ### Formato di output

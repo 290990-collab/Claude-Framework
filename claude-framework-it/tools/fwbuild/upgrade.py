@@ -1,8 +1,8 @@
 """Portare una release nuova sopra un sorgente che l'utente ha modificato.
 
-`--up` esiste perché il sorgente si modifica: chi lo fa, però, alla release
-successiva si trovava davanti una scelta secca — sovrascrivere e perdere il
-proprio lavoro, o restare indietro per sempre. Manca solo un dato per evitarla:
+`--up` esiste perché il sorgente si modifica: chi lo fa, alla release
+successiva, ha davanti una scelta secca — sovrascrivere e perdere il proprio
+lavoro, o restare indietro per sempre. Per evitarla serve un dato solo:
 **da quale release quella copia veniva**. Il numero in `VERSION` non basta,
 perché `--up` lo incrementa e da quel momento non corrisponde più a niente di
 pubblicato.

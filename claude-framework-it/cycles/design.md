@@ -2,11 +2,11 @@
 
 Si inserisce nel ciclo del codice fra *Capire* e *Progettare*. Qui la resa visiva è parte del prodotto: un'interfaccia corretta e brutta non è un successo parziale, è un prodotto che smentisce sé stesso.
 
-**Capire → Direzione → Progettare → Implementare → Verificare (funzionale *e* visivo) → Integrare.**
+**Capire → Direzione → Progettare → Implementare → Verificare (funzionale *e* visivo) → Review → Integrare.**
 
 Il passo aggiunto è il secondo:
 
-**Direzione** (`frontend`, prima di qualunque markup): griglia, scala tipografica, palette, ritmo dello spazio, tono del movimento. Si decide **prima** del primo componente e si esprime in token, non in aggettivi. Richieste ambigue → plan mode o brainstorming prima.
+**Direzione** (`frontend`, prima di qualunque markup): griglia, scala tipografica, palette, ritmo dello spazio, tono del movimento. Si decide **prima** del primo componente e si esprime in token, non in aggettivi. Richieste ambigue → plan mode prima.
 
 Regole del ciclo:
 

@@ -10,7 +10,7 @@ description: >
 
 # Memoria persistente — cosa dice, e cosa la smentisce
 
-Il livello 4 dello stato è l'unico che vive **fuori dal repository**: nessun rilievo del doctor lo vede, e in conflitto vince il repo. Una memoria vecchia e non annotata non è inerte — è un bias attivo, e fa ripartire la sessione successiva con la visione di un mese prima.
+Il livello 4 dello stato è l'unico che vive **fuori dal repository**: nessun rilievo del doctor lo vede, e in conflitto vince il repo.
 
 **La invoca il coordinatore.** Chi esegue un task la memoria non la legge: riceve nel prompt di delega ciò che gli serve, come per tutto il resto.
 
@@ -18,7 +18,7 @@ Il livello 4 dello stato è l'unico che vive **fuori dal repository**: nessun ri
 
 Non assumere il percorso: **guardalo**. Prima cartella che esiste, in quest'ordine:
 
-1. quella dell'harness per questo progetto — su Claude Code 2.1.218 è `~/.claude/projects/<progetto>/memory/`, col percorso del progetto trasformato in nome di cartella (verificato il 2026-09-09; se non c'è, non inventarla)
+1. quella dell'harness per questo progetto — in Claude Code `~/.claude/projects/<progetto>/memory/`, col percorso del progetto trasformato in nome di cartella; se non c'è, non inventarla
 2. `<PRJ>/.claude/memory/`
 
 Nessuna delle due esiste → dillo e fermati. Un progetto senza memoria è giovane, non guasto, e la cartella non si crea qui: la memoria nasce quando c'è un fatto da scriverci.

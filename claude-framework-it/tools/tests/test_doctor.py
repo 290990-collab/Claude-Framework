@@ -245,16 +245,14 @@ class TestDoctor(unittest.TestCase):
             self.assertNotIn("SHARED_ORPHAN", codes(doctor.check(p)))
 
     def test_detects_missing_manifest(self):
-        """Senza `framework.json` l'installazione passava pulita, e poi
-        `framework-sync` non ritrovava il sorgente e il rapporto di flotta non
-        la contava nemmeno fra i progetti."""
+        """Senza `framework.json` `framework-sync` non ritrova il sorgente e il
+        rapporto di flotta non conta il progetto: non è un'installazione pulita."""
         with tempfile.TemporaryDirectory() as d:
             found = doctor.check(make_project(d, manifest=False))
             self.assertIn("MANIFEST_MISSING", codes(found))
 
     def test_detects_manifest_without_the_profile(self):
-        """Il profilo è l'unica cosa che l'installazione sapeva e non scriveva:
-        senza, «rigenera i permessi del profilo» non si può eseguire."""
+        """Senza il profilo, «rigenera i permessi del profilo» non si può eseguire."""
         with tempfile.TemporaryDirectory() as d:
             p = make_project(d)
             (p / ".claude" / "framework.json").write_text(
@@ -267,7 +265,7 @@ class TestDoctor(unittest.TestCase):
 
     def test_template_syntax_is_not_a_placeholder(self):
         """`{{...}}` è la sintassi dei template di mezzo mondo: un progetto che
-        la cita fra i propri vincoli si prendeva un ERROR senza uscita."""
+        la cita fra i propri vincoli prenderebbe un ERROR senza uscita."""
         with tempfile.TemporaryDirectory() as d:
             p = make_project(d)
             f = p / "CLAUDE.md"
@@ -350,10 +348,9 @@ class TestDoctor(unittest.TestCase):
             self.assertIn("VERSION_MISMATCH", codes(doctor.check(p)))
 
     def test_detects_a_manifest_left_on_the_previous_version(self):
-        """`--down` riassembla i marker e per sei versioni ha lasciato
-        `framework.json` a dichiarare quella di prima. È la versione che si
-        legge senza aprire un documento generato — il rapporto di flotta parte
-        da lì — e nessun rilievo la guardava."""
+        """La versione di `framework.json` è quella che si legge senza aprire un
+        documento generato — il rapporto di flotta parte da lì: se resta a
+        quella di prima, il rilievo lo dice."""
         with tempfile.TemporaryDirectory() as d:
             p = make_project(d)
             path = p / ".claude" / "framework.json"
@@ -366,7 +363,7 @@ class TestDoctor(unittest.TestCase):
 
     def test_detects_installation_behind_the_source(self):
         """Metodo vecchio ma internamente coerente: è la biforcazione fra
-        progetti, e prima di questo check nessun rilievo la vedeva."""
+        progetti, e l'hash non la vede."""
         with tempfile.TemporaryDirectory() as d:
             p = make_project(d)
             tracked = [p / "CLAUDE.md", p / ".claude" / "shared" / "orchestration.md"]
@@ -431,7 +428,7 @@ class TestDoctor(unittest.TestCase):
 
     def test_a_scanned_file_that_is_not_utf8_is_still_scanned(self):
         """Skill e hook dell'utente si scansionano e basta: uno salvato in
-        cp1252 faceva cadere il doctor, e con lui `fwbuild report`."""
+        cp1252 non deve far cadere il doctor, né `fwbuild report`."""
         with tempfile.TemporaryDirectory() as d:
             p = make_project(d)
             home = ("C:" + "\\Users\\" + "mrossi").encode("utf-8")

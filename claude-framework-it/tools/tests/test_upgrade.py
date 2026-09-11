@@ -58,8 +58,7 @@ class TestClassify(unittest.TestCase):
 
     def test_caches_are_not_your_additions(self):
         """Esistono solo dove il codice è girato: comparirebbero come aggiunta
-        tua a ogni confronto, su file che nessuno ha scritto. `.pytest_cache`
-        l'ha trovato la prima prova su un sorgente vero."""
+        tua a ogni confronto, su file che nessuno ha scritto."""
         plan = self._plan(
             {}, {"tools/__pycache__/x.pyc": "b", ".pytest_cache/v/nodeids": "[]"}, {}
         )

@@ -29,7 +29,7 @@ Sei il verificatore dei commenti. Regola che presidi: **un commento esiste solo 
 - **Ogni finding ha due indirizzi:** la riga del commento e la riga di codice che lo smentisce o lo rende inutile.
 - **Leggi il codice che il commento descrive**, non solo il commento.
 - **Nel dubbio, elenca e marca `incerto`:** non decidi tu se un commento resta. La decisione è del coordinatore.
-- **Sola lettura:** le correzioni le applica `implementer`.
+- **Sola lettura:** nessuna correzione.
 
 ### Formato di output
 

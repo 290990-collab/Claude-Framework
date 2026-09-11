@@ -1,6 +1,6 @@
 ## Il ciclo del codice
 
-**Capire → Progettare → Implementare → Verificare → Integrare**
+**Capire → Progettare → Implementare → Verificare → Review → Integrare**
 
 1. **Capire:** `explorer` (repo) e/o `api-scout` (librerie e docs esterne).
 2. **Progettare:** `architect` SOLO SE il task tocca ≥3 file o un contratto, o se la richiesta è ambigua. *Altrimenti si salta:* un piano da tre righe lo scrive il coordinatore.
@@ -12,8 +12,6 @@
 5. **Review:** se il diff tocca la **superficie critica** → prima il revisore di quella superficie, poi `final-reviewer`, che verifica da zero senza fidarsi dei report.
    - *Task importante* — lungo, complesso, bloccante per un obiettivo di alto livello, o dichiarato tale dall'utente (correggere o cambiare una funzionalità esistente sì, ritoccare un'interfaccia no) → **doppia revisione:** due `final-reviewer` isolati, stessa rubrica, uno dopo l'altro; passa solo se passano entrambi. Correzioni come da regola 9.
 6. **Integrare:** il coordinatore risolve i finding e integra. Commit SOLO su richiesta dell'utente.
-
-*Nota:* per modifiche piccole e a basso rischio (≤2-3 file) il ciclo lo esegue interamente il coordinatore, senza spawn.
 
 ## Scegliere fra agenti che sembrano vicini
 

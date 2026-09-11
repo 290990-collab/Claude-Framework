@@ -309,9 +309,7 @@ Il campo `accepted` **non si scrive all'installazione**: nasce vuoto e lo aggiun
 
 **File di stato** — copia i tre template in `docs/` e compila **subito** ogni blocco `[DA COMPILARE — …]`: prima voce e primo passo in `TODO.md` con la data di oggi, primo obiettivo col suo criterio in `roadmap.md`. `status.md` nasce vuoto per costruzione — ci si scrive quando qualcosa si chiude. Le sezioni che possono restare vuote (in attesa, bloccati, decisioni aperte) non hanno segnaposto: portano già il testo giusto e si sostituisce quando ci sarà qualcosa. Va fatto qui: al Passo 6 un segnaposto residuo è un `PLACEHOLDER`, e `TODO.md` è il file che ogni sessione futura legge per primo.
 
-### Nota sugli `@import`
-
-Se `CLAUDE.md` supporta gli `@import` nella versione di Claude Code in uso, l'assemblaggio potrebbe restare virtuale. **Va verificato, non assunto:** il default è la concatenazione fisica, che non dipende da nessuna funzionalità dell'harness. Non introdurre `@import` senza averli verificati.
+**Niente `@import`:** il kernel si concatena fisicamente.
 
 ## Passo 6 — Verifica
 

@@ -7,4 +7,4 @@ Valgono per ogni agente che riceve un task, coordinatore incluso quando lavora d
 - **Decisioni fuori mandato:** una scelta che il task non ti assegna — struttura, contratto, alternative non indicate — non la prendi: ti fermi e la riporti in testa al report con le opzioni, e riprendi alla risposta.
 - **Lettura a range:** leggi i range `file:riga` che ricevi, non i file interi. Allarga solo se l'estratto non basta, dichiarandolo.
 - **Zero ridondanza:** build/test passati e nessun file cambiato → non rieseguire.
-- **Criterio di stop:** manca un criterio di completamento verificabile → chiedilo prima di procedere. Diventa insoddisfacibile in corso d'opera → non si abbandona né si aggira: si marca `[rivisto]` col vincolo che lo impedisce e si ripresenta solo quello.
+- **Criterio di stop:** manca un criterio di completamento verificabile → chiedilo prima di procedere. Diventa insoddisfacibile in corso d'opera → non si abbandona né si aggira: ti fermi e lo riporti in testa al report, col vincolo che lo impedisce.

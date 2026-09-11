@@ -31,10 +31,9 @@ class TestRealFramework(unittest.TestCase):
         self.assertIn("effort: xhigh", text)
 
     def test_agent_colors_are_platform_values(self):
-        """`color` ha otto valori documentati. Sei schede ne dichiaravano uno
-        inventato — brown, teal, magenta, violet — e nessun test lo vedeva:
-        una configurazione che la piattaforma non riconosce non fallisce, viene
-        ignorata, che è il modo in cui resta sbagliata per sempre."""
+        """`color` ha otto valori documentati. Una configurazione che la
+        piattaforma non riconosce non fallisce, viene ignorata, che è il modo in
+        cui resta sbagliata per sempre."""
         valid = {"red", "blue", "green", "yellow", "purple", "orange", "pink", "cyan"}
         for path in sorted((FRAMEWORK / "agents").glob("*.md")):
             for line in path.read_text(encoding="utf-8").splitlines():
@@ -57,7 +56,7 @@ class TestRealFramework(unittest.TestCase):
 
     def test_every_profile_denies_the_same_secrets(self):
         """Un permesso che dipende dal campo è un permesso che qualcuno ha
-        dimenticato di copiare: `.env.local` era negato solo su web."""
+        dimenticato di copiare."""
         needed = {
             "Read(./**/.env)",
             "Read(./**/.env.*)",
@@ -71,8 +70,9 @@ class TestRealFramework(unittest.TestCase):
             self.assertEqual(needed - deny, set(), prof.name)
 
     def test_state_templates_use_one_placeholder_syntax(self):
-        """Ce n'erano due, `{{...}}` e `<...>`, e il doctor ne vedeva una: una
-        riga da riempire poteva sopravvivere all'installazione senza rilievo."""
+        """Il doctor riconosce una sola sintassi di segnaposto: una seconda
+        lascerebbe sopravvivere all'installazione una riga da riempire, senza
+        rilievo."""
         for name in ("TODO.md", "status.md", "roadmap.md"):
             text = (FRAMEWORK / "templates" / name).read_text(encoding="utf-8")
             self.assertNotIn("{{", text, name)
@@ -80,8 +80,9 @@ class TestRealFramework(unittest.TestCase):
                 self.assertFalse(line.strip().startswith("<"), f"{name}: {line}")
 
     def test_profiles_declare_no_deferred_roster(self):
-        """`on_demand` prometteva «più tardi» e `roster` li accodava comunque:
-        il campo diceva il contrario di quello che faceva."""
+        """Nessun campo per gli agenti «da installare più tardi»: `roster`
+        installa tutto ciò che il profilo elenca, e il campo direbbe il
+        contrario di quello che fa."""
         for path in sorted((FRAMEWORK / "profiles").glob("*.toml")):
             self.assertNotIn("on_demand", path.read_text(encoding="utf-8"), path.name)
 
@@ -194,8 +195,8 @@ class TestRealFramework(unittest.TestCase):
     def test_surface_only_agents_are_in_no_profile(self):
         """Conformità e prestazioni non sono campi: un progetto software può
         trattare dati personali e un altro no. Chi le presidia lo sceglie la
-        domanda sulla superficie critica, non il profilo {} metterli in un profilo
-        li installerebbe ovunque, che è il costo fisso tolto con D4."""
+        domanda sulla superficie critica, non il profilo: metterli in un profilo
+        li installerebbe in ogni progetto del campo, come costo fisso."""
         for path in (FRAMEWORK / "profiles").glob("*.toml"):
             prof = profile.load(path)
             leaked = SURFACE_ONLY & set(prof.agents)
@@ -214,9 +215,9 @@ class TestRealFramework(unittest.TestCase):
 
     def test_question_one_offers_every_profile(self):
         """La domanda 1 è l'unica via per scegliere un profilo, e la tabella è
-        scritta a mano: `llm` è arrivato in `profiles/` senza la sua riga, e
-        chi installava non poteva sceglierlo. Nessun rilievo lo vedeva — il
-        difetto sta nella skill, prima che un'installazione esista."""
+        scritta a mano: un profilo senza la sua riga non si
+        può scegliere, e nessun rilievo lo vede — il difetto sta nella skill,
+        prima che un'installazione esista."""
         skill = (FRAMEWORK / "skills" / "framework-install" / "SKILL.md").read_text(
             encoding="utf-8"
         )
@@ -360,7 +361,7 @@ class TestRealFramework(unittest.TestCase):
     def test_an_unfilled_response_style_is_a_finding(self):
         """Lo stile non ha regione kernel e non è tracciato: l'unica cosa che
         pretende l'adattamento è che `_markdown_files` lo scandisca. Restringere
-        quella lista (oggi esclude solo le skill) spegnerebbe il controllo senza
+        quella lista (esclude skill e archivio) spegnerebbe il controllo senza
         rompere niente, e il blocco di progetto resterebbe vuoto sul disco di
         chi installa."""
         with tempfile.TemporaryDirectory() as d:
@@ -531,7 +532,7 @@ class TestInstalledBudget(unittest.TestCase):
             self.assertEqual(found[0].severity, "WARN")
 
     def test_old_report_format_is_reported_in_an_installed_project(self):
-        """Un progetto installato prima del formato categorico se lo tiene:
+        """Un progetto installato col formato in percentuale se lo tiene:
         l'hash della regione kernel torna, perché torna su quel testo lì, e la
         versione dichiarata è quella con cui il progetto è nato. Senza questo
         rilievo nessun check lo vede."""
@@ -583,7 +584,7 @@ class TestSourceReference(unittest.TestCase):
         )
 
     def test_install_records_a_portable_source(self):
-        """Il difetto stava nella skill, cioè in prosa: qui si verifica
+        """La regola sta nella skill, cioè in prosa: qui si verifica
         sull'artefatto scritto."""
         with tempfile.TemporaryDirectory() as d:
             root = Path(d) / "prova"
@@ -607,9 +608,8 @@ class TestProfilesAreDistinguishable(unittest.TestCase):
             self.assertTrue(prof.critical_surface.strip(), prof.name)
 
     def test_no_two_profiles_are_interchangeable(self):
-        """`software` e `library` differivano solo per `name` e `description`:
-        sceglierli non aveva nessuna conseguenza meccanica. Questo test
-        impedisce di reintrodurre la scelta senza esito."""
+        """Due profili che differiscono solo per `name` e `description` sono una
+        scelta senza nessuna conseguenza meccanica."""
         seen = {}
         for path in sorted((FRAMEWORK / "profiles").glob("*.toml")):
             prof = profile.load(path)
@@ -657,9 +657,7 @@ class TestCli(unittest.TestCase):
 
     def test_doctor_json_keeps_the_strict_exit_code(self):
         """`--json` è un formato, non una postura: l'uscita dev'essere la stessa
-        col flag e senza. Su un'installazione pulita è 0 — prima era 1, perché
-        il ramo JSON restituiva il codice prima di guardare se ci fossero
-        rilievi, e una CI che aggiungeva il flag falliva sempre."""
+        col flag e senza. Su un'installazione pulita è 0."""
         with tempfile.TemporaryDirectory() as d:
             root = self._install(d)
             for argv in (
@@ -718,8 +716,7 @@ class TestRealInstall(unittest.TestCase):
     def test_full_install_passes_doctor(self):
         """Il resto della suite verifica i pezzi; questo verifica **l'atto di
         installare**. È l'unico test che cade se l'installazione, tutta intera,
-        smette di reggere il Passo 6 — ed è così che è stato trovato il
-        `roadmap.md` copiato e mai compilato."""
+        smette di reggere il Passo 6."""
         with tempfile.TemporaryDirectory() as d:
             root = Path(d) / "prova"
             with redirect_stdout(io.StringIO()):

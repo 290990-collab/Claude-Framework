@@ -56,12 +56,14 @@ Il repository porta **due sorgenti**, uno per lingua: `claude-framework-it/` e
 git clone <repo> ~/.claude/claude-framework
 cp -r ~/.claude/claude-framework/claude-framework-it ~/.claude/framework
 cp -r ~/.claude/framework/skills/framework-install ~/.claude/skills/
+cp -r ~/.claude/framework/skills/framework-comply ~/.claude/skills/
 ```
 
 ```powershell
 git clone <repo> $HOME\.claude\claude-framework
 Copy-Item -Recurse $HOME\.claude\claude-framework\claude-framework-it $HOME\.claude\framework
 Copy-Item -Recurse $HOME\.claude\framework\skills\framework-install $HOME\.claude\skills\
+Copy-Item -Recurse $HOME\.claude\framework\skills\framework-comply $HOME\.claude\skills\
 ```
 
 La destinazione si chiama `framework/` perché è uno dei tre posti in cui il

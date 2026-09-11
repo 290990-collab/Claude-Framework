@@ -31,10 +31,9 @@ class Profile:
     perfetto». Non installa nessun agente: la superficie di un campo è nota
     prima di conoscere il progetto, il revisore no.
 
-    Non esiste un campo per gli agenti «da installare più tardi»: `on_demand`
-    prometteva questo e `roster` li accodava comunque, cioè li installava. Un
-    agente che il campo implica sta in `agents` e si vede; uno che non implica
-    lo porta il questionario come extra, o `--activate` a valle.
+    Non esiste un campo per gli agenti «da installare più tardi»: un agente
+    che il campo implica sta in `agents` e si vede; uno che non implica lo
+    porta il questionario come extra, o `--activate` a valle.
     """
 
     name: str
@@ -75,9 +74,9 @@ def required_guides(framework_root: Path, agents: Sequence[str]) -> list[str]:
     """Le guide che le schede di questi agenti citano.
 
     Il profilo elenca le guide del **campo**; un agente attivato come extra
-    porta le sue, e nessuno le risolveva: la scheda finiva installata con un
-    pointer morto, e il difetto si vedeva solo col doctor a installazione già
-    scritta (`SHARED_MISSING`). Un pointer che l'agente non può seguire è peggio
+    porta le sue. Senza risolverle, la scheda si installa con un pointer morto
+    che il doctor vede solo a installazione già scritta (`SHARED_MISSING`). Un
+    pointer che l'agente non può seguire è peggio
     di assente — sta in un file che lui paga a ogni spawn.
     """
     out: list[str] = []

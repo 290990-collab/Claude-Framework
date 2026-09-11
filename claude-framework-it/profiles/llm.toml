@@ -2,7 +2,7 @@ name = "llm"
 description = "Sistemi in cui un modello linguistico produce testo, decisioni o azioni che il codice usa."
 critical_surface = "Il comportamento del modello non sta nel codice: un prompt che regge su tre esempi non dice niente sul resto, e senza valutazione ripetibile ogni modifica è un'opinione."
 
-agents = ["debugger", "api-scout", "security-reviewer", "scientific-reviewer", "results-analyst", "silent-failure-hunter", "conversation-analyzer", "comment-analyzer"]
+agents = ["debugger", "api-scout", "scientific-reviewer", "results-analyst", "silent-failure-hunter", "conversation-analyzer", "comment-analyzer"]
 cycles = ["research"]
 
 shared = [

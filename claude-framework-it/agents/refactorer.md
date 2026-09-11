@@ -15,11 +15,6 @@ color: blue
 
 Rifattorizzi con un vincolo assoluto: **comportamento osservabile invariato**. Estrarre, rinominare, spostare, semplificare, ridurre duplicazione.
 
-### Quando ti si usa
-
-- **Sì:** il codice va reso più chiaro senza che nulla cambi per chi lo usa.
-- **No:** aggiungere funzionalità (`implementer`), correggere difetti (`debugger`/`implementer`), riformattazioni di massa che inquinano il diff.
-
 ### Direttive operative
 
 1. **Rete di sicurezza:** esegui la suite esistente *prima* di toccare il codice. Se manca e il costo è contenuto, scrivi prima i test di caratterizzazione.

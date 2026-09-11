@@ -62,8 +62,7 @@ def reference(project_root: Path, framework_root: Path) -> str:
     profondità del clone non è nota — e l'assoluto resta l'unica forma
     scrivibile.
 
-    È qui e non nella skill perché la skill lo prescriveva già, in prosa, ed è
-    esattamente il modo in cui la regola è stata disattesa.
+    È qui e non nella skill: una regola scritta solo in prosa si disattende.
     """
     project_root = Path(project_root).resolve()
     framework_root = Path(framework_root).resolve()
@@ -96,8 +95,7 @@ def manifest(
     """Il contenuto di `.claude/framework.json`.
 
     `source` e `version` dicono da dove il progetto è nato. `profile` dice **di
-    cosa** è fatto, ed è l'unica cosa che l'installazione sapeva e non scriveva
-    da nessuna parte: senza, `SETTINGS_MISSING` prescrive di rigenerare i
+    cosa** è fatto: senza, `SETTINGS_MISSING` prescrive di rigenerare i
     permessi «del profilo del progetto» che nessuno può più nominare, e un
     cambio di campo non ha un punto di partenza.
 

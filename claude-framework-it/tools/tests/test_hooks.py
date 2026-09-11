@@ -142,8 +142,8 @@ class TestBlockNoVerify(unittest.TestCase):
                 self.assertEqual(r.returncode, 0, r.stderr.decode("utf-8", "replace"))
 
     def test_block_no_verify_reads_past_a_git_that_is_an_option_value(self):
-        """Il segmento di un `git` finiva al primo token `git` successivo, anche
-        quando era il valore di un'opzione: il `-n` dopo non si guardava più."""
+        """Un `git` che è il valore di un'opzione non chiude il segmento: il `-n`
+        dopo va ancora guardato."""
         for command in ("git commit -m git -n", "git commit -F /usr/bin/git -n"):
             with self.subTest(command=command):
                 self.assertEqual(run_hook("block_no_verify", shell(command)).returncode, 2)

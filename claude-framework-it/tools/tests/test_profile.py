@@ -80,9 +80,9 @@ class TestExclusive(unittest.TestCase):
 class TestRequiredGuides(unittest.TestCase):
     """Le guide che un agente cita e che il profilo può non elencare.
 
-    Il difetto è emerso installando il framework su se stesso: attivare
-    `scientific-reviewer` su un profilo `library` produce un pointer morto,
-    perché quella scheda cita una guida che solo `research` installa.
+    Attivare `scientific-reviewer` su un profilo `library` produrrebbe un
+    pointer morto, perché quella scheda cita una guida che `library` non
+    installa.
     """
 
     FRAMEWORK = Path(__file__).resolve().parents[2]
@@ -92,11 +92,7 @@ class TestRequiredGuides(unittest.TestCase):
         self.assertIn("domain/research-principles.md", got)
 
     def test_a_profile_alone_has_no_gap(self):
-        """Nessun profilo è incoerente da solo: il buco si apre con gli extra.
-
-        È il motivo per cui la prova end-to-end non lo vedeva — usa `research`,
-        che quella guida la installa già.
-        """
+        """Nessun profilo è incoerente da solo: il buco si apre con gli extra."""
         for name in ("software", "library", "research", "web", "data"):
             prof = profile.load(self.FRAMEWORK / "profiles" / f"{name}.toml")
             needed = profile.required_guides(
@@ -119,8 +115,8 @@ class TestRequiredGuides(unittest.TestCase):
     def test_guides_add_extras_and_refuse_unknown_ones(self):
         """Una sola risposta a «quali guide installare»: quelle del campo, quelle
         che gli agenti scelti citano, quelle chieste in più. Un extra che non
-        esiste passava in silenzio, e il progetto non riceveva la guida che
-        aveva chiesto."""
+        esiste è un errore: passato in silenzio, il progetto non riceverebbe la
+        guida chiesta."""
         prof = profile.load(self.FRAMEWORK / "profiles" / "library.toml")
         roster = profile.roster(prof, extras=["scientific-reviewer"], drop=[])
         got = profile.guides(

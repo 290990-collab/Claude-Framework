@@ -340,7 +340,7 @@ def install(out: Path) -> int:
     for name in ("TODO.md", "status.md", "roadmap.md"):
         shutil.copy(FRAMEWORK / "templates" / name, out / "docs" / name)
 
-    # Passo 7: il TODO nasce con la prima voce reale e la data. Un template
+    # Passo 5: il TODO nasce con la prima voce reale e la data. Un template
     # copiato e non compilato lascia la sessione successiva a indovinare.
     todo = out / "docs" / "TODO.md"
     todo.write_text(

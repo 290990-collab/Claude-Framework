@@ -211,9 +211,9 @@ class TestUninstall(unittest.TestCase):
                 self.assertEqual(tree(root), before)
 
     def test_uninstall_refuses_to_move_what_it_never_plans_to(self):
-        """«archivia» e «fonde» si eseguivano per qualunque percorso: il piano è
-        un file salvato, e un'«archivia» scritta a mano col digest giusto
-        spostava codice del progetto nell'archivio, o un file fuori dalla root.
+        """Il piano è un file salvato: un'«archivia» o una «fonde» scritta a mano
+        col digest giusto sposterebbe codice del progetto nell'archivio, o un
+        file fuori dalla root.
         Il rifiuto arriva prima del primo byte scritto."""
         forged = (
             ("src/app.py", lifecycle.ARCHIVE),
@@ -236,8 +236,8 @@ class TestUninstall(unittest.TestCase):
                 self.assertEqual(tree(Path(d)), before)
 
     def test_uninstall_refuses_a_removal_the_source_does_not_justify(self):
-        """L'esecuzione si fidava dell'azione scritta nel piano: una «rimuove»
-        messa a mano, col digest giusto, cancellava codice del progetto. Ogni
+        """Una «rimuove» messa a mano nel piano, col digest giusto, cancellerebbe
+        codice del progetto. Ogni
         rimozione si ricontrolla contro il sorgente, e il rifiuto arriva prima
         del primo byte scritto."""
         with tempfile.TemporaryDirectory() as d:
@@ -350,10 +350,8 @@ class TestRepair(unittest.TestCase):
 
 class TestDown(unittest.TestCase):
     def test_down_plan_on_an_older_install(self):
-        """`--down` riassemblava le regioni kernel e basta: le skill restavano
-        quelle di quando il progetto era nato, e un hook arrivato dopo non
-        arrivava mai. Una regione ritoccata a mano si perde, e il piano lo
-        dice prima."""
+        """`--down` porta anche skill e hook, non solo le regioni kernel. Una
+        regione ritoccata a mano si perde, e il piano lo dice prima."""
         with tempfile.TemporaryDirectory() as d:
             root = install(d)
             manifest = read_json(root / source.MANIFEST)
@@ -396,9 +394,8 @@ class TestDown(unittest.TestCase):
             self.assertEqual(read_json(root / source.MANIFEST)["version"], VERSION)
 
     def test_down_names_a_model_the_source_changed(self):
-        """Il frontmatter resta del progetto, quindi un agente declassato nel
-        sorgente restava sul modello vecchio e il piano diceva «resto
-        invariato»."""
+        """Il frontmatter resta del progetto: un agente declassato nel sorgente
+        resterebbe sul modello vecchio, e il piano deve nominarlo."""
         with tempfile.TemporaryDirectory() as d:
             root = install(d)
             rel = ".claude/agents/implementer.md"

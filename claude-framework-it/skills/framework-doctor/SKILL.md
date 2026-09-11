@@ -95,7 +95,7 @@ Le regioni kernel non dichiarano tutte la stessa versione, oppure il progetto è
 
 Manca `.claude/settings.json` con agenti installati. È il file che porta i permessi del profilo — fra cui il divieto di leggere `.env`, chiavi e certificati: senza, quel divieto non è in vigore e nessuno se ne accorge.
 
-⚠️ **Quel divieto copre lo strumento `Read`, non la shell.** Un agente con `Bash` legge un `.env` con `cat` e nessuna configurazione lo impedisce. Dove il segreto conta, l'unica guardia meccanica è non dare la shell a quell'agente: è il motivo per cui i quattro revisori che non eseguono niente hanno solo `Read, Grep, Glob`.
+⚠️ **Quel divieto copre lo strumento `Read`, non la shell.** Un agente con `Bash` legge un `.env` con `cat` e nessuna configurazione lo impedisce. Dove il segreto conta, l'unica guardia meccanica è non dare la shell a quell'agente: è il motivo per cui i revisori che non eseguono niente hanno solo `Read, Grep, Glob`.
 
 **Cosa fare:** rigeneralo serializzando `Profile.settings` del profilo del progetto — il nome sta in `profile` dentro `.claude/framework.json` — come al Passo 5 dell'installazione.
 

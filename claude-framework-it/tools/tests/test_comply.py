@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fwbuild import comply
 
-# Trascrizione vera (T18): una sessione su haiku che legge `nota.txt`.
+# Trascrizione vera: una sessione su haiku che legge `nota.txt`.
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "stream.jsonl"
 
 
