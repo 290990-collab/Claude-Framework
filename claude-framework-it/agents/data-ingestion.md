@@ -5,7 +5,7 @@ description: >
   eterogenee, estrazione e trasformazione, normalizzazione, riconciliazione e
   deduplicazione, sincronizzazione verso archivio e indici. Da usare quando il
   cuore del task è acquisire dati in modo corretto e ripetibile.
-model: opus
+model: sonnet
 effort: high
 tools: Read, Grep, Glob, Edit, Write, Bash
 color: green

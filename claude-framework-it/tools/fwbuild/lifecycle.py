@@ -321,15 +321,19 @@ def plan_down(
     for rel in _kernel_files(prj):
         text = (prj / rel).read_text(encoding="utf-8")
         region = kernel.parse(text)
-        if rel.startswith(".claude/agents/") and not (fw / "agents" / Path(rel).name).is_file():
+        original = fw / "agents" / Path(rel).name
+        is_agent = rel.startswith(".claude/agents/")
+        if is_agent and not original.is_file():
             ops.append(_op(prj, rel, KEEP, "scheda non più nel sorgente: resta com'è"))
-        elif region is None:
+            continue
+        note = _model_note(text, original.read_text(encoding="utf-8")) if is_agent else ""
+        if region is None:
             ops.append(_op(prj, rel, KEEP, "senza marker: nessuna regione da riassemblare"))
         elif kernel.verify(text) == "DRIFT":
             ops.append(_op(prj, rel, MERGE, f"v{region.version} → v{version}, regione "
-                           "modificata a mano: la modifica locale si perde"))
+                           f"modificata a mano: la modifica locale si perde{note}"))
         else:
-            ops.append(_op(prj, rel, MERGE, f"v{region.version} → v{version}, resto invariato"))
+            ops.append(_op(prj, rel, MERGE, f"v{region.version} → v{version}, resto invariato{note}"))
 
     overwrite = (OVERWRITE, "diverso dal sorgente: si aggiorna")
     for rel, original in _skill_files(fw):
@@ -423,6 +427,21 @@ def _kernel_files(prj: Path) -> list[str]:
     out = [rel for rel in (CLAUDE_MD, ORCHESTRATION) if (prj / rel).is_file()]
     agents = _files(prj / ".claude" / "agents")
     return out + [p.relative_to(prj).as_posix() for p in agents if p.suffix == ".md"]
+
+
+MODEL_LINE_RE = re.compile(r"^(model|effort):[ \t]*(\S+)[ \t]*$", re.MULTILINE)
+
+
+def _model_note(installed: str, original: str) -> str:
+    """Modello ed effort stanno nel frontmatter, che resta del progetto: un
+    cambio nel sorgente non arriva da solo, e il piano lo nomina."""
+    def lines(text: str) -> dict[str, str]:
+        head = re.match(r"---\n(.*?)\n---", text.replace("\r\n", "\n"), re.DOTALL)
+        return dict(MODEL_LINE_RE.findall(head.group(1))) if head else {}
+    here, there = lines(installed), lines(original)
+    diff = [f"{k}: {here.get(k, '-')} qui, {v} nel sorgente"
+            for k, v in there.items() if here.get(k) != v]
+    return f"; {', '.join(diff)} — si chiede" if diff else ""
 
 
 def _is_kernel_file(rel: str) -> bool:

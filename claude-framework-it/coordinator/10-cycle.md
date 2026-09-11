@@ -10,7 +10,7 @@
    - *Test-first escluso:* refactoring, UI, prototipi, dipendenze, documentazione.
 4. **Verificare:** `tester` estende la copertura oltre i mini-test dell'implementer (pochi test solidi sui confini del dominio).
 5. **Review:** se il diff tocca la **superficie critica** → prima il revisore di quella superficie, poi `final-reviewer`, che verifica da zero senza fidarsi dei report.
-   - *Task importante* — lungo, complesso, bloccante per un obiettivo di alto livello, o dichiarato tale dall'utente (correggere o cambiare una funzionalità esistente sì, ritoccare un'interfaccia no) → **doppia revisione:** due `final-reviewer` isolati, stessa rubrica, uno dopo l'altro; passa solo se passano entrambi. Correzioni e secondo giro come da regola 9.
+   - *Task importante* — lungo, complesso, bloccante per un obiettivo di alto livello, o dichiarato tale dall'utente (correggere o cambiare una funzionalità esistente sì, ritoccare un'interfaccia no) → **doppia revisione:** due `final-reviewer` isolati, stessa rubrica, uno dopo l'altro; passa solo se passano entrambi. Correzioni come da regola 9.
 6. **Integrare:** il coordinatore risolve i finding e integra. Commit SOLO su richiesta dell'utente.
 
 *Nota:* per modifiche piccole e a basso rischio (≤2-3 file) il ciclo lo esegue interamente il coordinatore, senza spawn.

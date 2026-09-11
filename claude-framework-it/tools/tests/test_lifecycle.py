@@ -395,6 +395,25 @@ class TestDown(unittest.TestCase):
             self.assertEqual(claude.read_text(encoding="utf-8"), drifted)
             self.assertEqual(read_json(root / source.MANIFEST)["version"], VERSION)
 
+    def test_down_names_a_model_the_source_changed(self):
+        """Il frontmatter resta del progetto, quindi un agente declassato nel
+        sorgente restava sul modello vecchio e il piano diceva «resto
+        invariato»."""
+        with tempfile.TemporaryDirectory() as d:
+            root = install(d)
+            rel = ".claude/agents/implementer.md"
+            card = root / rel
+            src = (FRAMEWORK / "agents" / "implementer.md").read_text(encoding="utf-8")
+            model = re.search(r"^model:\s*(\S+)", src, re.MULTILINE).group(1)
+            other = "opus" if model != "opus" else "sonnet"
+            text = card.read_text(encoding="utf-8")
+            card.write_text(text.replace(f"model: {model}", f"model: {other}", 1), encoding="utf-8")
+
+            got = {op.path: op for op in lifecycle.plan_down(root, FRAMEWORK)}
+
+            self.assertIn(f"model: {other} qui, {model} nel sorgente", got[rel].reason)
+            self.assertNotIn("nel sorgente", got[".claude/agents/explorer.md"].reason)
+
     def test_down_refuses_a_plan_the_tree_has_outgrown(self):
         """Una skill che il piano sovrascrive e che è cambiata dopo l'ok non è
         più quella che l'utente ha visto sostituire: sovrascriverla perde il

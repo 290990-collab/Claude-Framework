@@ -78,7 +78,7 @@ p.write_text(assemble.build_document(Path('../method'), version, sezioni), encod
 ```
 
 4. **Stessa operazione su `.claude/shared/orchestration.md`**, col kernel da `<FW>/coordinator/`: i documenti versionati sono **due**, aggiornarne uno solo li lascia disallineati. Lì i cicli di dominio stanno **dentro** la regione e il progetto non registra da quale profilo è nato: vanno ripassati con `extra=assemble.installed_cycles(region.body, Path('..'))`, o spariscono senza che nessun rilievo lo veda.
-5. **Stessa operazione su ogni agente installato**, con `split_source` e `build_agent`: frontmatter e blocco `## Contesto di progetto` restano del progetto, il metodo viene dal master.
+5. **Stessa operazione su ogni agente installato**, con `split_source` e `build_agent`: frontmatter e blocco `## Contesto di progetto` restano del progetto, il metodo viene dal master. Se il piano nomina `model` o `effort` diversi dal sorgente, si chiede: sì → quella riga del frontmatter prende il valore del sorgente.
 6. **Esegui il piano** del passo 0 con `apply_update`: copia skill e hook, fonde `settings.json`, scrive `version` in `.claude/framework.json` e accoda il nuovo delta a `settings_added`. Le regioni kernel le salta: le hanno già riscritte i passi 3-5.
 7. **Verifica** con `doctor`: deve uscire con 0.
 

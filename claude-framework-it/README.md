@@ -17,7 +17,7 @@ hooks/               config_protection · block_no_verify (chiusi) · gateguard 
 skills/              framework-install · framework-doctor · framework-sync · framework-memory
 tools/fwbuild/       assemblaggio, hash, verifiche — Python stdlib puro
 tools/trial_install.py  la prova: installa un progetto finto, che il doctor verifica
-tools/tests/         214 test
+tools/tests/         215 test
 ```
 
 ## La separazione che conta: per destinatario, non per argomento

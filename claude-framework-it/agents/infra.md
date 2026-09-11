@@ -5,7 +5,7 @@ description: >
   ambienti multipli, migrazioni di schema, segreti, osservabilità, ripristino. Da
   usare quando il cuore del task è far girare il servizio in modo ripetibile e
   osservabile. Non per logica di dominio né per interfaccia.
-model: opus
+model: sonnet
 effort: high
 tools: Read, Grep, Glob, Edit, Write, Bash
 color: orange
