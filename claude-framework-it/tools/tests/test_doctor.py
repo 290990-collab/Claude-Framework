@@ -375,6 +375,105 @@ class TestDoctor(unittest.TestCase):
                 self._rewrap(f, "0.3.0")
             self.assertEqual(codes(doctor.check(p)), {"VERSION_MISMATCH"})
 
+    def test_detects_bidi_control_in_an_agent(self):
+        """Un controllo bidirezionale rovescia a video il testo che segue: il
+        modello legge un'istruzione, chi rivede la scheda ne vede un'altra."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            f = p / ".claude" / "agents" / "explorer.md"
+            f.write_text(
+                f.read_text(encoding="utf-8") + "Leggi \u202evne.\n", encoding="utf-8"
+            )
+            self.assertIn("UNSAFE_UNICODE", codes(doctor.check(p)))
+
+    def test_emoji_variation_selector_and_leading_bom_are_not_unsafe(self):
+        """U+FE0F compone le emoji e sta nel sorgente stesso; il BOM a inizio
+        file lo scrivono gli editor. Segnalarli farebbe cadere `--strict` su
+        un'installazione sana."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            (p / "docs" / "status.md").write_text(
+                "\ufeff# Stato\n\nChiuso \u2714\ufe0f\n", encoding="utf-8"
+            )
+            self.assertNotIn("UNSAFE_UNICODE", codes(doctor.check(p)))
+
+    def test_detects_personal_path_but_not_a_placeholder(self):
+        """Una cartella utente non esiste sulla macchina di chi clona; il
+        `YourName` di un esempio non è di nessuno. `settings.json` è JSON, e il
+        JSON raddoppia le barre."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            settings = p / ".claude" / "settings.json"
+            home = "C:" + "\\Users\\"
+            settings.write_text(
+                json.dumps({"env": {"PRJ": home + "YourName"}}), encoding="utf-8"
+            )
+            self.assertNotIn("PERSONAL_PATH", codes(doctor.check(p)))
+            settings.write_text(
+                json.dumps({"env": {"PRJ": home + "mrossi"}}), encoding="utf-8"
+            )
+            self.assertIn("PERSONAL_PATH", codes(doctor.check(p)))
+
+    def test_shared_user_folders_are_not_personal_and_case_does_not_hide_one(self):
+        """`Public`, `Shared`, `Default`, `All Users` stanno su ogni macchina e
+        non sono di nessuno; su Windows `c:\\users\\` è la stessa cartella di
+        `C:\\Users\\`."""
+        shared = (
+            "C:" + "/Users/" + "Public",
+            "/Users/" + "Shared",
+            "C:" + "\\Users\\" + "Default",
+            "C:" + "\\Users\\" + "All Users",
+        )
+        for text in shared:
+            with self.subTest(text=text):
+                self.assertIsNone(doctor.PERSONAL_PATH_RE.search(text))
+        self.assertIsNotNone(doctor.PERSONAL_PATH_RE.search("c:" + "\\users\\" + "mrossi"))
+
+    def test_a_scanned_file_that_is_not_utf8_is_still_scanned(self):
+        """Skill e hook dell'utente si scansionano e basta: uno salvato in
+        cp1252 faceva cadere il doctor, e con lui `fwbuild report`."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            home = ("C:" + "\\Users\\" + "mrossi").encode("utf-8")
+            hooks = p / ".claude" / "hooks"
+            hooks.mkdir()
+            (hooks / "mio.py").write_bytes(b"# citt\xe0\n")
+            (p / ".claude" / "skills" / "framework-doctor" / "SKILL.md").write_bytes(
+                b"name: framework-doctor\ncitt\xe0 " + home + b"\n"
+            )
+            self.assertEqual(codes(doctor.check(p)), {"PERSONAL_PATH"})
+
+    def test_absolute_source_in_manifest_is_not_a_personal_path(self):
+        """Col sorgente fuori dal progetto `source` è assoluto per costruzione:
+        il relativo non regge, perché la profondità del clone non è nota."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            (p / ".claude" / "framework.json").write_text(
+                json.dumps(
+                    {
+                        "source": "C:" + "\\Users\\" + "mrossi" + "\\framework",
+                        "version": VERSION,
+                        "profile": "software",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            self.assertNotIn("PERSONAL_PATH", codes(doctor.check(p)))
+
+    def test_an_uninstall_archive_is_not_checked(self):
+        """L'archivio conserva le schede come erano, segnaposti e pointer
+        compresi: è materiale da consultare, non installazione. Scandirlo
+        darebbe errori che nessun intervento sul progetto può togliere."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            old = p / doctor.ARCHIVE_DIR / ".claude" / "agents" / "vecchio.md"
+            old.parent.mkdir(parents=True)
+            old.write_text(
+                "[DA COMPILARE]\nVedi `.claude/shared/core/perduta.md`.\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(doctor.check(p), [])
+
 
 if __name__ == "__main__":
     unittest.main()

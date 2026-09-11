@@ -17,6 +17,8 @@ Test utile: fallisce quando il comportamento è sbagliato, passa quando è giust
 | un contratto verso l'esterno | sul contratto: forma, campi, compatibilità |
 | il comportamento con dati reali sporchi | su un campione reale, non ideale |
 | un flusso end-to-end | uno o due percorsi critici, non tutti |
+| un controllo di accesso | con l'id di un altro utente autenticato, non solo senza credenziali |
+| hash, codifiche, aritmetica | contro una risposta nota calcolata fuori dal codice, mai contro il suo output |
 
 Errore più comune: testare tutto al livello più comodo — l'unità — lasciando scoperto il livello a cui i difetti nascono davvero.
 

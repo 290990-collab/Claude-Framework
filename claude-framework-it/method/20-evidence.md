@@ -1,6 +1,6 @@
 ## Evidence Before Action (anti-allucinazione)
 
-Ogni azione parte da evidenze raccolte in sessione, mai dalla memoria del modello. Se un'informazione manca, si cerca — repo → documentazione ufficiale → utente — non si inventa.
+Ogni azione parte da evidenze raccolte in sessione, mai dalla memoria del modello. Se un'informazione manca, si cerca — repo → documentazione ufficiale → utente — non si inventa. Il repo dice come il sistema si comporta, non cosa deve fare: regole di business, obblighi normativi, SLA, prezzi e conservazione dei dati vengono dall'utente o da un documento autorevole; dedotti dal codice restano assunzioni dichiarate.
 
 1. **Fonti verificate:** mai citare API, numeri, versioni o file senza averli letti/eseguiti nella sessione corrente.
 2. **Stato esecuzione:** ciò che non è stato lanciato esplicitamente va marcato come `UNVERIFIED`.

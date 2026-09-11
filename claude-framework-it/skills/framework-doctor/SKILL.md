@@ -15,7 +15,7 @@ cd <FW>/tools && python -m fwbuild doctor --strict <PRJ>
 
 `<PRJ>` è la root del progetto. `<FW>` è il campo `source` di `.claude/framework.json` (se il file manca, `./framework/`): può essere **relativo alla root del progetto**, e `source.dereference(<PRJ>, source)` lo scioglie.
 
-I sottocomandi di `fwbuild` sono **quattro** — `doctor`, `source`, `cost`, `report`. Le modalità `--down`, `--up`, `--activate`, `--deactivate` appartengono a `framework-sync`, non sono flag da shell.
+I sottocomandi di `fwbuild` sono **quattro** — `doctor`, `source`, `cost`, `report`. Le modalità `--down`, `--up`, `--upgrade`, `--repair`, `--uninstall`, `--activate`, `--deactivate` appartengono a `framework-sync`, non sono flag da shell.
 
 - Installazione completa → `OK — nessun rilievo`.
 - **Usa sempre `--strict`**, in CI e a mano: senza, l'uscita è 0 anche con avvisi.
@@ -150,6 +150,24 @@ Per tradurlo in una cifra: `python -m fwbuild cost <PRJ> --spawns N --devs N`.
 Lo schema del report installato porta ancora la confidenza come percentuale: formato precedente, precisione finta nel campo che il coordinatore legge per primo, mentre la confidenza auto-riportata da un modello è mal calibrata. Nessun altro rilievo lo vede: l'hash torna su quel testo lì, e la versione dichiarata è quella con cui il progetto è nato.
 
 **Cosa fare:** `framework-sync --down`. Il formato attuale è categorico e porta con sé il falsificatore (`SMENTIRE`), che è ciò che rende leggibile un giudizio senza numeri.
+
+### `UNSAFE_UNICODE` — AVVISO
+
+Un file installato contiene un carattere invisibile: controllo bidirezionale (U+202A–202E, U+2066–2069), spazio o operatore a larghezza zero (U+200B–200D, U+2060–2064), carattere tag (U+E0000–E007F), riempitivo (U+115F, U+1160, U+180E, U+3164), U+FEFF oltre l'inizio del file. Il modello lo legge, chi rivede il file no: è la via con cui un'istruzione nascosta entra in un agente o in una skill. Si guardano i file del progetto, le skill, gli hook e `settings.json`. Non contano i selettori di variante (U+FE00–FE0F, U+E0100–E01EF), che compongono le emoji, né il BOM a inizio file, che scrivono gli editor.
+
+AVVISO e non errore: lo ZWJ (U+200D) compone anche emoji e scritture legittime.
+
+**Cosa fare:** apri il file alla riga indicata con un editor che mostri i caratteri invisibili. In una skill o in un hook, confronta col sorgente in `<FW>/`: una differenza che nessuno sa spiegare si tratta come manomissione. Se il carattere è voluto, accettalo con `UNSAFE_UNICODE:<file>` e la ragione.
+
+### `PERSONAL_PATH` — AVVISO
+
+Un file installato contiene un percorso dentro la cartella di un utente — `C:\Users\<nome>`, `/Users/<nome>`, `/home/<nome>`, anche con le barre raddoppiate del JSON. Il file viaggia col repository: su un'altra macchina il percorso non esiste, e porta con sé il nome di chi l'ha scritto. I nomi segnaposto dei template (`user`, `username`, `yourname`, `you`, `me`, `example`) non contano. Il messaggio dà file e riga, non il percorso.
+
+**`.claude/framework.json` non si guarda:** il suo `source` è assoluto per costruzione quando il sorgente sta fuori dal progetto, perché lì un relativo non regge — la profondità del clone non è nota. Segnalarlo darebbe un avviso su ogni installazione fatta così.
+
+⚠️ Il check confronta testo: un URL con `/home/` o `/Users/` nel percorso lo fa scattare.
+
+**Cosa fare:** sostituisci con un percorso relativo alla root del progetto o con un segnaposto (`<PRJ>`, `<FW>`). Se il percorso assoluto serve davvero, accettalo con `PERSONAL_PATH:<file>` e la ragione.
 
 ## Deroghe dichiarate
 

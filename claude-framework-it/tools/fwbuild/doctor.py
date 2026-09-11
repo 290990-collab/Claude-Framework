@@ -1,10 +1,11 @@
 """Le verifiche di integrità di un'installazione.
 
-Diciotto codici di rilievo: otto di gravità ERROR (PLACEHOLDER, ROSTER_MISSING,
+Venti codici di rilievo: otto di gravità ERROR (PLACEHOLDER, ROSTER_MISSING,
 SHARED_MISSING, STATE_MISSING, KERNEL_MISSING, FABLE, EXCLUSIVE,
-MANIFEST_MISSING) e dieci di gravità WARN (ROSTER_ORPHAN, KERNEL_DRIFT,
+MANIFEST_MISSING) e dodici di gravità WARN (ROSTER_ORPHAN, KERNEL_DRIFT,
 COORDINATOR_LEAK, SKILLS_MISSING, VERSION_MISMATCH, SETTINGS_MISSING,
-SHARED_ORPHAN, TOKEN_BUDGET, REPORT_FORMAT, ACCEPTED_UNUSED). MANIFEST_MISSING
+SHARED_ORPHAN, TOKEN_BUDGET, REPORT_FORMAT, ACCEPTED_UNUSED, UNSAFE_UNICODE,
+PERSONAL_PATH). MANIFEST_MISSING
 è l'unico che esce a entrambe: ERROR se il file manca, WARN se è incompleto.
 Ogni codice è spiegato, con cosa farne, nella skill `framework-doctor`.
 
@@ -34,12 +35,38 @@ CONF_PERCENT_RE = re.compile(r"CONF:\s*(?:<[^>\n]*%|\d[^%\n]*%)")
 ROUTING_AGENT_RE = re.compile(r"^\|[^|]*\|\s*`([a-z-]+)`\s*\|", re.MULTILINE)
 FABLE_RE = re.compile(r"^model:\s*fable\s*$", re.MULTILINE)
 SHARED_REF_RE = re.compile(r"\.claude/shared/([A-Za-z0-9_./-]+\.md)")
+# Caratteri che il modello legge e chi rivede il file non vede: controlli
+# bidirezionali, spazi a larghezza zero, operatori invisibili, riempitivi, il
+# blocco dei tag (il veicolo dell'«ASCII smuggling»). Fuori i selettori di
+# variante U+FE00-FE0F e U+E0100-E01EF: compongono le emoji, e U+FE0F sta nel
+# sorgente stesso. U+FEFF conta solo oltre l'offset 0: a inizio file è il BOM
+# che scrivono gli editor, e lo sguardo all'indietro su un carattere qualunque
+# lo esclude lì. Solo escape: il sorgente scansiona sé stesso.
+UNSAFE_CHARS_RE = re.compile(
+    r"[\u200B-\u200D\u2060-\u2064\u202A-\u202E\u2066-\u2069"
+    r"\u115F\u1160\u180E\u3164\U000E0000-\U000E007F]"
+    r"|(?<=[\s\S])\uFEFF"
+)
+# Una cartella utente: Windows (anche con le barre raddoppiate del JSON), macOS,
+# Linux. I nomi segnaposto dei template non contano, a qualunque maiuscola, e
+# nemmeno le cartelle condivise che ogni macchina ha. Su Windows `Users` è
+# senza maiuscole: il filesystem non le distingue.
+PERSONAL_PATH_RE = re.compile(
+    r"(?:[A-Za-z]:[\\/]+(?i:users)[\\/]+|/Users/|/home/)"
+    r"(?!(?i:example|me|user|username|you|yourname|yourusername|your-username"
+    r"|public|shared|default|all users)"
+    r"(?![A-Za-z0-9._-]))"
+    r"[A-Za-z][A-Za-z0-9._-]*"
+)
 STATE_FILES = ("TODO.md", "status.md", "roadmap.md")
 # Le skill che ogni installazione riceve. Una lista sola: duplicarla nel
 # tooling e nei test significa aggiungerne una e scoprire dal rosso dove
 # stavano le copie.
 LIFECYCLE_SKILLS = ("framework-doctor", "framework-sync", "framework-memory")
 ORCHESTRATION = "shared/orchestration.md"
+# Dove la disinstallazione sposta ciò che il progetto aveva adattato, col
+# percorso relativo conservato.
+ARCHIVE_DIR = Path(".claude") / "framework-archive"
 
 # Titoli che appartengono alla guida del coordinatore. Se ricompaiono in
 # CLAUDE.md, ogni subagent li paga a ogni spawn senza poterli usare: è la
@@ -131,15 +158,37 @@ def _markdown_files(root: Path) -> list[Path]:
     I file di stato in `docs/` sono inclusi: nascono da un template con
     segnaposto, e un template non compilato è indistinguibile da uno stato
     assente per chi lo legge a inizio sessione.
+
+    L'archivio della disinstallazione è escluso: conserva le schede come
+    erano, segnaposti e pointer compresi, ed è materiale da consultare.
     """
     files = [root / "CLAUDE.md"]
     claude_dir = root / ".claude"
     if claude_dir.is_dir():
-        skills = claude_dir / "skills"
+        skipped = (claude_dir / "skills", root / ARCHIVE_DIR)
         files += sorted(
-            p for p in claude_dir.rglob("*.md") if skills not in p.parents
+            p
+            for p in claude_dir.rglob("*.md")
+            if not any(d in p.parents for d in skipped)
         )
     files += [root / "docs" / name for name in STATE_FILES]
+    return [f for f in files if f.is_file()]
+
+
+def _scanned_files(root: Path) -> list[Path]:
+    """I file in cui cercare caratteri invisibili e percorsi personali.
+
+    Più larga di `_markdown_files`: le skill e gli hook si copiano alla lettera,
+    ma un carattere nascosto in una skill è proprio il veicolo che si cerca, e
+    un percorso personale ci arriva allo stesso modo. **Mai `framework.json`:**
+    il suo `source` è assoluto per costruzione quando il sorgente sta fuori dal
+    progetto, e segnalarlo darebbe un avviso su ogni installazione fatta così.
+    """
+    claude_dir = root / ".claude"
+    files = _markdown_files(root)
+    files += sorted((claude_dir / "skills").rglob("*.md"))
+    files += sorted((claude_dir / "hooks").glob("*.py"))
+    files.append(claude_dir / "settings.json")
     return [f for f in files if f.is_file()]
 
 
@@ -400,6 +449,36 @@ def check(root: Path) -> list[Finding]:
                     "WARN",
                     f'CLAUDE.md contiene "{heading}": è contenuto da coordinatore, '
                     f"pagato da ogni subagent a ogni spawn",
+                )
+            )
+
+    # Un rilievo per file, alla prima occorrenza: basta per aprirlo. Il
+    # percorso trovato non si stampa — è il nome di chi l'ha scritto. Skill e
+    # hook dell'utente possono non essere UTF-8: qui si scansionano soltanto, e
+    # un byte illeggibile non deve fermare il doctor né `fwbuild report`.
+    for f in _scanned_files(root):
+        rel = f.relative_to(root).as_posix()
+        text = texts[rel] if rel in texts else f.read_text(encoding="utf-8", errors="replace")
+        hidden = UNSAFE_CHARS_RE.search(text)
+        if hidden:
+            line = text.count("\n", 0, hidden.start()) + 1
+            out.append(
+                Finding(
+                    "UNSAFE_UNICODE",
+                    "WARN",
+                    f"{rel}:{line}: carattere invisibile U+{ord(hidden.group()):04X}"
+                    " — il modello lo legge, chi rivede il file no",
+                )
+            )
+        personal = PERSONAL_PATH_RE.search(text)
+        if personal:
+            line = text.count("\n", 0, personal.start()) + 1
+            out.append(
+                Finding(
+                    "PERSONAL_PATH",
+                    "WARN",
+                    f"{rel}:{line}: percorso dentro la cartella di un utente — "
+                    "non esiste sulla macchina di chi clona",
                 )
             )
 

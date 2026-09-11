@@ -5,7 +5,7 @@ description: >
   produzione, hosting statico o edge, pipeline di integrazione, dominio, variabili
   d'ambiente e segreti, redirect, intestazioni. Da usare quando il cuore del task
   è la pubblicazione. Per infrastruttura cloud complessa serve `infra`.
-model: opus
+model: sonnet
 effort: high
 tools: Read, Grep, Glob, Edit, Write, Bash
 color: orange

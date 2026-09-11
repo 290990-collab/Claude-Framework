@@ -8,15 +8,16 @@ VERSION              versione del kernel (semantica: patch · minor · major)
 method/              kernel COMUNE → CLAUDE.md, letto da tutti a ogni spawn
 coordinator/         kernel del COORDINATORE → shared/orchestration.md, on-demand
 cycles/              cicli di dominio, accodati alla guida se il profilo li chiede
-agents/              19 agenti: metodo + blocco [DA COMPILARE] di progetto
+agents/              22 agenti: metodo + blocco [DA COMPILARE] di progetto
 shared/core/         guide generiche, caricate on-demand
-shared/domain/       guide di dominio (design, ricerca, dati)
-profiles/            5 profili: dominio → roster, guide, cicli, permessi
+shared/domain/       guide di dominio (design, ricerca, dati, llm)
+profiles/            6 profili: dominio → roster, guide, cicli, permessi
 templates/           i file di stato, generati vuoti ma strutturati
+hooks/               config_protection · block_no_verify (chiusi) · gateguard (aperto) → .claude/hooks/
 skills/              framework-install · framework-doctor · framework-sync · framework-memory
 tools/fwbuild/       assemblaggio, hash, verifiche — Python stdlib puro
 tools/trial_install.py  la prova: installa un progetto finto, che il doctor verifica
-tools/tests/         162 test
+tools/tests/         214 test
 ```
 
 ## La separazione che conta: per destinatario, non per argomento

@@ -1,0 +1,418 @@
+import hashlib
+import io
+import json
+import re
+import tempfile
+import unittest
+from contextlib import redirect_stdout
+from pathlib import Path
+
+import trial_install
+from fwbuild import doctor, kernel, lifecycle, settings, source
+
+FRAMEWORK = Path(__file__).resolve().parents[2]
+VERSION = (FRAMEWORK / "VERSION").read_text(encoding="utf-8").strip()
+ARCHIVE = doctor.ARCHIVE_DIR.as_posix() + "/"
+SETTINGS = ".claude/settings.json"
+
+
+def install(d) -> Path:
+    root = Path(d) / "prova"
+    with redirect_stdout(io.StringIO()):
+        trial_install.install(root)
+    return root
+
+
+def tree(root: Path) -> dict[str, str]:
+    """Ogni file sotto `root`, relativo, con l'impronta del contenuto."""
+    return {
+        p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+        for p in root.rglob("*")
+        if p.is_file()
+    }
+
+
+def actions(ops) -> dict[str, str]:
+    return {op.path: op.action for op in ops}
+
+
+def read_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def write_json(path: Path, data: dict) -> None:
+    path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+class TestInstallPlan(unittest.TestCase):
+    def test_the_plan_names_every_file_the_install_writes(self):
+        """Il piano è ciò che l'utente approva, e la disinstallazione parte
+        dallo stesso elenco: un file che l'installazione scrive e il piano non
+        nomina è scritto senza approvazione e resta dopo la disinstallazione."""
+        with tempfile.TemporaryDirectory() as d:
+            root = install(d)
+            _, roster, guides, hooks = trial_install.choices()
+            self.assertEqual(
+                sorted(tree(root)), lifecycle.targets(FRAMEWORK, roster, guides, hooks)
+            )
+
+    def test_install_plan_on_a_project_with_its_own_material(self):
+        """Su un progetto che aveva già istruzioni, permessi e agenti propri il
+        piano deve dire «fondo» e «lascio», non «sovrascrivo»; e una seconda
+        installazione sopra la prima non è un'installazione."""
+        with tempfile.TemporaryDirectory() as d:
+            prj = Path(d)
+            agents = prj / ".claude" / "agents"
+            agents.mkdir(parents=True)
+            (prj / "CLAUDE.md").write_text("# Le mie istruzioni\n", encoding="utf-8")
+            (prj / SETTINGS).write_text('{"env": {"A": "1"}}', encoding="utf-8")
+            (agents / "mio.md").write_text("---\nname: mio\n---\n", encoding="utf-8")
+            (agents / "explorer.md").write_text("vecchia\n", encoding="utf-8")
+            (prj / "AGENTS.md").write_text("# Altro strumento\n", encoding="utf-8")
+            _, roster, guides, hooks = trial_install.choices()
+            targets = lifecycle.targets(FRAMEWORK, roster, guides, hooks)
+
+            ops = lifecycle.plan_install(prj, targets)
+            got = actions(ops)
+            self.assertEqual(got["CLAUDE.md"], lifecycle.MERGE)
+            self.assertEqual(got[SETTINGS], lifecycle.MERGE)
+            self.assertEqual(got[".claude/agents/mio.md"], lifecycle.KEEP)
+            self.assertEqual(got["AGENTS.md"], lifecycle.KEEP)
+            self.assertEqual(got[".claude/agents/explorer.md"], lifecycle.OVERWRITE)
+            self.assertEqual(got["docs/TODO.md"], lifecycle.CREATE)
+            # Ciò che cambia un file che c'era si legge per nome; il resto si conta.
+            text = lifecycle.render(ops)
+            self.assertIn(".claude/agents/explorer.md", text)
+            self.assertNotIn("docs/TODO.md", text)
+
+            (prj / ".claude" / "framework.json").write_text("{}", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                lifecycle.plan_install(prj, targets)
+
+
+class TestUninstall(unittest.TestCase):
+    def uninstall(self, root: Path):
+        ops = lifecycle.plan_uninstall(root, FRAMEWORK)
+        lifecycle.apply_uninstall(root, FRAMEWORK, ops)
+        return ops
+
+    def test_uninstall_leaves_only_the_project_and_an_archive(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = install(d)
+            (root / "src").mkdir()
+            (root / "src" / "app.py").write_text("print(1)\n", encoding="utf-8")
+            data = read_json(root / SETTINGS)
+            data["env"] = {"A": "1"}
+            write_json(root / SETTINGS, data)
+            claude = (root / "CLAUDE.md").read_text(encoding="utf-8")
+
+            self.uninstall(root)
+
+            left = {rel for rel in tree(root) if not rel.startswith(ARCHIVE)}
+            self.assertEqual(
+                left,
+                {
+                    "CLAUDE.md",
+                    SETTINGS,
+                    "docs/TODO.md",
+                    "docs/status.md",
+                    "docs/roadmap.md",
+                    "src/app.py",
+                },
+            )
+            self.assertEqual(read_json(root / SETTINGS), {"env": {"A": "1"}})
+            self.assertEqual(
+                (root / "CLAUDE.md").read_text(encoding="utf-8"),
+                claude[kernel.parse(claude).end :].lstrip("\n"),
+            )
+            self.assertFalse((root / ".claude" / "agents").exists())
+            archive = root / doctor.ARCHIVE_DIR
+            self.assertTrue((archive / ".claude" / "framework.json").is_file())
+            self.assertTrue((archive / ".claude" / "agents" / "explorer.md").is_file())
+
+    def test_uninstall_never_deletes_what_it_did_not_write(self):
+        """Un file sparisce dal progetto solo se era identico al sorgente;
+        tutto il resto o resta o finisce in archivio con lo stesso contenuto."""
+        with tempfile.TemporaryDirectory() as d:
+            root = install(d)
+            for rel in (".claude/skills/framework-sync/SKILL.md", ".claude/hooks/gateguard.py"):
+                p = root / rel
+                p.write_text(p.read_text(encoding="utf-8") + "\n# nota mia\n", encoding="utf-8")
+            mine = root / ".claude" / "skills" / "mia" / "SKILL.md"
+            mine.parent.mkdir()
+            mine.write_text("name: mia\n", encoding="utf-8")
+            (root / ".claude" / "hooks" / "mio.py").write_text("pass\n", encoding="utf-8")
+            before = tree(root)
+
+            ops = self.uninstall(root)
+
+            after = tree(root)
+            self.assertEqual(
+                actions(ops)[".claude/skills/framework-sync/SKILL.md"], lifecycle.ARCHIVE
+            )
+            archived = {rel[len(ARCHIVE) :] for rel in after if rel.startswith(ARCHIVE)}
+            for rel in archived:
+                self.assertEqual(after[ARCHIVE + rel], before[rel], rel)
+            gone = sorted(set(before) - set(after) - archived)
+            self.assertTrue(gone)
+            originals = {
+                ".claude/skills/": FRAMEWORK / "skills",
+                ".claude/hooks/": FRAMEWORK / "hooks",
+            }
+            for rel in gone:
+                prefix = next((p for p in originals if rel.startswith(p)), None)
+                self.assertIsNotNone(prefix, f"{rel}: cancellato senza venire dal sorgente")
+                original = originals[prefix] / rel[len(prefix) :]
+                self.assertEqual(
+                    hashlib.sha256(original.read_bytes()).hexdigest(), before[rel], rel
+                )
+            self.assertTrue(mine.is_file())
+            self.assertTrue((root / ".claude" / "hooks" / "mio.py").is_file())
+
+    def test_uninstall_refuses_a_plan_the_tree_has_outgrown(self):
+        """Il piano approvato vale per l'albero su cui è stato fatto: una skill
+        ritoccata dopo non è più «identica al sorgente», e cancellarla perché lo
+        era ieri cancella il lavoro di oggi. Il rifiuto arriva prima del primo
+        byte scritto, non a metà."""
+        with tempfile.TemporaryDirectory() as d:
+            root = install(d)
+            ops = lifecycle.plan_uninstall(root, FRAMEWORK)
+            skill = root / ".claude" / "skills" / "framework-doctor" / "SKILL.md"
+            skill.write_text(skill.read_text(encoding="utf-8") + "\nnota\n", encoding="utf-8")
+            before = tree(root)
+            with self.assertRaises(ValueError) as e:
+                lifecycle.apply_uninstall(root, FRAMEWORK, ops)
+            self.assertIn(".claude/skills/framework-doctor/SKILL.md", str(e.exception))
+            self.assertEqual(tree(root), before)
+
+            (root / doctor.ARCHIVE_DIR).mkdir()
+            with self.assertRaises(ValueError):
+                lifecycle.plan_uninstall(root, FRAMEWORK)
+
+    def test_uninstall_refuses_a_plan_outgrown_outside_its_removals(self):
+        """`_removable` ricontrolla solo le «rimuove». Una scheda ritoccata dopo
+        il piano finirebbe in archivio senza che nessuno l'abbia approvata, e un
+        `CLAUDE.md` rimasto senza marker fa cadere l'esecuzione dopo che
+        `settings.json` è già stato riscritto: un'installazione a metà."""
+        retouches = {
+            "CLAUDE.md": lambda text: text.replace(kernel.CLOSE, ""),
+            ".claude/agents/explorer.md": lambda text: text + "\nnota\n",
+        }
+        for rel, retouch in retouches.items():
+            with self.subTest(rel=rel), tempfile.TemporaryDirectory() as d:
+                root = install(d)
+                ops = lifecycle.plan_uninstall(root, FRAMEWORK)
+                p = root / rel
+                p.write_text(retouch(p.read_text(encoding="utf-8")), encoding="utf-8")
+                before = tree(root)
+                with self.assertRaises(ValueError) as e:
+                    lifecycle.apply_uninstall(root, FRAMEWORK, ops)
+                self.assertIn(rel, str(e.exception))
+                self.assertEqual(tree(root), before)
+
+    def test_uninstall_refuses_to_move_what_it_never_plans_to(self):
+        """«archivia» e «fonde» si eseguivano per qualunque percorso: il piano è
+        un file salvato, e un'«archivia» scritta a mano col digest giusto
+        spostava codice del progetto nell'archivio, o un file fuori dalla root.
+        Il rifiuto arriva prima del primo byte scritto."""
+        forged = (
+            ("src/app.py", lifecycle.ARCHIVE),
+            ("../fuori.txt", lifecycle.ARCHIVE),
+            ("src/app.py", lifecycle.MERGE),
+        )
+        for rel, action in forged:
+            with self.subTest(rel=rel, action=action), tempfile.TemporaryDirectory() as d:
+                root = install(d)
+                (root / "src").mkdir()
+                (root / "src" / "app.py").write_text("print(1)\n", encoding="utf-8")
+                (Path(d) / "fuori.txt").write_text("non del progetto\n", encoding="utf-8")
+                ops = lifecycle.plan_uninstall(root, FRAMEWORK)
+                before = tree(Path(d))
+                digest = hashlib.sha256((root / rel).read_bytes()).hexdigest()
+                plan = [*ops, lifecycle.Operation(rel, action, "", digest)]
+                with self.assertRaises(ValueError) as e:
+                    lifecycle.apply_uninstall(root, FRAMEWORK, plan)
+                self.assertIn(rel, str(e.exception))
+                self.assertEqual(tree(Path(d)), before)
+
+    def test_uninstall_refuses_a_removal_the_source_does_not_justify(self):
+        """L'esecuzione si fidava dell'azione scritta nel piano: una «rimuove»
+        messa a mano, col digest giusto, cancellava codice del progetto. Ogni
+        rimozione si ricontrolla contro il sorgente, e il rifiuto arriva prima
+        del primo byte scritto."""
+        with tempfile.TemporaryDirectory() as d:
+            root = install(d)
+            (root / "src").mkdir()
+            (root / "src" / "app.py").write_text("print(1)\n", encoding="utf-8")
+            (root / ".claude" / "hooks" / "mio.py").write_text("pass\n", encoding="utf-8")
+            skill = root / ".claude" / "skills" / "framework-sync" / "SKILL.md"
+            skill.write_text(skill.read_text(encoding="utf-8") + "\nnota\n", encoding="utf-8")
+            ops = lifecycle.plan_uninstall(root, FRAMEWORK)
+            before = tree(root)
+            for rel in ("src/app.py", ".claude/hooks/mio.py", ".claude/skills/framework-sync/SKILL.md"):
+                with self.subTest(rel=rel):
+                    forged = [op for op in ops if op.path != rel]
+                    forged.append(lifecycle.Operation(rel, lifecycle.REMOVE, "", before[rel]))
+                    with self.assertRaises(ValueError) as e:
+                        lifecycle.apply_uninstall(root, FRAMEWORK, forged)
+                    self.assertIn(rel, str(e.exception))
+                    self.assertEqual(tree(root), before)
+
+    def test_uninstall_drops_a_framework_hook_the_user_retouched(self):
+        """Una voce hook col timeout ritoccato non è più uguale al record, e
+        `unmerge` la lascia; senza record non se ne toglie nessuna. Ma lo
+        script a cui punta se ne va: un hook chiuso senza script blocca ogni
+        Edit e ogni Bash del progetto, per sempre e senza un rilievo."""
+        cases = {
+            "timeout ritoccato": lambda data, manifest: data["hooks"]["PreToolUse"][0][
+                "hooks"
+            ][0].update(timeout=30),
+            "senza record": lambda data, manifest: manifest.pop("settings_added"),
+        }
+        for label, retouch in cases.items():
+            with self.subTest(label), tempfile.TemporaryDirectory() as d:
+                root = install(d)
+                data = read_json(root / SETTINGS)
+                manifest = read_json(root / source.MANIFEST)
+                retouch(data, manifest)
+                write_json(root / SETTINGS, data)
+                write_json(root / source.MANIFEST, manifest)
+                first = data["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+                name = re.search(r"\.claude/hooks/(\w+)\.py", first).group(1)
+
+                ops = self.uninstall(root)
+
+                named = [op for op in ops if op.path == SETTINGS and name in op.reason]
+                self.assertTrue(named, "la voce tolta non compare nel piano")
+                self.assertNotIn(".claude/hooks/", (root / SETTINGS).read_text(encoding="utf-8"))
+
+
+class TestRepair(unittest.TestCase):
+    def test_repair_restores_what_went_missing(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = install(d)
+            skill = ".claude/skills/framework-sync/SKILL.md"
+            hook = ".claude/hooks/config_protection.py"
+            for rel in (skill, hook, "docs/status.md"):
+                (root / rel).unlink()
+            data = read_json(root / SETTINGS)
+            del data["hooks"]
+            data["permissions"]["deny"].remove("Read(./**/*.pem)")
+            write_json(root / SETTINGS, data)
+            # Un permesso che il record non ha: quello che il repair rimette deve
+            # entrarci, o la disinstallazione non lo toglierà. Gli hook restano
+            # nel record: è l'unica traccia che dice quali sono in uso.
+            manifest = read_json(root / source.MANIFEST)
+            manifest["settings_added"]["permissions"]["deny"].remove("Read(./**/*.pem)")
+            write_json(root / source.MANIFEST, manifest)
+
+            ops = lifecycle.plan_repair(root, FRAMEWORK)
+            got = actions(ops)
+            for rel in (skill, hook, "docs/status.md"):
+                self.assertEqual(got[rel], lifecycle.CREATE, rel)
+            self.assertEqual(got[SETTINGS], lifecycle.MERGE)
+
+            lifecycle.apply_update(root, FRAMEWORK, ops)
+
+            self.assertEqual(doctor.check(root), [])
+            self.assertEqual(
+                (root / hook).read_bytes(),
+                (FRAMEWORK / "hooks" / "config_protection.py").read_bytes(),
+            )
+            data = read_json(root / SETTINGS)
+            self.assertIn("Read(./**/*.pem)", data["permissions"]["deny"])
+            self.assertIn(".claude/hooks/config_protection.py", json.dumps(data))
+            # Ciò che il repair ha rimesso è nel record: la disinstallazione lo toglie.
+            record = read_json(root / source.MANIFEST)["settings_added"]
+            self.assertEqual(settings.unmerge(data, record)[0], {})
+
+    def test_repair_overwrites_nothing_and_refuses_an_old_install(self):
+        """Il repair rimette ciò che manca, non riporta al sorgente ciò che
+        l'utente ha cambiato; e su un'installazione di un'altra versione
+        «ciò che manca» si misura contro il sorgente sbagliato."""
+        with tempfile.TemporaryDirectory() as d:
+            root = install(d)
+            skill = ".claude/skills/framework-doctor/SKILL.md"
+            (root / skill).write_text("name: framework-doctor\nmia\n", encoding="utf-8")
+            ops = lifecycle.plan_repair(root, FRAMEWORK)
+            self.assertNotIn(lifecycle.OVERWRITE, {op.action for op in ops})
+            self.assertEqual(actions(ops)[skill], lifecycle.KEEP)
+            before = tree(root)
+            lifecycle.apply_update(root, FRAMEWORK, ops)
+            self.assertEqual(tree(root), before)
+
+            manifest = read_json(root / source.MANIFEST)
+            manifest["version"] = "0.1.0"
+            write_json(root / source.MANIFEST, manifest)
+            with self.assertRaises(ValueError):
+                lifecycle.plan_repair(root, FRAMEWORK)
+
+
+class TestDown(unittest.TestCase):
+    def test_down_plan_on_an_older_install(self):
+        """`--down` riassemblava le regioni kernel e basta: le skill restavano
+        quelle di quando il progetto era nato, e un hook arrivato dopo non
+        arrivava mai. Una regione ritoccata a mano si perde, e il piano lo
+        dice prima."""
+        with tempfile.TemporaryDirectory() as d:
+            root = install(d)
+            manifest = read_json(root / source.MANIFEST)
+            manifest["version"] = "1.0.0"
+            write_json(root / source.MANIFEST, manifest)
+            claude = root / "CLAUDE.md"
+            drifted = claude.read_text(encoding="utf-8").replace(
+                "Evidence Before Action", "Evidence Before Action, a modo mio"
+            )
+            claude.write_text(drifted, encoding="utf-8")
+            agents = root / ".claude" / "agents"
+            (agents / "obsoleto.md").write_bytes((agents / "explorer.md").read_bytes())
+            skill = ".claude/skills/framework-sync/SKILL.md"
+            (root / skill).write_text("name: framework-sync\nvecchia\n", encoding="utf-8")
+            hook = ".claude/hooks/block_no_verify.py"
+            (root / hook).unlink()
+            before = tree(root)
+
+            ops = lifecycle.plan_down(root, FRAMEWORK)
+
+            self.assertEqual(tree(root), before)
+            got = {op.path: op for op in ops}
+            self.assertEqual(got["CLAUDE.md"].action, lifecycle.MERGE)
+            self.assertIn("si perde", got["CLAUDE.md"].reason)
+            self.assertNotIn("si perde", got[".claude/shared/orchestration.md"].reason)
+            self.assertEqual(got[".claude/agents/obsoleto.md"].action, lifecycle.KEEP)
+            self.assertEqual(got[skill].action, lifecycle.OVERWRITE)
+            self.assertEqual(got[hook].action, lifecycle.CREATE)
+            self.assertEqual(got[".claude/framework.json"].action, lifecycle.MERGE)
+
+            lifecycle.apply_update(root, FRAMEWORK, ops)
+
+            self.assertEqual(
+                (root / skill).read_bytes(),
+                (FRAMEWORK / "skills" / "framework-sync" / "SKILL.md").read_bytes(),
+            )
+            self.assertTrue((root / hook).is_file())
+            # Le regioni kernel sono dei passi della skill, non di questo codice.
+            self.assertEqual(claude.read_text(encoding="utf-8"), drifted)
+            self.assertEqual(read_json(root / source.MANIFEST)["version"], VERSION)
+
+    def test_down_refuses_a_plan_the_tree_has_outgrown(self):
+        """Una skill che il piano sovrascrive e che è cambiata dopo l'ok non è
+        più quella che l'utente ha visto sostituire: sovrascriverla perde il
+        ritocco di dopo. Il rifiuto arriva prima del primo byte scritto."""
+        with tempfile.TemporaryDirectory() as d:
+            root = install(d)
+            rel = ".claude/skills/framework-sync/SKILL.md"
+            skill = root / rel
+            skill.write_text("name: framework-sync\nvecchia\n", encoding="utf-8")
+            ops = lifecycle.plan_down(root, FRAMEWORK)
+            self.assertEqual(actions(ops)[rel], lifecycle.OVERWRITE)
+            skill.write_text("name: framework-sync\nvecchia, ritoccata dopo\n", encoding="utf-8")
+            before = tree(root)
+            with self.assertRaises(ValueError) as e:
+                lifecycle.apply_update(root, FRAMEWORK, ops)
+            self.assertIn(rel, str(e.exception))
+            self.assertEqual(tree(root), before)
+
+
+if __name__ == "__main__":
+    unittest.main()

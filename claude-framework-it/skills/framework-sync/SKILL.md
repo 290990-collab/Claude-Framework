@@ -3,18 +3,55 @@ name: framework-sync
 description: >
   Allinea un'installazione con il framework sorgente: porta giù una versione
   nuova del metodo preservando l'adattamento, promuove su una modifica locale
-  perché il prossimo progetto la erediti, attiva o disattiva un agente. Da usare
-  quando esce una versione nuova o quando una modifica locale merita di diventare
-  generale.
+  perché il prossimo progetto la erediti, attiva o disattiva un agente o una
+  guida, rimette ciò che manca, disinstalla. Da usare quando esce una versione
+  nuova, quando una modifica locale merita di diventare generale, quando
+  un'installazione ha perso dei file o va tolta.
 ---
 
 # Sincronizzazione con il sorgente
 
 Collega il **sorgente** (il master) alle **installazioni** (i progetti). Requisito: il sorgente dev'essere raggiungibile dalla macchina; se non lo è, solo `doctor` è utilizzabile.
 
-`--down`, `--up`, `--upgrade`, `--activate`, `--deactivate` sono **modalità di questa skill**, non flag da shell: `fwbuild` ha `doctor`, `source`, `cost` e `report`. Il rapporto di divergenza su più repository — `python -m fwbuild report <cartella>` — è invece da shell: legge molti progetti e non ne modifica nessuno.
+`--down`, `--up`, `--upgrade`, `--activate`, `--deactivate`, `--repair`, `--uninstall` sono **modalità di questa skill**, non flag da shell: `fwbuild` ha `doctor`, `source`, `cost` e `report`. Il rapporto di divergenza su più repository — `python -m fwbuild report <cartella>` — è invece da shell: legge molti progetti e non ne modifica nessuno.
 
 I frammenti partono da `<FW>/tools`. `<PRJ>` è la root del progetto; `<FW>` è il campo `source` di `.claude/framework.json` (se manca, `./framework/`), che può essere **relativo alla root del progetto**, non alla directory da cui giri: scioglilo con `source.dereference(<PRJ>, source)`.
+
+**Ogni modalità che scrive mostra prima il piano, file per file, e attende l'ok.** Dove esiste un `plan_*` di `lifecycle`, il piano si salva legato al progetto e alla modalità, e si esegue **quello**, non uno ricalcolato: l'esecuzione rifiuta il piano di un altro progetto o di un'altra modalità, ricontrolla ogni file e si ferma se l'albero è cambiato dopo l'ok.
+
+```bash
+# piano: si stampa e si salva col path del progetto e la modalità, niente si scrive
+cd <FW>/tools && python -c "
+import dataclasses, hashlib, json, sys, tempfile
+from pathlib import Path
+from fwbuild import lifecycle
+sys.stdout.reconfigure(encoding='utf-8')   # i motivi hanno '→': cp1252 non lo stampa
+P = str(Path('<PRJ>').resolve())
+M = '<down | repair | uninstall>'
+H = None   # solo down: None tiene gli hook in uso; su un progetto senza, i nomi scelti al passo 0
+ops = getattr(lifecycle, 'plan_' + M)(Path(P), Path('..'), **({'hooks': H} if M == 'down' else {}))
+print(lifecycle.render(ops))
+f = Path(tempfile.gettempdir(), 'fw-plan-' + hashlib.sha256(P.encode()).hexdigest()[:16] + '.json')
+f.write_text(json.dumps({'project': P, 'mode': M, 'ops': [dataclasses.asdict(o) for o in ops]}), encoding='utf-8')
+"
+# dopo l'ok: solo il piano di questo progetto e di questa modalità
+cd <FW>/tools && python -c "
+import hashlib, json, sys, tempfile
+from pathlib import Path
+from fwbuild import lifecycle
+sys.stderr.reconfigure(encoding='utf-8')
+P = str(Path('<PRJ>').resolve())
+M = '<down | repair | uninstall>'   # la modalità che esegui, non quella letta dal file
+f = Path(tempfile.gettempdir(), 'fw-plan-' + hashlib.sha256(P.encode()).hexdigest()[:16] + '.json')
+plan = json.loads(f.read_text(encoding='utf-8')) if f.is_file() else {}
+if plan.get('project') != P or plan.get('mode') != M: sys.exit(f'nessun piano {M} salvato per {P}: rifai il piano')
+ops = [lifecycle.Operation(**d) for d in plan['ops']]
+if M == 'uninstall': lifecycle.apply_uninstall(Path(P), Path('..'), ops)
+else: lifecycle.apply_update(Path(P), Path('..'), ops)
+"
+```
+
+Nelle altre modalità il piano è l'elenco dei file e di cosa gli succede, scritto prima di toccarli.
 
 ---
 
@@ -22,6 +59,7 @@ I frammenti partono da `<FW>/tools`. `<PRJ>` è la root del progetto; `<FW>` è 
 
 Aggiorna il metodo preservando l'adattamento.
 
+0. **Piano** con `plan_down`: regioni kernel da riassemblare, skill e hook da aggiornare, voci mancanti in `settings.json`, versione del manifesto. `hooks=None` tiene gli hook che il progetto usa; se non ne usa nessuno, **una domanda sola** — li vuole, `gateguard` compreso? — e il sì diventa `hooks=[…]` coi nomi scelti di `settings.HOOKS`.
 1. **Confronta le versioni:** quella del progetto sta nel marker della regione kernel, quella del sorgente in `<FW>/VERSION`.
 2. **Diagnosi prima.** I `KERNEL_DRIFT` vanno risolti *prima*: aggiornare sopra una modifica locale la cancella in silenzio.
 3. **Riassembla** col metodo nuovo e le sezioni di progetto esistenti, estratte dall'installazione corrente e riscritte invariate.
@@ -41,7 +79,7 @@ p.write_text(assemble.build_document(Path('../method'), version, sezioni), encod
 
 4. **Stessa operazione su `.claude/shared/orchestration.md`**, col kernel da `<FW>/coordinator/`: i documenti versionati sono **due**, aggiornarne uno solo li lascia disallineati. Lì i cicli di dominio stanno **dentro** la regione e il progetto non registra da quale profilo è nato: vanno ripassati con `extra=assemble.installed_cycles(region.body, Path('..'))`, o spariscono senza che nessun rilievo lo veda.
 5. **Stessa operazione su ogni agente installato**, con `split_source` e `build_agent`: frontmatter e blocco `## Contesto di progetto` restano del progetto, il metodo viene dal master.
-6. **Aggiorna `version` in `.claude/framework.json`**, lasciando `source`, `profile` e `accepted` come sono. Nessun passo lo faceva: il manifesto restava a dichiarare la versione di prima, ed è l'unica leggibile senza aprire un documento generato. Il doctor ora lo vede (`VERSION_MISMATCH`).
+6. **Esegui il piano** del passo 0 con `apply_update`: copia skill e hook, fonde `settings.json`, scrive `version` in `.claude/framework.json` e accoda il nuovo delta a `settings_added`. Le regioni kernel le salta: le hanno già riscritte i passi 3-5.
 7. **Verifica** con `doctor`: deve uscire con 0.
 
 **I conflitti si presentano, non si risolvono da soli:** su una regione modificata localmente l'utente deve vedere entrambe le versioni e decidere.
@@ -54,7 +92,7 @@ p.write_text(assemble.build_document(Path('../method'), version, sezioni), encod
 
 `[cosa]` nomina **una** modifica. Senza argomento, elenca ciò che è promovibile e procedi **una cosa alla volta**: il passo 2 va posto caso per caso, e una promozione in blocco quella domanda non la può porre.
 
-1. **Individua la modifica:** `doctor` la segnala come `KERNEL_DRIFT`; il contenuto si ottiene confrontando la regione kernel del progetto col sorgente corrispondente. **Il drift non vede i file nuovi:** una regione kernel ce l'hanno solo `CLAUDE.md`, `orchestration.md` e le schede agente, quindi elenca anche i file che stanno in `.claude/shared/` o `.claude/agents/` del progetto e mancano dal sorgente. Una guida aggiunta a mano è promovibile e nessun rilievo la nomina.
+1. **Individua la modifica:** `doctor` la segnala come `KERNEL_DRIFT`; il contenuto si ottiene confrontando la regione kernel del progetto col sorgente corrispondente. **Il drift non vede i file nuovi:** una regione kernel ce l'hanno solo `CLAUDE.md`, `orchestration.md` e le schede agente, quindi elenca anche i file che stanno in `.claude/shared/` o `.claude/agents/` del progetto e mancano dal sorgente, e gli hook di `.claude/hooks/` diversi dal loro originale. Una guida aggiunta a mano è promovibile e nessun rilievo la nomina.
 2. **Chiedi se vale per tutti.** Un miglioramento del metodo sale, una deroga specifica di quel progetto no: la domanda va posta all'utente, non decisa.
 3. **Applica al sorgente**, e la scelta della destinazione è **per destinatario**:
 
@@ -64,6 +102,7 @@ p.write_text(assemble.build_document(Path('../method'), version, sezioni), encod
    | quando delegare, a chi, con che prompt, lo stato del progetto | `<FW>/coordinator/` |
    | il mandato di un ruolo specifico | `<FW>/agents/<nome>.md` |
    | materiale di consultazione di un dominio | `<FW>/shared/` |
+   | un controllo che l'agente non deve poter saltare | `<FW>/hooks/`, e la sua voce in `<FW>/tools/fwbuild/settings.py` |
 
    Sbagliare qui costa: una regola di delega in `method/` la pagano tutti i subagent a ogni spawn senza poterla usare; una regola di esecuzione in `coordinator/` non la vedrà mai chi esegue.
 4. **Registra la base, se non c'è già**, **prima** di toccare `VERSION`:
@@ -148,7 +187,7 @@ Serve solo a chi ha usato `--up`: un sorgente intatto si aggiorna sostituendolo.
 
 ---
 
-## `--activate <agente>` / `--deactivate <agente>`
+## `--activate <agente|guida>` / `--deactivate <agente|guida>`
 
 **Attivare** copia l'agente dal master alla **versione corrente**, compila il suo blocco `## Contesto di progetto` e aggiunge la riga alla tabella di routing in `.claude/shared/orchestration.md` — mai in `CLAUDE.md`: il routing è contenuto da coordinatore.
 
@@ -163,6 +202,8 @@ Il nome sta fra backtick nella **seconda** colonna. Altrove, quell'agente risult
 Attivare più tardi è *meglio* di un file dormiente: si prende sempre l'ultima versione, non una ferma al giorno dell'installazione.
 
 **Disattivare** rimuove il file da `.claude/agents/` e la riga dal routing. **Il master non si tocca.** Se il blocco di progetto conteneva informazioni non ricostruibili, salvalo prima.
+
+**Una guida** si nomina col percorso sotto `shared/` (`domain/llm-guide.md`). Attivarla: copiala in `.claude/shared/`, compila il blocco di progetto, aggiungi la sua riga in `CLAUDE.md § Guide condivise` — senza, è `SHARED_ORPHAN`. Disattivarla: via file e riga. Una guida che un file installato cita ancora non si disattiva: il pointer resterebbe morto (`SHARED_MISSING`).
 
 Controlla sempre i conflitti dopo un'attivazione:
 
@@ -179,13 +220,41 @@ Chiudi sempre con `doctor`.
 
 ---
 
+## `--repair` — rimettere ciò che manca
+
+Alla versione installata, che dev'essere quella del sorgente: altrimenti `plan_repair` si rifiuta, e prima va `--down`. Rimette le skill di ciclo di vita, gli hook in uso, i file di stato e le guide citate che mancano, e le voci mancanti in `settings.json`. **Non sovrascrive niente:** un file diverso dal sorgente è una modifica locale e resta.
+
+1. Piano con `plan_repair`, ok, `apply_update`.
+2. Guide e file di stato ricreati arrivano dal template: compila i blocchi `[DA COMPILARE]` come all'installazione.
+3. Chiudi con `doctor`.
+
+---
+
+## `--uninstall` — togliere il framework dal progetto
+
+Si cancella solo ciò che è identico byte per byte al sorgente; ciò che il progetto ha adattato va in `.claude/framework-archive/`, al suo percorso relativo. Servono il sorgente raggiungibile e il manifesto; un archivio già presente ferma il piano.
+
+| file | cosa succede |
+|---|---|
+| `CLAUDE.md` | via la sola regione kernel, le sezioni di progetto restano |
+| skill e hook | identici al sorgente → rimossi; diversi → archiviati |
+| schede, guide e stili che vengono dal sorgente, `orchestration.md` | archiviati |
+| `.claude/settings.json` | via le voci di `settings_added` ancora uguali; quelle cambiate dall'utente restano, e il piano le nomina. Senza record, il resto non si tocca |
+| voci hook del framework, anche ritoccate dall'utente | via, **una riga del piano per voce**: lo script se ne va, e un hook chiuso senza script blocca ogni modifica o ogni comando |
+| `docs/` | restano |
+| `.claude/framework.json` | archiviato per ultimo |
+
+Piano con `plan_uninstall`, ok, `apply_uninstall`: un file cambiato dopo il piano ferma tutto, prima del primo byte scritto.
+
+---
+
 ## Cambio di campo
 
 Un progetto non resta dov'è nato: una libreria si fa una demo, uno strumento diventa un servizio. Il campo sta in `profile` dentro `.claude/framework.json`, unico posto che lo sa. Nessuna modalità apposta: sono le stesse quattro operazioni dell'installazione, sul profilo nuovo.
 
 1. **Roster** — `--activate` per ciò che il campo nuovo implica, `--deactivate` per il resto. Controlla i conflitti dopo.
-2. **Guide** — copia quelle del profilo nuovo più quelle che gli agenti attivati citano (`profile.required_guides`), e aggiungi la riga in `CLAUDE.md § Guide condivise`: cosa contiene la guida, presa dalla riga sotto il suo titolo. Il doctor pretende che il percorso sia citato (`SHARED_ORPHAN`), non che la riga sia scritta bene: quella è responsabilità di chi installa.
+2. **Guide** — copia quelle di `profile.guides` sul profilo nuovo e il roster di dopo, e aggiungi la riga in `CLAUDE.md § Guide condivise`: cosa contiene la guida, presa dalla riga sotto il suo titolo. Il doctor pretende che il percorso sia citato (`SHARED_ORPHAN`), non che la riga sia scritta bene: quella è responsabilità di chi installa.
 3. **Cicli** — riassembla la guida del coordinatore accodando quelli del campo nuovo (`assemble.cycle_files`), o senza se ne toglie. Stanno **dentro** la regione kernel: nessun rilievo li vede sparire.
-4. **Permessi** — rigenera `.claude/settings.json` da `Profile.settings` del profilo nuovo, **unendolo** al file esistente: il `deny` del campo vecchio se ne va, ciò che ha aggiunto l'utente resta. Una rigenerazione secca cancella permessi che nessun profilo ha mai scritto.
+4. **Permessi** — `settings.unmerge(corrente, settings_added)` toglie ciò che il campo vecchio aveva aggiunto ed è ancora uguale; poi `settings.merge(resto, nuovo)`, con `nuovo` = `Profile.settings` del profilo nuovo fuso con `settings.hooks` degli hook in `.claude/hooks/`. Mostra `tenuti` e conflitti prima di scrivere. Senza record, solo `merge`: il `deny` vecchio resta finché l'utente non lo toglie. Una rigenerazione secca cancella permessi che nessun profilo ha mai scritto.
 
-Poi aggiorna `profile` in `framework.json`. Saltarlo lascia il progetto a dichiarare un campo che non ha più: la prossima manutenzione rigenera i permessi sbagliati e nessun rilievo se ne accorge — il file dichiara, non verifica.
+Poi aggiorna `profile` in `framework.json`; `settings_added` diventa l'aggiunto del `merge`. Saltarlo lascia il progetto a dichiarare un campo che non ha più: la prossima manutenzione rigenera i permessi sbagliati e nessun rilievo se ne accorge — il file dichiara, non verifica.

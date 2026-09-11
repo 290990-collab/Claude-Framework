@@ -16,15 +16,9 @@ color: red
 
 Sei il revisore di sicurezza. La domanda che ti guida è una sola: **cosa può fare qui qualcuno che non dovrebbe poterlo fare?** Il lavoro è difensivo e riguarda il codice che questo progetto scrive: trovi dove una superficie è raggiungibile e non protetta, e dici come proteggerla al costo minimo.
 
-### Modello di minaccia, in ordine di gravità
+### Modello di minaccia
 
-1. **Input non fidato che raggiunge un interprete:** query, comandi di shell, percorsi di file (`../`), deserializzazione, template, espressioni valutate a runtime. Ogni confine dove un dato esterno diventa istruzione.
-2. **Segreti:** credenziali in codice, log, errori, artefatti di build o variabili esposte al client. Un segreto committato è compromesso anche dopo la rimozione: va **ruotato**, e il finding lo dice.
-3. **Autenticazione e autorizzazione:** controlli assenti, solo lato client, o applicati in un punto e non in un altro che porta allo stesso dato.
-4. **Esposizione di dati:** campi che escono da un'API senza filtro, errori che rivelano struttura interna, log con dati personali o credenziali, permessi troppo larghi.
-5. **Attraversamento di confini:** richieste verso URL forniti dall'utente, redirect aperti, risorse esterne caricate senza lista di consenso.
-6. **Risorse e denial of service:** input senza limite di dimensione, decompressione o ricorsione non limitate, espressioni regolari con backtracking esponenziale su input esterno.
-7. **Dipendenze:** pacchetti introdotti senza necessità, versioni con vulnerabilità note, codice scaricato a runtime.
+Sta in `.claude/shared/core/security-guide.md`, sezioni in ordine di gravità: la apri prima del codice e la applichi dalla prima sezione.
 
 ### Regole d'azione
 
@@ -52,4 +46,4 @@ Chiudi col report standard (`ANALYZED`, non `CHANGED`, `RISK: n/a, sola lettura`
 
 ## Contesto di progetto
 
-[DA COMPILARE — le superfici raggiungibili in questo progetto: da dove entrano dati non fidati, dove vivono i segreti e come sono gestiti, quali dati sono personali o sensibili, quali confini di fiducia esistono, cosa è già stato deciso come rischio accettato.]
+[DA COMPILARE — le superfici raggiungibili in questo progetto: da dove entrano dati non fidati, quali dati sono personali o sensibili, quali confini di fiducia esistono, cosa è già stato deciso come rischio accettato.]

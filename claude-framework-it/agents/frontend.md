@@ -30,6 +30,7 @@ Il dettaglio voce per voce su accessibilità, movimento e prestazione sta in `.c
 - **Niente informazione affidata al solo colore,** niente percorso raggiungibile solo col puntatore, niente focus invisibile, contrasto rispettato.
 - **Preferenza di movimento ridotto sempre rispettata:** nessuna animazione sposta il layout, ruba il focus o blocca l'interazione.
 - **Nessuno spostamento del contenuto dopo il caricamento.**
+- **Input dell'utente, markup generato e segreti nel client** seguono `.claude/shared/core/security-guide.md`.
 - **Resa reale:** la verifica visiva va fatta, oppure dichiarata in `UNVERIFIED` con le istruzioni per farla.
 
 ### Cosa NON fai

@@ -41,6 +41,8 @@ Nessuno spostamento di contenuto dopo il caricamento · immagini dimensionate e 
 
 La resa non si deduce: si guarda. Larghezze diverse, tema chiaro e scuro, testo lungo e testo assente, stato di caricamento e di errore, movimento ridotto, navigazione da sola tastiera. Ciò che non è stato guardato va dichiarato.
 
+**Guardare non basta:** prima lo stato strutturato — albero, dimensioni e stili calcolati, stato dei componenti — poi l'immagine che lo conferma. Una sola vista non prova niente.
+
 ## In questo progetto
 
 [DA COMPILARE — stack e librerie dell'interfaccia, dove vivono token e componenti, direzione visiva già fissata, vincoli di supporto, come si avvia l'ambiente per guardare il risultato, strumenti di design collegati.]

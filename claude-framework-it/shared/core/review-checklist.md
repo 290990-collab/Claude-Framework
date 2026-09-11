@@ -2,6 +2,8 @@
 
 Materiale di consultazione per chi rivede. Due blocchi **separati e non fusi** — generico e di progetto: tenerli distinti è ciò che permette di aggiornare il framework senza perdere le voci specifiche, e viceversa.
 
+**Gravità:** blocca (sicurezza, perdita di dati) · avverte (difetto, qualità seria) · informa (manutenibilità) · nota (stile). Esito: **approvato** senza rilievi che bloccano o avvertono · **con riserva** con soli avvertimenti, e si chiude solo se l'utente li accetta · **fermo** con un rilievo che blocca. Nelle schede dei revisori ALTA = blocca, MEDIA = avverte, BASSA = informa.
+
 ---
 
 ## Blocco generico — correttezza (valido ovunque)
@@ -30,6 +32,7 @@ Materiale di consultazione per chi rivede. Due blocchi **separati e non fusi** �
 ### Risorse e concorrenza
 
 - File, connessioni, blocchi: rilasciati anche sul percorso di errore?
+- Sottoscrizioni, timer, listener: chiusi quando il loro proprietario termina?
 - Strutture condivise fra thread o processi: accesso protetto, o corsa possibile?
 - Lavoro lungo eseguito dove non blocca ciò che deve restare reattivo.
 - Cicli su risorse esterne: c'è un limite, un timeout, un tentativo massimo?
@@ -43,7 +46,7 @@ Materiale di consultazione per chi rivede. Due blocchi **separati e non fusi** �
 
 ### Test
 
-- Esistono, girano, e **fallirebbero** se il difetto tornasse?
+- Esistono, girano, e sono stati **visti fallire** sul codice senza la modifica? Uno che passerebbe col difetto presente non conta.
 - Asseriscono il comportamento o solo che il codice non esplode?
 - Coprono il livello a cui il difetto può nascere, non solo l'unità più comoda?
 

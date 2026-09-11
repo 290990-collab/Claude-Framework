@@ -13,6 +13,13 @@ Registro append-only di ciò che è stato **deciso, misurato o smentito**. Non �
 **Conseguenza:** cosa cambia da qui in avanti
 ```
 
+## Tolto di proposito
+
+*Niente tolto di proposito.* Qui ciò che è stato rimosso apposta e non va ricreato, una riga per voce, finché ricrearlo resta un rischio realistico.
+
+| cosa | perché è stato tolto | cosa lo sostituisce | quando riconsiderarlo |
+|---|---|---|---|
+
 ---
 
 *Ancora nessuna voce.* Vanno da qui in giù, in ordine cronologico.

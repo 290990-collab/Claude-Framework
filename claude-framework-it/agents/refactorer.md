@@ -5,7 +5,7 @@ description: >
   spostare, ridurre duplicazione, semplificare strutture. Da usare quando il
   codice va reso più chiaro senza che nulla cambi per chi lo usa. Non per
   aggiungere funzionalità, non per correggere difetti.
-model: opus
+model: sonnet
 effort: high
 tools: Read, Grep, Glob, Edit, Write, Bash
 color: blue

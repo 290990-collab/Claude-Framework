@@ -5,7 +5,8 @@ Per i progetti che acquisiscono, trasformano o conservano dati esterni. Un difet
 ## Normalizzazione
 
 - **Deterministica:** stesso input, stesso output, anche fra esecuzioni diverse. Se dipende dall'ordine di arrivo o dall'orologio, non lo è.
-- **Unità esplicite**, mai implicite nel contesto: importi come interi con la valuta accanto, misure con l'unità, istanti con il fuso. Mai virgola mobile per il denaro.
+- **Unità esplicite**, mai implicite nel contesto: importi come interi con la valuta accanto, misure con l'unità, istanti con il fuso. Mai virgola mobile per il denaro, né per conservarlo né per calcolarlo.
+- **Precisione e unità si leggono dalla sorgente, mai dal nome:** lo stesso simbolo può avere scale diverse in due sorgenti, e un'unità dedotta sbaglia di ordini di grandezza senza errori.
 - **Testo normalizzato prima del confronto:** forma unicode, spazi ai bordi, maiuscole, caratteri invisibili. Due stringhe identiche a vedersi possono non esserlo.
 - **Mancante, zero, stringa vuota e «sconosciuto» sono quattro cose diverse** e vanno rappresentate come tali.
 
@@ -13,6 +14,7 @@ Per i progetti che acquisiscono, trasformano o conservano dati esterni. Un difet
 
 - **Chiave stabile = attributi che non cambiano.** Derivarla da un nome, un indirizzo o un prezzo produce duplicati al prossimo aggiornamento.
 - **Chiave troppo permissiva:** fonde entità distinte. È l'errore opposto, e si nota molto più tardi.
+- **Chiave = identità completa:** un identificativo vale solo nel suo contesto — sorgente, rete, tenant — e chiavi e cache li includono tutti.
 - **Riconciliazione fra sorgenti verificata su casi reali**, ambigui inclusi: due prodotti simili, due omonimi, lo stesso oggetto scritto in due modi.
 
 ## Idempotenza e ripetibilità
@@ -26,6 +28,7 @@ Per i progetti che acquisiscono, trasformano o conservano dati esterni. Un difet
 - **Una sola sorgente di verità.** Indici, cache, viste materializzate e aggregati sono derivati: ricostruibili, mai l'unica copia.
 - Un cambiamento che impone una ricostruzione si dichiara con procedura e tempo previsto.
 - Due punti che possono divergere divergeranno: senza un modo di riallinearli, è un difetto di progetto.
+- **Si registra il misurato, non il dichiarato:** la quantità ricevuta davvero, non quella che la richiesta o la sorgente annunciava.
 
 ## Input non fidato
 

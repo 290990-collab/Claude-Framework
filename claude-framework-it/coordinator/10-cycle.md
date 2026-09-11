@@ -10,6 +10,7 @@
    - *Test-first escluso:* refactoring, UI, prototipi, dipendenze, documentazione.
 4. **Verificare:** `tester` estende la copertura oltre i mini-test dell'implementer (pochi test solidi sui confini del dominio).
 5. **Review:** se il diff tocca la **superficie critica** → prima il revisore di quella superficie, poi `final-reviewer`, che verifica da zero senza fidarsi dei report.
+   - *Task importante* — lungo, complesso, bloccante per un obiettivo di alto livello, o dichiarato tale dall'utente (correggere o cambiare una funzionalità esistente sì, ritoccare un'interfaccia no) → **doppia revisione:** due `final-reviewer` isolati, stessa rubrica, uno dopo l'altro; passa solo se passano entrambi. A ogni giro revisori nuovi (deroga alla regola 8: la memoria del giro prima ancora il giudizio); dopo tre giri decide l'utente.
 6. **Integrare:** il coordinatore risolve i finding e integra. Commit SOLO su richiesta dell'utente.
 
 *Nota:* per modifiche piccole e a basso rischio (≤2-3 file) il ciclo lo esegue interamente il coordinatore, senza spawn.
@@ -26,3 +27,4 @@
 | Frontend o logica | Viste, markup, stile, movimento → **`frontend`** \| Logica e servizi → **`implementer`** (se pesa su entrambi, `architect` spezza il task) |
 | Pubblicazione | Hosting semplice, un push aggiorna → **`deploy`** \| Risorse come codice, ambienti multipli → **`infra`**. Non coesistono |
 | Tipo di review | «Il codice è corretto?» → **`final-reviewer`** \| «È sicuro / valido / il dato è giusto?» → revisore della superficie critica, PRIMA |
+| Review mirata | Errori inghiottiti, default inventati, rami che nascondono la causa → **`silent-failure-hunter`** \| Commenti che non dicono più il vero → **`comment-analyzer`** |

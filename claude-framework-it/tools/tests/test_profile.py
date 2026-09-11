@@ -116,6 +116,22 @@ class TestRequiredGuides(unittest.TestCase):
     def test_unknown_agent_is_skipped_not_fatal(self):
         self.assertEqual(profile.required_guides(self.FRAMEWORK, ["inesistente"]), [])
 
+    def test_guides_add_extras_and_refuse_unknown_ones(self):
+        """Una sola risposta a «quali guide installare»: quelle del campo, quelle
+        che gli agenti scelti citano, quelle chieste in più. Un extra che non
+        esiste passava in silenzio, e il progetto non riceveva la guida che
+        aveva chiesto."""
+        prof = profile.load(self.FRAMEWORK / "profiles" / "library.toml")
+        roster = profile.roster(prof, extras=["scientific-reviewer"], drop=[])
+        got = profile.guides(
+            self.FRAMEWORK, prof, roster, extras=["domain/llm-guide.md"]
+        )
+        for rel in [*prof.shared, "domain/research-principles.md", "domain/llm-guide.md"]:
+            self.assertIn(rel, got)
+        self.assertEqual(len(got), len(set(got)))
+        with self.assertRaises(FileNotFoundError):
+            profile.guides(self.FRAMEWORK, prof, roster, extras=["core/inesistente.md"])
+
 
 if __name__ == "__main__":
     unittest.main()

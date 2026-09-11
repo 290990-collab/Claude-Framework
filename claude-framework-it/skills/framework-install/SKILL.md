@@ -54,16 +54,19 @@ DONE QUANDO: hai consegnato, in forma compatta:
   3. comandi di build, test, avvio — presi dai file di configurazione, non dedotti
   4. punti di ingresso
   5. presenza o assenza di: interfaccia utente, pipeline di dati,
-     configurazione di pubblicazione, test, documentazione
+     configurazione di pubblicazione, test, documentazione,
+     modelli linguistici, notebook
   6. contratti visibili: API pubbliche, formati persistiti, schemi
   7. cosa sembra rilevante ma è generato o di terze parti
+  8. segnali del campo — dipendenze, file, cartelle che dicono di che
+     progetto si tratta — ognuno con file:riga, senza classificarli
 
 VINCOLI:
   - sola lettura, nessuna modifica
   - non aprire artefatti pesanti o cartelle di dipendenze
   - se un comando non è dichiarato da nessuna parte, dillo invece di inventarlo
 
-DONE QUANDO: i 7 punti sopra, in forma compatta, con file:riga dove serve.
+DONE QUANDO: gli 8 punti sopra, in forma compatta, con file:riga dove serve.
 ```
 
 Repository grande → più `explorer` in parallelo su sottoalberi disgiunti: è l'unico agente a parallelismo libero.
@@ -96,6 +99,8 @@ Si riscrivono nella forma **più compressa che conserva il senso**: sono parole 
 
 **Una domanda alla volta**, non un blocco unico: ogni risposta può cambiare le successive. Proponi opzioni concrete e una raccomandazione motivata dal codice o dall'idea.
 
+**Proposta** — una volta per installazione, prima della domanda 1: profilo, agenti e guide extra, hook, ciascuno con la sua evidenza — i segnali del punto 8 di `explorer` con `file:riga`, o la frase dell'idea che lo motiva. Sta **accanto** alle domande, mai al loro posto: si fanno tutte, e ognuna conferma o corregge la sua parte.
+
 ### Sempre — quattro domande
 
 **1. Campo del progetto** → profilo in `<FW>/profiles/`:
@@ -107,6 +112,7 @@ Si riscrivono nella forma **più compressa che conserva il senso**: sono parole 
 | `web` | siti e applicazioni dove la resa visiva è parte del prodotto |
 | `research` | il prodotto è evidenza riproducibile, non software che gira |
 | `data` | pipeline di acquisizione, trasformazione, indicizzazione |
+| `llm` | un modello linguistico produce testo, decisioni o azioni che il codice usa |
 
 Se nessuno calza, chiedi all'utente di descrivere il campo e costruisci il roster a mano dal profilo più vicino.
 
@@ -130,6 +136,8 @@ Due revisori solo se il progetto ha davvero due superfici critiche distinte.
 
 **4. Autonomia** — cosa si può fare senza chiedere. Default conservativo: **nulla di tutto questo**. Commit · pubblicazione · installazione di dipendenze · esecuzioni lunghe o costose · modifiche irreversibili.
 
+Nella stessa domanda, **`gateguard` sì o no**: nega il primo tocco di ogni file in una sessione finché non si presentano i fatti — chi lo importa, cosa cambia di pubblico — ed è un turno in più per file; `FRAMEWORK_GATEGUARD=off` lo spegne. Gli altri hook di `settings.HOOKS` si installano sempre.
+
 ### Condizionali — solo per ciò che il profilo non installa già
 
 **Chiedi solo di agenti che il roster non ha.** Calcolalo prima (Passo 4) e salta le domande già risolte: una domanda che non può cambiare niente insegna all'utente che il questionario è una formalità.
@@ -138,8 +146,9 @@ C'è un'interfaccia? → `frontend` · Entrano dati esterni? → `data-ingestion
 Ci sono misure da interpretare? → `results-analyst` · Serve letteratura o
 scrittura accademica? → `literature` · Il progetto va pubblicato, e con hosting
 semplice o infrastruttura definita come codice? → `deploy` **oppure** `infra`,
-mai entrambi · Ci sono operazioni pesanti che lancia l'utente e non l'agente? →
-va nei comandi.
+mai entrambi · Commenti e docstring da tenere veri? → `comment-analyzer` ·
+Serve una guida di `<FW>/shared/` che il profilo non porta? → guida extra ·
+Ci sono operazioni pesanti che lancia l'utente e non l'agente? → va nei comandi.
 
 Vincoli normativi e requisiti di prestazione stanno nella **domanda 2**: sono superfici critiche, non contorni del profilo.
 
@@ -156,10 +165,14 @@ cd <FW>/tools && python -c "
 from pathlib import Path
 from fwbuild import profile
 prof = profile.load(Path('../profiles/<PROFILO>.toml'))
-print(profile.roster(prof, extras=[], drop=[]))
-print('conflitti:', profile.check_exclusive(profile.roster(prof, [], [])))
+r = profile.roster(prof, extras=[], drop=[])
+print(r)
+print('conflitti:', profile.check_exclusive(r))
+print('guide:', profile.guides(Path('..'), prof, r, extras=[]))
 "
 ```
+
+`guides` unisce le guide del profilo, quelle che le schede scelte citano e gli extra delle condizionali; un extra che non esiste è `FileNotFoundError`, non una guida in meno.
 
 ## Passo 5 — Generazione
 
@@ -176,10 +189,27 @@ Si generano **due** documenti con regione kernel, non uno. La differenza è il d
 
 Vale ovunque, ma qui è dove si perde roba: **nessuno di questi file si sovrascrive prima di averlo letto.**
 
+**Prima del primo file scritto, il piano e l'ok dell'utente:**
+
+```bash
+cd <FW>/tools && python -c "
+import sys
+from pathlib import Path
+from fwbuild import lifecycle
+sys.stdout.reconfigure(encoding='utf-8')
+ops = lifecycle.plan_install(Path('<PRJ>'), lifecycle.targets(Path('..'), <ROSTER>, <GUIDE>, <HOOK>))
+print(lifecycle.render(ops))
+print(*(f'lascia      {o.path} — {o.reason}' for o in ops if o.action == 'lascia'), sep='\n')
+"
+```
+
+`<HOOK>` è `settings.HOOKS`, senza `gateguard` se la domanda 4 ha detto no. `sovrascrive` e `fonde` si leggono per nome; `lascia` è materiale del progetto che resterà accanto al framework. `ValueError` su `framework.json` presente: il progetto è già installato → `framework-sync`.
+
 - **`CLAUDE.md` che c'era già:** il suo contenuto è materiale di progetto. Le direttive tenute al Passo 2 vanno nelle sezioni di progetto, il resto (comandi, architettura, stato, vincoli) nella sezione che gli corrisponde. Solo allora si scrive il file nuovo, che ora contiene anche il vecchio. Ciò che non trova posto si chiede, non si butta.
 - **`docs/TODO.md`, `status.md`, `roadmap.md` che c'erano già:** si compila il template **col loro contenuto**, invece di copiarci sopra quello vuoto. Un TODO cancellato all'installazione è il primo file che il framework promette di far leggere a ogni sessione.
-- **Skill già presenti in `.claude/skills/`:** non si toccano e non si spostano. Elencale in `CLAUDE.md` accanto alle due di ciclo di vita, una riga a testa: una skill che nessuno sa di avere non viene invocata.
-- **`.claude/settings.json` che c'era già:** i permessi che ci sono dentro sono dell'utente, e serializzare `Profile.settings` sopra li cancella. Il `deny` del profilo si **unisce** al suo; ogni altra chiave già presente si mostra e si chiede, non si sovrascrive.
+- **Skill già presenti in `.claude/skills/`:** non si toccano e non si spostano. Elencale in `CLAUDE.md` accanto a quelle di ciclo di vita, una riga a testa: una skill che nessuno sa di avere non viene invocata.
+- **`.claude/settings.json` che c'era già:** i permessi che ci sono dentro sono dell'utente, e serializzare `Profile.settings` sopra li cancella. Si fonde con `settings.merge`: le liste si uniscono, su uno scalare diverso resta il suo e la chiave va nei conflitti, che si mostrano prima di scrivere.
+- **Hook già presenti in `.claude/hooks/`, o voci `hooks` nei settings:** sono dell'utente. Gli script restano; uno con il nome di un hook del framework compare come `sovrascrive` e si chiede. Le voci si fondono con quelle del framework, mai sostituite.
 - **Output style già presenti in `.claude/output-styles/`, o un `outputStyle` già scritto nei settings:** l'utente ha già scelto come vuole essere parlato. Mostraglielo accanto a `Reporting` e chiedi quale vale; il perdente resta sul disco, non si cancella.
 
 ### `CLAUDE.md` — sezioni di progetto
@@ -239,7 +269,7 @@ from pathlib import Path
 from fwbuild import assemble
 F = Path('..'); V = (F/'VERSION').read_text(encoding='utf-8').strip()
 P = Path('<PRJ>')
-for d in ('.claude/shared', '.claude/agents', '.claude/skills', '.claude/output-styles', 'docs'):
+for d in ('.claude/shared', '.claude/agents', '.claude/skills', '.claude/output-styles', '.claude/hooks', 'docs'):
     P.joinpath(d).mkdir(parents=True, exist_ok=True)
 P.joinpath('CLAUDE.md').write_text(
     assemble.build_document(F/'method', V, SEZIONI_PROGETTO), encoding='utf-8')
@@ -252,22 +282,27 @@ P.joinpath('.claude/shared/orchestration.md').write_text(
 
 **Cicli di dominio** — se il profilo dichiara `cycles`, i file di `<FW>/cycles/` si accodano alla regione kernel della guida del coordinatore (`extra=assemble.cycle_files(...)`): sono orchestrazione, non esecuzione, quindi mai in `CLAUDE.md`.
 
-**Guide** — copia da `<FW>/shared/` quelle del profilo **più quelle che gli agenti scelti citano**, compilando anche lì il blocco di progetto. Un extra porta le sue: senza, la scheda esce con un pointer morto che il doctor vede solo a installazione già scritta (`SHARED_MISSING`).
-
-```python
-sorted(set(prof.shared) | set(profile.required_guides(F, roster)))
-```
+**Guide** — copia da `<FW>/shared/` l'elenco di `profile.guides` del Passo 4, compilando anche lì il blocco di progetto. Un agente extra porta le sue: senza, la scheda esce con un pointer morto che il doctor vede solo a installazione già scritta (`SHARED_MISSING`).
 
 **Skill di ciclo di vita** — copia `<FW>/skills/framework-doctor`, `framework-sync` e `framework-memory` in `.claude/skills/`. Senza, non sono invocabili e il doctor lo segnala (`SKILLS_MISSING`).
 
 **Stile delle risposte** — copia `<FW>/output-styles/reporting.md` in `.claude/output-styles/` e **compila il blocco `## Questo progetto`** con la risposta alla domanda 3. Non compilato è un `PLACEHOLDER`: il doctor legge ogni `.md` sotto `.claude/` tranne le skill.
 
-**`.claude/settings.json`** — serializza `Profile.settings` in JSON, **unendolo** a quello che c'era (→ *Materiale preesistente*). Porta `outputStyle`, cioè il nome dello stile appena copiato: senza, il file è installato e nessuno lo seleziona.
+**Hook** — copia `<FW>/hooks/<nome>.py` in `.claude/hooks/` per ogni nome di `<HOOK>`. Una voce nei settings senza il suo script, per un hook chiuso, blocca ogni modifica o ogni comando.
 
-**`.claude/framework.json`** — `source`, `version`, `profile`: è come le due skill ritrovano il sorgente, e l'unico posto in cui resta scritto **di cosa** è fatta l'installazione. Senza il profilo, «rigenera i permessi del profilo del progetto» non è eseguibile. La forma **non la scrivi tu**: `source.manifest` rende il percorso relativo quando il sorgente sta dentro il progetto e assoluto solo quando sta fuori — un assoluto su un sorgente interno è la macchina di chi ha installato, e muore al primo clone.
+**`.claude/settings.json`** — profilo e hook fra loro, poi sopra ciò che c'era (→ *Materiale preesistente*):
 
 ```python
-source.manifest(PRJ, FW, version, prof.name)
+fw_settings, _, c = settings.merge(prof.settings, settings.hooks(<HOOK>))   # c non vuoto: difetto del sorgente, fermati
+merged, added, conflitti = settings.merge(<settings.json esistente, o {}>, fw_settings)
+```
+
+`conflitti` si mostrano prima di scrivere `merged`. Porta `outputStyle`, cioè il nome dello stile appena copiato: senza, il file è installato e nessuno lo seleziona.
+
+**`.claude/framework.json`** — `source`, `version`, `profile`: è come le due skill ritrovano il sorgente, e l'unico posto in cui resta scritto **di cosa** è fatta l'installazione. Senza il profilo, «rigenera i permessi del profilo del progetto» non è eseguibile. `settings_added` è `added`: il solo pezzo di `settings.json` che `framework-sync --uninstall` potrà togliere. La forma **non la scrivi tu**: `source.manifest` rende il percorso relativo quando il sorgente sta dentro il progetto e assoluto solo quando sta fuori — un assoluto su un sorgente interno è la macchina di chi ha installato, e muore al primo clone.
+
+```python
+source.manifest(PRJ, FW, version, prof.name, settings_added=added)
 ```
 
 Il campo `accepted` **non si scrive all'installazione**: nasce vuoto e lo aggiunge chi decide di convivere con un avviso (→ skill `framework-doctor`).

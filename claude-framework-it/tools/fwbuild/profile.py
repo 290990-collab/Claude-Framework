@@ -89,3 +89,26 @@ def required_guides(framework_root: Path, agents: Sequence[str]) -> list[str]:
             if ref not in out:
                 out.append(ref)
     return sorted(out)
+
+
+def guides(
+    framework_root: Path,
+    prof: Profile,
+    roster: Sequence[str],
+    extras: Sequence[str] = (),
+) -> list[str]:
+    """Le guide da installare: quelle del campo, quelle citate dagli agenti
+    scelti, quelle chieste in più.
+
+    Un extra che non esiste è un errore di configurazione, come un ciclo
+    dichiarato e assente: passato in silenzio, il progetto non riceverebbe la
+    guida che ha chiesto e nessun rilievo lo direbbe — non la cita nessuno.
+    """
+    for rel in extras:
+        if not (framework_root / "shared" / rel).is_file():
+            raise FileNotFoundError(f"guida chiesta ma assente: shared/{rel}")
+    out: list[str] = []
+    for rel in [*prof.shared, *required_guides(framework_root, roster), *extras]:
+        if rel not in out:
+            out.append(rel)
+    return out

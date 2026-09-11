@@ -12,7 +12,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from fwbuild import assemble, doctor, profile, source
+from fwbuild import assemble, doctor, profile, settings, source
 
 FRAMEWORK = Path(__file__).resolve().parents[1]
 # Fuori dal sorgente: nel pacchetto entra il codice che fa la prova, non la prova.
@@ -76,6 +76,20 @@ DOMAIN = {
         "fra minori con una certa frequenza: verificare sempre nel pacchetto "
         "installato sotto `.venv/lib/`, non nella documentazione online."
     ),
+    "silent-failure-hunter": (
+        "Errori per eccezione, mai per valore di ritorno. Ripiego voluto e "
+        "documentato: una riga malformata si salta e si conta in "
+        "`--stats`. Nessun timeout: si leggono solo file locali."
+    ),
+    "conversation-analyzer": (
+        "Errori già corretti più volte: rispondere col contenuto di "
+        "`fixtures/big.log` invece che col comando che lo misura; rinominare "
+        "un'opzione della riga di comando senza avvisare."
+    ),
+    "comment-analyzer": (
+        "Debito tracciato solo nelle issue, non nei `TODO`. Da non analizzare: "
+        "`dist/` e i file generati da `python -m build`."
+    ),
 }
 
 GUIDES = {
@@ -113,6 +127,11 @@ GUIDES = {
         "accumulo si vede solo su file grandi); comportamento su file ruotato; "
         "encoding non UTF-8; output su pipe oltre che su terminale; codici di "
         "uscita invariati."
+    ),
+    "core/security-guide.md": (
+        "Input non fidato: il contenuto dei log e i path da riga di comando. "
+        "Nessun segreto e nessuna autenticazione; `~/.logtail.toml` non "
+        "contiene credenziali. Un path fuori dalla cartella indicata si rifiuta."
     ),
 }
 
@@ -212,10 +231,13 @@ ROUTING = """## Roster di questo progetto
 | Design, piani multi-file, contratti | `architect` | opus xhigh |
 | Scrivere codice di produzione | `implementer` | opus high |
 | Estendere i test | `tester` | sonnet medium |
-| Refactoring a comportamento invariato | `refactorer` | opus high |
+| Refactoring a comportamento invariato | `refactorer` | sonnet high |
 | Bug a causa ignota | `debugger` | opus high |
 | Firme di librerie esterne | `api-scout` | sonnet medium |
 | Superficie raggiungibile da un attaccante | `security-reviewer` | opus high |
+| Errori inghiottiti, ripieghi che nascondono | `silent-failure-hunter` | sonnet medium |
+| Commenti che non dicono più il vero | `comment-analyzer` | sonnet medium |
+| Errori ricorrenti nelle trascrizioni | `conversation-analyzer` | sonnet medium |
 | Verifica finale | `final-reviewer` | opus high |
 
 ## Note di delega per questo progetto
@@ -234,6 +256,17 @@ def fill(text: str, replacement: str) -> str:
     return filled
 
 
+def choices() -> tuple[profile.Profile, list[str], list[str], tuple[str, ...]]:
+    """Le risposte del questionario: profilo, roster, guide, hook.
+
+    Una funzione e non variabili dentro `install()`: il piano di installazione
+    si calcola dalle stesse scelte, e due copie divergerebbero in silenzio.
+    """
+    prof = profile.load(FRAMEWORK / "profiles" / "software.toml")
+    roster = profile.roster(prof, extras=[], drop=[])
+    return prof, roster, profile.guides(FRAMEWORK, prof, roster), settings.HOOKS
+
+
 def install(out: Path) -> int:
     """Installa il progetto finto e restituisce il numero di agenti."""
     if out.exists():
@@ -241,10 +274,10 @@ def install(out: Path) -> int:
     (out / ".claude" / "agents").mkdir(parents=True)
     (out / ".claude" / "shared" / "core").mkdir(parents=True)
     (out / ".claude" / "output-styles").mkdir(parents=True)
+    (out / ".claude" / "hooks").mkdir(parents=True)
     (out / "docs").mkdir(parents=True)
 
-    prof = profile.load(FRAMEWORK / "profiles" / "software.toml")
-    roster = profile.roster(prof, extras=[], drop=[])
+    prof, roster, guides, hooks = choices()
 
     (out / "CLAUDE.md").write_text(
         assemble.build_document(FRAMEWORK / "method", VERSION, PROJECT_SECTIONS),
@@ -272,12 +305,24 @@ def install(out: Path) -> int:
             assemble.build_agent(fm, method, domain, VERSION), encoding="utf-8"
         )
 
-    for rel in prof.shared:
+    for rel in guides:
         text = (FRAMEWORK / "shared" / rel).read_text(encoding="utf-8")
         (out / ".claude" / "shared" / rel).write_text(fill(text, GUIDES[rel]), encoding="utf-8")
 
+    for name in hooks:
+        shutil.copy(FRAMEWORK / "hooks" / f"{name}.py", out / ".claude" / "hooks")
+
+    # Il profilo e gli hook prima fra loro, poi sopra ciò che il progetto ha già
+    # — qui niente, ma il passo è lo stesso di un progetto vero: è l'aggiunto
+    # che il manifesto registra, perché la disinstallazione tolga solo quello.
+    framework_settings, _, conflicts = settings.merge(prof.settings, settings.hooks(hooks))
+    if conflicts:
+        raise SystemExit(f"profilo e hook in conflitto su: {', '.join(conflicts)}")
+    merged, added, conflicts = settings.merge({}, framework_settings)
+    if conflicts:
+        raise SystemExit(f"settings.json in conflitto su: {', '.join(conflicts)}")
     (out / ".claude" / "settings.json").write_text(
-        json.dumps(prof.settings, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        json.dumps(merged, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
 
     # Come `framework-doctor` e `framework-sync` ritrovano il sorgente dopo, e
@@ -286,7 +331,8 @@ def install(out: Path) -> int:
     # file sopravvive al clone.
     (out / ".claude" / "framework.json").write_text(
         json.dumps(
-            source.manifest(out, FRAMEWORK, VERSION, prof.name), indent=2
+            source.manifest(out, FRAMEWORK, VERSION, prof.name, settings_added=added),
+            indent=2,
         ) + "\n",
         encoding="utf-8",
     )
@@ -334,7 +380,7 @@ def install(out: Path) -> int:
         fill(stile, STILE_PROGETTO), encoding="utf-8"
     )
 
-    print(f"installato: {len(roster)} agenti, {len(prof.shared)} guide -> {out}")
+    print(f"installato: {len(roster)} agenti, {len(guides)} guide -> {out}")
     return len(roster)
 
 

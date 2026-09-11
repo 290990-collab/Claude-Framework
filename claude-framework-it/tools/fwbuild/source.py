@@ -19,6 +19,7 @@ REQUIRED = (
     "profiles",
     "templates",
     "skills",
+    "hooks",
     "tools/fwbuild",
 )
 
@@ -86,7 +87,11 @@ MANIFEST = Path(".claude") / "framework.json"
 
 
 def manifest(
-    project_root: Path, framework_root: Path, version: str, profile_name: str
+    project_root: Path,
+    framework_root: Path,
+    version: str,
+    profile_name: str,
+    settings_added: dict | None = None,
 ) -> dict:
     """Il contenuto di `.claude/framework.json`.
 
@@ -95,12 +100,20 @@ def manifest(
     da nessuna parte: senza, `SETTINGS_MISSING` prescrive di rigenerare i
     permessi «del profilo del progetto» che nessuno può più nominare, e un
     cambio di campo non ha un punto di partenza.
+
+    `settings_added` è ciò che l'installazione ha davvero aggiunto a
+    `settings.json`: il solo pezzo di quel file che la disinstallazione può
+    togliere. Si scrive solo se c'è — un record vuoto e un record assente
+    dicono cose diverse, e la seconda vuol dire «non toccare».
     """
-    return {
+    data = {
         "source": reference(project_root, framework_root),
         "version": version,
         "profile": profile_name,
     }
+    if settings_added is not None:
+        data["settings_added"] = settings_added
+    return data
 
 
 def read_manifest(project_root: Path) -> dict | None:

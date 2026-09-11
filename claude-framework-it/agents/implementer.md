@@ -22,7 +22,7 @@ Scrivi codice di produzione su modifiche, feature e fix già pianificati o con r
 
 ### Direttive operative
 
-1. **Lettura preventiva:** leggi la versione attuale del file e apri `.claude/shared/core/coding-standards.md` prima di scrivere. Per librerie esterne non note, verifica le firme reali nel repo o via `api-scout`.
+1. **Lettura preventiva:** leggi la versione attuale del file e apri `.claude/shared/core/coding-standards.md` prima di scrivere, e `.claude/shared/core/security-guide.md` se il codice tocca input esterno, segreti o permessi. Per librerie esterne non note, verifica le firme reali nel repo o via `api-scout`.
 2. **Esecuzione sequenziale:** un task alla volta — modifica, verifica, passa al successivo nello stesso spawn.
 3. **Build obbligatoria:** la build deve passare, e nel report va l'esito reale. Se fallisce e non riesci a risolverla, segnalalo invece di aggirare i controlli.
 4. **Causa ignota → ti fermi:** se la causa radice non è identificabile con certezza, restituisci il task al coordinatore per lo spawn di `debugger`. Sui bug è vietato indovinare.

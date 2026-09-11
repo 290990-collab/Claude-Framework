@@ -18,8 +18,8 @@ class TestRealFramework(unittest.TestCase):
     def test_version_file_exists(self):
         self.assertTrue((FRAMEWORK / "VERSION").is_file())
 
-    def test_all_nineteen_agents_present(self):
-        self.assertEqual(len(list((FRAMEWORK / "agents").glob("*.md"))), 19)
+    def test_all_twenty_two_agents_present(self):
+        self.assertEqual(len(list((FRAMEWORK / "agents").glob("*.md"))), 22)
 
     def test_no_agent_declares_fable(self):
         for p in (FRAMEWORK / "agents").glob("*.md"):
@@ -212,6 +212,20 @@ class TestRealFramework(unittest.TestCase):
         for name in sorted(SURFACE_ONLY):
             self.assertIn(f"`{name}`", blocco, name)
 
+    def test_question_one_offers_every_profile(self):
+        """La domanda 1 è l'unica via per scegliere un profilo, e la tabella è
+        scritta a mano: `llm` è arrivato in `profiles/` senza la sua riga, e
+        chi installava non poteva sceglierlo. Nessun rilievo lo vedeva — il
+        difetto sta nella skill, prima che un'installazione esista."""
+        skill = (FRAMEWORK / "skills" / "framework-install" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        blocco = skill[
+            skill.index("**1. Campo del progetto**") : skill.index("**2. Superficie critica**")
+        ]
+        for path in sorted((FRAMEWORK / "profiles").glob("*.toml")):
+            self.assertIn(f"| `{profile.load(path).name}` |", blocco, path.name)
+
     def test_exclusive_pairs_declare_their_boundary(self):
         """`EXCLUSIVE` è una guardia, non una spiegazione: dice che i due non
         convivono, non dove passa la linea. Se la linea vive solo nel check, un
@@ -265,6 +279,7 @@ class TestRealFramework(unittest.TestCase):
             ".claude/skills/",
             ".claude/settings.json",
             ".claude/output-styles/",
+            ".claude/hooks/",
         ):
             self.assertIn(path, blocco, path)
 
@@ -393,6 +408,20 @@ class TestRealFramework(unittest.TestCase):
             text = p.read_text(encoding="utf-8")
             for word in forbidden:
                 self.assertNotIn(word, text, f"{p.name} cita {word}")
+
+    def test_the_source_ships_no_personal_path_and_no_hidden_character(self):
+        """Il doctor guarda l'installazione, ma ciò che vi trova arriva quasi
+        sempre dal sorgente, che si copia alla lettera. Le regex sono le sue:
+        una copia divergerebbe in silenzio. I test compresi — per questo i
+        loro percorsi si costruiscono per concatenazione e i caratteri sono
+        escape."""
+        for p in sorted(FRAMEWORK.rglob("*")):
+            if not p.is_file() or p.suffix not in {".md", ".py", ".toml", ".json", ".jsonl"}:
+                continue
+            text = p.read_text(encoding="utf-8")
+            rel = p.relative_to(FRAMEWORK).as_posix()
+            self.assertNotRegex(text, doctor.PERSONAL_PATH_RE, rel)
+            self.assertNotRegex(text, doctor.UNSAFE_CHARS_RE, rel)
 
     def test_sync_down_preserves_domain_cycles(self):
         """La procedura `--down` riassembla la guida del coordinatore dal

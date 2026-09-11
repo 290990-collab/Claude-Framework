@@ -13,6 +13,7 @@ Mappa sintomo → sospetti: serve a **restringere**, non a saltare all'ipotesi. 
 | Il test passa ma il programma no | il test verifica un sostituto finto, non il vero · ambiente del test diverso · il percorso reale non è quello testato |
 | Il test fallisce ma il programma va | l'asserzione verifica un dettaglio interno cambiato · stato lasciato da un altro test · dipendenza dall'ordine di esecuzione |
 | Nessun errore, risultato sbagliato | errore inghiottito da un blocco di cattura · valore di ritorno ignorato · condizione sempre vera o sempre falsa · confronto fra tipi diversi · scorciatoia logica che salta il calcolo |
+| Nulla è rotto e non succede niente | una chiamata successiva azzera lo stato scritto dalla precedente, ognuna corretta da sola · effetto collaterale su stato condiviso · chiamate asincrone risolte in ordine inverso |
 | Errore lontano dalla causa | valore sbagliato prodotto molto prima e propagato · nessuna validazione al confine · un valore assente trattato come default valido |
 | Lento all'improvviso | complessità che esplode oltre una soglia di dati · chiamata dentro un ciclo che prima era fuori · indice mancante · attesa di I/O seriale dove serviva parallelo · cache che ha smesso di funzionare |
 | Consuma memoria senza fermarsi | struttura che cresce e non viene mai svuotata · riferimenti trattenuti · cache senza limite · risorse non chiuse |

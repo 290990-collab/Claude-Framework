@@ -1,8 +1,8 @@
-name = "research"
-description = "Ricerca sperimentale: il prodotto è evidenza riproducibile, non software che gira."
-critical_surface = "La validità della conclusione: un numero prodotto da un protocollo sbagliato è indistinguibile da uno giusto."
+name = "llm"
+description = "Sistemi in cui un modello linguistico produce testo, decisioni o azioni che il codice usa."
+critical_surface = "Il comportamento del modello non sta nel codice: un prompt che regge su tre esempi non dice niente sul resto, e senza valutazione ripetibile ogni modifica è un'opinione."
 
-agents = ["debugger", "api-scout", "results-analyst", "literature", "scientific-reviewer", "silent-failure-hunter", "conversation-analyzer"]
+agents = ["debugger", "api-scout", "security-reviewer", "scientific-reviewer", "results-analyst", "silent-failure-hunter", "conversation-analyzer", "comment-analyzer"]
 cycles = ["research"]
 
 shared = [
@@ -14,6 +14,7 @@ shared = [
   "core/review-checklist.md",
   "core/security-guide.md",
   "domain/research-principles.md",
+  "domain/llm-guide.md",
 ]
 
 [settings]
@@ -24,6 +25,4 @@ outputStyle = "Reporting"
 deny = [
   "Read(./**/.env)", "Read(./**/.env.*)", "Read(./**/*.env)",
   "Read(./**/*.key)", "Read(./**/*.pem)", "Read(./**/*.p12)",
-  "Read(./**/*.ckpt)", "Read(./**/*.pt)", "Read(./**/*.pth)",
-  "Read(./**/*.npy)", "Read(./**/*.npz)", "Read(./**/*.safetensors)",
 ]

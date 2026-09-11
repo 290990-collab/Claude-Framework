@@ -9,6 +9,7 @@ Come si struttura il codice, indipendentemente dal linguaggio, più il blocco pe
 - **Argomenti booleani che cambiano il comportamento** sono due funzioni travestite da una.
 - **Restituire un valore *e* modificare stato osservabile:** separare quando possibile.
 - **«Non trovato» e «non applicabile»** sono casi espliciti del valore di ritorno, mai un valore speciale ambiguo.
+- **Stati come insieme chiuso:** un tipo con i soli casi possibili, esaustività verificata dal compilatore dove il linguaggio lo consente; mai flag combinabili in stati impossibili.
 
 ## Stato e mutabilità
 
@@ -22,11 +23,13 @@ Come si struttura il codice, indipendentemente dal linguaggio, più il blocco pe
 - **Si cattura solo ciò che si sa gestire:** catturare tutto e continuare trasforma un guasto in corruzione silenziosa.
 - **Contesto risalendo:** quale operazione, su quale dato — mai il segreto o il dato personale.
 - **Pulizia delle risorse garantita anche sul percorso di errore**, col costrutto previsto dal linguaggio.
+- **Configurazione obbligatoria validata all'avvio:** se manca o non è valida il programma non parte, invece di scoprirlo alla prima richiesta.
 
 ## Dipendenze
 
 - Ogni dipendenza è un costo permanente — manutenzione, sicurezza, aggiornamenti: per poche righe di codice si scrivono le righe.
 - Le dipendenze esterne si isolano dietro un confine del progetto: sostituirle deve toccare un punto solo.
+- **Criteri di adozione:** manutenzione attiva, editore verificabile, compatibilità con le versioni del progetto. Ne manca uno, non entra.
 - **Nessuna installazione senza conferma esplicita dell'utente.**
 
 ## Concorrenza
@@ -34,6 +37,8 @@ Come si struttura il codice, indipendentemente dal linguaggio, più il blocco pe
 - Condividere il meno possibile; dove si condivide, protocollo di accesso esplicito e documentato.
 - Nessuna assunzione sull'ordine di esecuzione che non sia garantita.
 - Ogni attesa ha un limite di tempo; ogni ripetizione ha un massimo.
+- **Stato letto prima di un'attesa si ricontrolla dopo:** nel frattempo può essere cambiato o non esistere più.
+- **La chiamata esterna va per ultima:** precondizioni → stato interno → chiamata esterna, e mai dentro una transazione aperta.
 
 ## Leggibilità
 
