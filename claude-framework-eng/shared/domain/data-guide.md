@@ -5,7 +5,8 @@ For projects that acquire, transform or store external data. A defect here bring
 ## Normalisation
 
 - **Deterministic:** same input, same output, across different runs too. If it depends on arrival order or on the clock, it is not.
-- **Explicit units**, never implicit in the context: amounts as integers with the currency alongside, measures with the unit, instants with the time zone. Never floating point for money.
+- **Explicit units**, never implicit in the context: amounts as integers with the currency alongside, measures with the unit, instants with the time zone. Never floating point for money, neither to store it nor to compute with it.
+- **Precision and unit are read from the source, never from the name:** the same symbol can have different scales in two sources, and a deduced unit is off by orders of magnitude without an error.
 - **Text normalised before comparison:** unicode form, edge whitespace, case, invisible characters. Two strings that look identical may not be.
 - **Missing, zero, empty string and "unknown" are four different things** and must be represented as such.
 
@@ -13,6 +14,7 @@ For projects that acquire, transform or store external data. A defect here bring
 
 - **Stable key = attributes that do not change.** Deriving it from a name, an address or a price produces duplicates at the next update.
 - **A key that is too permissive:** it merges distinct entities. The opposite error, and it is noticed much later.
+- **Key = full identity:** an identifier is valid only in its context — source, network, tenant — and keys and caches include all of it.
 - **Reconciliation between sources verified on real cases**, ambiguous ones included: two similar products, two people with the same name, the same object written in two ways.
 
 ## Idempotence and repeatability
@@ -26,6 +28,7 @@ For projects that acquire, transform or store external data. A defect here bring
 - **One single source of truth.** Indexes, caches, materialised views and aggregates are derivatives: rebuildable, never the only copy.
 - A change that forces a rebuild is declared with the procedure and the expected time.
 - Two points that can diverge will diverge: with no way to realign them, it is a design defect.
+- **Record what was measured, not what was declared:** the quantity actually received, not the one the request or the source announced.
 
 ## Untrusted input
 

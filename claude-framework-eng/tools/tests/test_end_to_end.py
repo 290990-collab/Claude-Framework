@@ -18,8 +18,8 @@ class TestRealFramework(unittest.TestCase):
     def test_version_file_exists(self):
         self.assertTrue((FRAMEWORK / "VERSION").is_file())
 
-    def test_all_nineteen_agents_present(self):
-        self.assertEqual(len(list((FRAMEWORK / "agents").glob("*.md"))), 19)
+    def test_all_twenty_two_agents_present(self):
+        self.assertEqual(len(list((FRAMEWORK / "agents").glob("*.md"))), 22)
 
     def test_no_agent_declares_fable(self):
         for p in (FRAMEWORK / "agents").glob("*.md"):
@@ -31,10 +31,9 @@ class TestRealFramework(unittest.TestCase):
         self.assertIn("effort: xhigh", text)
 
     def test_agent_colors_are_platform_values(self):
-        """`color` has eight documented values. Six cards declared an invented
-        one — brown, teal, magenta, violet — and no test saw it: a setting the
-        platform does not recognise does not fail, it is ignored, which is how
-        it stays wrong forever."""
+        """`color` has eight documented values. A setting the platform does not
+        recognise does not fail, it is ignored, which is how it stays wrong
+        forever."""
         valid = {"red", "blue", "green", "yellow", "purple", "orange", "pink", "cyan"}
         for path in sorted((FRAMEWORK / "agents").glob("*.md")):
             for line in path.read_text(encoding="utf-8").splitlines():
@@ -57,7 +56,7 @@ class TestRealFramework(unittest.TestCase):
 
     def test_every_profile_denies_the_same_secrets(self):
         """A permission that depends on the field is a permission somebody
-        forgot to copy: `.env.local` was denied on web only."""
+        forgot to copy."""
         needed = {
             "Read(./**/.env)",
             "Read(./**/.env.*)",
@@ -71,8 +70,8 @@ class TestRealFramework(unittest.TestCase):
             self.assertEqual(needed - deny, set(), prof.name)
 
     def test_state_templates_use_one_placeholder_syntax(self):
-        """There were two, `{{...}}` and `<...>`, and the doctor saw one: a line
-        to be filled could survive the installation with no finding."""
+        """The doctor recognises one placeholder syntax only: a second one would
+        let a line to be filled survive the installation, with no finding."""
         for name in ("TODO.md", "status.md", "roadmap.md"):
             text = (FRAMEWORK / "templates" / name).read_text(encoding="utf-8")
             self.assertNotIn("{{", text, name)
@@ -80,8 +79,9 @@ class TestRealFramework(unittest.TestCase):
                 self.assertFalse(line.strip().startswith("<"), f"{name}: {line}")
 
     def test_profiles_declare_no_deferred_roster(self):
-        """`on_demand` promised "later" and `roster` appended them anyway: the
-        field said the opposite of what it did."""
+        """No field for agents "to be installed later": `roster` installs
+        everything the profile lists, and such a field would say the opposite
+        of what it does."""
         for path in sorted((FRAMEWORK / "profiles").glob("*.toml")):
             self.assertNotIn("on_demand", path.read_text(encoding="utf-8"), path.name)
 
@@ -198,9 +198,9 @@ class TestRealFramework(unittest.TestCase):
     def test_surface_only_agents_are_in_no_profile(self):
         """Compliance and performance are not fields: one software project can
         process personal data and another not. Who watches over them is chosen
-        by the critical-surface question, not by the profile — putting them in
-        a profile would install them everywhere, which is the fixed cost
-        removed by D4."""
+        by the critical-surface question, not by the profile: putting them in a
+        profile would install them in every project of the field, as a fixed
+        cost."""
         for path in (FRAMEWORK / "profiles").glob("*.toml"):
             prof = profile.load(path)
             leaked = SURFACE_ONLY & set(prof.agents)
@@ -216,6 +216,20 @@ class TestRealFramework(unittest.TestCase):
         block = skill[skill.index("**2. Critical surface**") : skill.index("**3. Assumed")]
         for name in sorted(SURFACE_ONLY):
             self.assertIn(f"`{name}`", block, name)
+
+    def test_question_one_offers_every_profile(self):
+        """Question 1 is the only way to choose a profile, and the table is
+        written by hand: a profile without its row cannot be chosen, and no
+        finding sees it — the defect sits in the skill, before an installation
+        exists."""
+        skill = (FRAMEWORK / "skills" / "framework-install" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        block = skill[
+            skill.index("**1. Field of the project**") : skill.index("**2. Critical surface**")
+        ]
+        for path in sorted((FRAMEWORK / "profiles").glob("*.toml")):
+            self.assertIn(f"| `{profile.load(path).name}` |", block, path.name)
 
     def test_exclusive_pairs_declare_their_boundary(self):
         """`EXCLUSIVE` is a guard, not an explanation: it says the two do not
@@ -270,6 +284,7 @@ class TestRealFramework(unittest.TestCase):
             ".claude/skills/",
             ".claude/settings.json",
             ".claude/output-styles/",
+            ".claude/hooks/",
         ):
             self.assertIn(path, block, path)
 
@@ -302,6 +317,7 @@ class TestRealFramework(unittest.TestCase):
             "framework-doctor",
             "framework-sync",
             "framework-memory",
+            "framework-comply",
         ):
             p = FRAMEWORK / "skills" / name / "SKILL.md"
             self.assertTrue(p.is_file(), name)
@@ -352,7 +368,7 @@ class TestRealFramework(unittest.TestCase):
     def test_an_unfilled_response_style_is_a_finding(self):
         """The style has no kernel region and is not tracked: the only thing
         demanding that it be adapted is `_markdown_files` scanning it. Narrowing
-        that list (today it excludes the skills alone) would switch the check
+        that list (it excludes skills and archive) would switch the check
         off without breaking anything, and the project block would stay empty on
         the installer's disk."""
         with tempfile.TemporaryDirectory() as d:
@@ -400,6 +416,20 @@ class TestRealFramework(unittest.TestCase):
             text = p.read_text(encoding="utf-8")
             for word in forbidden:
                 self.assertNotIn(word, text, f"{p.name} cites {word}")
+
+    def test_the_source_ships_no_personal_path_and_no_hidden_character(self):
+        """The doctor looks at the installation, but what it finds there almost
+        always comes from the source, which is copied verbatim. The regexes are
+        its own: a copy would diverge in silence. Tests included — which is why
+        their paths are built by concatenation and the characters are
+        escapes."""
+        for p in sorted(FRAMEWORK.rglob("*")):
+            if not p.is_file() or p.suffix not in {".md", ".py", ".toml", ".json", ".jsonl"}:
+                continue
+            text = p.read_text(encoding="utf-8")
+            rel = p.relative_to(FRAMEWORK).as_posix()
+            self.assertNotRegex(text, doctor.PERSONAL_PATH_RE, rel)
+            self.assertNotRegex(text, doctor.UNSAFE_CHARS_RE, rel)
 
     def test_sync_down_preserves_domain_cycles(self):
         """The `--down` procedure reassembles the coordinator's guide from the
@@ -508,7 +538,7 @@ class TestInstalledBudget(unittest.TestCase):
             self.assertEqual(found[0].severity, "WARN")
 
     def test_old_report_format_is_reported_in_an_installed_project(self):
-        """A project installed before the categorical format keeps it: the
+        """A project installed with the percentage format keeps it: the
         kernel region's hash matches, because it matches that very text, and
         the declared version is the one the project was born with. Without this
         finding no check sees it."""
@@ -561,7 +591,7 @@ class TestSourceReference(unittest.TestCase):
         )
 
     def test_install_records_a_portable_source(self):
-        """The defect was in the skill, that is, in prose: here it is checked
+        """The rule lives in the skill, that is, in prose: here it is checked
         on the artefact written."""
         with tempfile.TemporaryDirectory() as d:
             root = Path(d) / "trial"
@@ -585,9 +615,8 @@ class TestProfilesAreDistinguishable(unittest.TestCase):
             self.assertTrue(prof.critical_surface.strip(), prof.name)
 
     def test_no_two_profiles_are_interchangeable(self):
-        """`software` and `library` differed only by `name` and `description`:
-        choosing between them had no mechanical consequence. This test stops
-        the consequence-free choice from being reintroduced."""
+        """Two profiles that differ only by `name` and `description` are a
+        choice with no mechanical consequence."""
         seen = {}
         for path in sorted((FRAMEWORK / "profiles").glob("*.toml")):
             prof = profile.load(path)
@@ -635,10 +664,7 @@ class TestCli(unittest.TestCase):
 
     def test_doctor_json_keeps_the_strict_exit_code(self):
         """`--json` is a format, not a posture: the exit code must be the same
-        with the flag and without. On a clean installation it is 0 — it used to
-        be 1, because the JSON branch returned the code before looking at
-        whether there were any findings, and a CI adding the flag always
-        failed."""
+        with the flag and without. On a clean installation it is 0."""
         with tempfile.TemporaryDirectory() as d:
             root = self._install(d)
             for argv in (
@@ -697,8 +723,7 @@ class TestRealInstall(unittest.TestCase):
     def test_full_install_passes_doctor(self):
         """The rest of the suite checks the pieces; this checks **the act of
         installing**. It is the only test that falls if the installation, as a
-        whole, stops passing Step 6 — and that is how the `roadmap.md` copied
-        and never filled in was found."""
+        whole, stops passing Step 6."""
         with tempfile.TemporaryDirectory() as d:
             root = Path(d) / "trial"
             with redirect_stdout(io.StringIO()):

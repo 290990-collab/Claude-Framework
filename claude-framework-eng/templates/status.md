@@ -13,6 +13,13 @@ Append-only record of what has been **decided, measured or refuted**. It is not 
 **Consequence:** what changes from here on
 ```
 
+## Removed on purpose
+
+*Nothing removed on purpose.* Here what was removed deliberately and must not be recreated, one line per entry, as long as recreating it remains a realistic risk.
+
+| what | why it was removed | what replaces it | when to reconsider |
+|---|---|---|---|
+
 ---
 
 *No entries yet.* They go from here down, in chronological order.

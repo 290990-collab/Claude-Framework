@@ -58,8 +58,7 @@ class TestClassify(unittest.TestCase):
 
     def test_caches_are_not_your_additions(self):
         """They only exist where the code has run: they would show up as your
-        addition at every comparison, over files nobody wrote. `.pytest_cache`
-        was found by the first run against a real source."""
+        addition at every comparison, over files nobody wrote."""
         plan = self._plan(
             {}, {"tools/__pycache__/x.pyc": "b", ".pytest_cache/v/nodeids": "[]"}, {}
         )

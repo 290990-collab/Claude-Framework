@@ -10,7 +10,7 @@ description: >
 
 # Persistent memory — what it says, and what contradicts it
 
-Level 4 of the state is the only one that lives **outside the repository**: no finding of the doctor sees it, and in a conflict the repo wins. An old, unannotated memory is not inert — it is an active bias, and it restarts the next session with a month-old view.
+Level 4 of the state is the only one that lives **outside the repository**: no finding of the doctor sees it, and in a conflict the repo wins.
 
 **The coordinator invokes it.** Whoever executes a task does not read the memory: they receive in the delegation prompt what they need, as with everything else.
 
@@ -18,7 +18,7 @@ Level 4 of the state is the only one that lives **outside the repository**: no f
 
 Do not assume the path: **look at it**. First directory that exists, in this order:
 
-1. the harness's one for this project — on Claude Code 2.1.218 it is `~/.claude/projects/<project>/memory/`, with the project's path turned into a directory name (verified on 2026-09-09; if it is not there, do not invent it)
+1. the harness's one for this project — in Claude Code `~/.claude/projects/<project>/memory/`, with the project's path turned into a directory name; if it is not there, do not invent it
 2. `<PRJ>/.claude/memory/`
 
 Neither exists → say so and stop. A project without memory is young, not broken, and the directory is not created here: memory is born when there is a fact to write in it.

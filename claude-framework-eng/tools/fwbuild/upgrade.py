@@ -1,9 +1,9 @@
 """Bringing a new release over a source the user has modified.
 
-`--up` exists because the source gets modified: whoever does it, though, faced
-a flat choice at the next release — overwrite and lose their own work, or stay
-behind forever. Only one datum is missing to avoid it: **which release that copy
-came from**. The number in `VERSION` is not enough, because `--up` increments it
+`--up` exists because the source gets modified: whoever does it faces a flat
+choice at the next release — overwrite and lose their own work, or stay behind
+forever. One datum is enough to avoid it: **which release that copy came
+from**. The number in `VERSION` is not enough, because `--up` increments it
 and from then on it matches nothing published.
 
 The comparison is over three trees and the classification has four outcomes, no

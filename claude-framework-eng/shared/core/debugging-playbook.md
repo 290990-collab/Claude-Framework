@@ -13,6 +13,7 @@ Symptom → suspects map: it serves to **narrow down**, not to jump to the hypot
 | The test passes but the program does not | the test verifies a fake, not the real thing · different test environment · the real path is not the tested one |
 | The test fails but the program works | the assertion checks an internal detail that changed · state left by another test · dependency on execution order |
 | No error, wrong result | error swallowed by a catch block · return value ignored · condition always true or always false · comparison between different types · logical shortcut skipping the computation |
+| Nothing is broken and nothing happens | a later call resets the state written by the earlier one, each correct on its own · side effect on shared state · asynchronous calls resolved in reverse order |
 | Error far from the cause | wrong value produced much earlier and propagated · no validation at the boundary · an absent value treated as a valid default |
 | Suddenly slow | complexity exploding past a data threshold · a call inside a loop that used to be outside · missing index · serial I/O waiting where parallel was needed · a cache that stopped working |
 | Consumes memory without stopping | structure that grows and is never emptied · references retained · unbounded cache · resources not closed |

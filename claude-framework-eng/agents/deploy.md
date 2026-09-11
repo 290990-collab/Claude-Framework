@@ -5,7 +5,7 @@ description: >
   static or edge hosting, integration pipeline, domain, environment variables
   and secrets, redirects, headers. Use when the heart of the task is
   publication. Complex cloud infrastructure needs a different mandate.
-model: opus
+model: sonnet
 effort: high
 tools: Read, Grep, Glob, Edit, Write, Bash
 color: orange

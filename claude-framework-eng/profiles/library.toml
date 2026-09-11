@@ -2,7 +2,7 @@ name = "library"
 description = "Reusable libraries and packages: the public contract is the product."
 critical_surface = "The public contract — signatures, semantics, behaviour across versions: breaking it breaks code that is not in this repository."
 
-agents = ["debugger", "api-scout", "security-reviewer"]
+agents = ["debugger", "api-scout", "silent-failure-hunter", "conversation-analyzer", "comment-analyzer"]
 cycles = []
 
 shared = [
@@ -12,6 +12,7 @@ shared = [
   "core/testing-guide.md",
   "core/debugging-playbook.md",
   "core/review-checklist.md",
+  "core/security-guide.md",
 ]
 
 [settings]

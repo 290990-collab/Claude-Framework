@@ -15,7 +15,7 @@ cd <FW>/tools && python -m fwbuild doctor --strict <PRJ>
 
 `<PRJ>` is the project root. `<FW>` is the `source` field of `.claude/framework.json` (if the file is missing, `./framework/`): it may be **relative to the project root**, and `source.dereference(<PRJ>, source)` resolves it.
 
-`fwbuild` has **four** subcommands — `doctor`, `source`, `cost`, `report`. The modes `--down`, `--up`, `--activate`, `--deactivate` belong to `framework-sync`, they are not shell flags.
+`fwbuild` has **four** subcommands — `doctor`, `source`, `cost`, `report`. The modes `--down`, `--up`, `--upgrade`, `--repair`, `--uninstall`, `--activate`, `--deactivate` belong to `framework-sync`, they are not shell flags.
 
 - Complete installation → `OK — no findings`.
 - **Always use `--strict`**, in CI and by hand: without it the exit code is 0 even with warnings.
@@ -95,7 +95,7 @@ The kernel regions do not all declare the same version, or the project is on a d
 
 `.claude/settings.json` is missing with installed agents. It is the file that carries the profile's permissions — among them the prohibition on reading `.env`, keys and certificates: without it, that prohibition is not in force and nobody notices.
 
-⚠️ **That prohibition covers the `Read` tool, not the shell.** An agent with `Bash` reads a `.env` with `cat` and no configuration prevents it. Where the secret matters, the only mechanical guard is not giving that agent the shell: it is why the four reviewers that execute nothing have `Read, Grep, Glob` only.
+⚠️ **That prohibition covers the `Read` tool, not the shell.** An agent with `Bash` reads a `.env` with `cat` and no configuration prevents it. Where the secret matters, the only mechanical guard is not giving that agent the shell: it is why the reviewers that execute nothing have `Read, Grep, Glob` only.
 
 **What to do:** regenerate it by serialising the `Profile.settings` of the project's profile — its name is in `profile` inside `.claude/framework.json` — as in Step 5 of the installation.
 
@@ -150,6 +150,24 @@ To turn it into a figure: `python -m fwbuild cost <PRJ> --spawns N --devs N`.
 The installed report schema still carries confidence as a percentage: previous format, fake precision in the field the coordinator reads first, while a model's self-reported confidence is poorly calibrated. No other finding sees it: the hash matches that very text, and the declared version is the one the project was born with.
 
 **What to do:** `framework-sync --down`. The current format is categorical and carries the falsifier (`REFUTE`) with it, which is what makes a judgement without numbers readable.
+
+### `UNSAFE_UNICODE` — WARNING
+
+An installed file contains an invisible character: bidirectional control (U+202A–202E, U+2066–2069), zero-width space or operator (U+200B–200D, U+2060–2064), tag character (U+E0000–E007F), filler (U+115F, U+1160, U+180E, U+3164), U+FEFF past the start of the file. The model reads it, whoever reviews the file does not: it is the way a hidden instruction gets into an agent or a skill. The project's files, the skills, the hooks and `settings.json` are scanned. Variation selectors (U+FE00–FE0F, U+E0100–E01EF), which compose emoji, do not count, nor does the BOM at the start of a file, which editors write.
+
+WARNING and not error: the ZWJ (U+200D) also composes emoji and legitimate scripts.
+
+**What to do:** open the file at the given line with an editor that shows invisible characters. In a skill or a hook, compare it with the source in `<FW>/`: a difference nobody can explain is treated as tampering. If the character is intended, accept it with `UNSAFE_UNICODE:<file>` and the reason.
+
+### `PERSONAL_PATH` — WARNING
+
+An installed file contains a path inside a user's folder — `C:\Users\<name>`, `/Users/<name>`, `/home/<name>`, doubled JSON backslashes included. The file travels with the repository: on another machine the path does not exist, and it carries the name of whoever wrote it. Template placeholder names (`user`, `username`, `yourname`, `you`, `me`, `example`) do not count. The message gives file and line, not the path.
+
+**`.claude/framework.json` is not scanned:** its `source` is absolute by construction when the source sits outside the project, because a relative path does not hold there — the depth of the clone is not known. Flagging it would give a warning on every installation made that way.
+
+⚠️ The check compares text: a URL with `/home/` or `/Users/` in its path triggers it.
+
+**What to do:** replace it with a path relative to the project root or with a placeholder (`<PRJ>`, `<FW>`). If the absolute path is really needed, accept it with `PERSONAL_PATH:<file>` and the reason.
 
 ## Declared waivers
 

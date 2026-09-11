@@ -2,6 +2,8 @@
 
 Reference material for whoever reviews. Two blocks, **separate and not merged** — generic and project-specific: keeping them distinct is what makes it possible to update the framework without losing the specific entries, and vice versa.
 
+**Severity:** blocks (security, data loss) · warns (defect, serious quality issue) · informs (maintainability) · note (style). Outcome: **approved** with no finding that blocks or warns · **approved with reservations** with warnings only, and it closes only if the user accepts them · **rejected** with a blocking finding. In the reviewer cards HIGH = blocks, MEDIUM = warns, LOW = informs.
+
 ---
 
 ## Generic block — correctness (valid everywhere)
@@ -30,6 +32,7 @@ Reference material for whoever reviews. Two blocks, **separate and not merged** 
 ### Resources and concurrency
 
 - Files, connections, locks: released on the error path too?
+- Subscriptions, timers, listeners: closed when their owner ends?
 - Structures shared between threads or processes: access protected, or race possible?
 - Long work run where it does not block what must stay responsive.
 - Loops over external resources: is there a limit, a timeout, a maximum number of attempts?
@@ -43,7 +46,7 @@ Reference material for whoever reviews. Two blocks, **separate and not merged** 
 
 ### Tests
 
-- Do they exist, do they run, and would they **fail** if the defect came back?
+- Do they exist, do they run, and have they been **seen failing** on the code without the change? One that would pass with the defect present does not count.
 - Do they assert behaviour or only that the code does not blow up?
 - Do they cover the level at which the defect can arise, not only the most convenient unit?
 

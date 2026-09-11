@@ -3,17 +3,55 @@ name: framework-sync
 description: >
   Aligns an installation with the source framework: brings a new version of the
   method down while preserving the adaptation, promotes a local change up so
-  the next project inherits it, activates or deactivates an agent. Use when a
-  new version comes out or when a local change deserves to become general.
+  the next project inherits it, activates or deactivates an agent or a guide,
+  puts back what is missing, uninstalls. Use when a new version comes out, when
+  a local change deserves to become general, when an installation has lost
+  files or must be removed.
 ---
 
 # Synchronisation with the source
 
 Connects the **source** (the master) to the **installations** (the projects). Requirement: the source must be reachable from the machine; if it is not, only `doctor` is usable.
 
-`--down`, `--up`, `--upgrade`, `--activate`, `--deactivate` are **modes of this skill**, not shell flags: `fwbuild` has `doctor`, `source`, `cost` and `report`. The divergence report across several repositories — `python -m fwbuild report <folder>` — is from the shell instead: it reads many projects and modifies none.
+`--down`, `--up`, `--upgrade`, `--activate`, `--deactivate`, `--repair`, `--uninstall` are **modes of this skill**, not shell flags: `fwbuild` has `doctor`, `source`, `cost` and `report`. The divergence report across several repositories — `python -m fwbuild report <folder>` — is from the shell instead: it reads many projects and modifies none.
 
 The snippets start from `<FW>/tools`. `<PRJ>` is the project root; `<FW>` is the `source` field of `.claude/framework.json` (if missing, `./framework/`), which may be **relative to the project root**, not to the directory you run from: resolve it with `source.dereference(<PRJ>, source)`.
+
+**Every mode that writes shows the plan first, file by file, and waits for the ok.** Where a `plan_*` of `lifecycle` exists, the plan is saved bound to the project and the mode, and **that** plan is executed, not a recomputed one: execution refuses the plan of another project or another mode, re-checks every file and stops if the tree changed after the ok.
+
+```bash
+# plan: printed and saved with the project path and the mode, nothing is written
+cd <FW>/tools && python -c "
+import dataclasses, hashlib, json, sys, tempfile
+from pathlib import Path
+from fwbuild import lifecycle
+sys.stdout.reconfigure(encoding='utf-8')   # the reasons contain '→': cp1252 cannot print it
+P = str(Path('<PRJ>').resolve())
+M = '<down | repair | uninstall>'
+H = None   # down only: None keeps the hooks in use; on a project without any, the names chosen at step 0
+ops = getattr(lifecycle, 'plan_' + M)(Path(P), Path('..'), **({'hooks': H} if M == 'down' else {}))
+print(lifecycle.render(ops))
+f = Path(tempfile.gettempdir(), 'fw-plan-' + hashlib.sha256(P.encode()).hexdigest()[:16] + '.json')
+f.write_text(json.dumps({'project': P, 'mode': M, 'ops': [dataclasses.asdict(o) for o in ops]}), encoding='utf-8')
+"
+# after the ok: only the plan of this project and this mode
+cd <FW>/tools && python -c "
+import hashlib, json, sys, tempfile
+from pathlib import Path
+from fwbuild import lifecycle
+sys.stderr.reconfigure(encoding='utf-8')
+P = str(Path('<PRJ>').resolve())
+M = '<down | repair | uninstall>'   # the mode you are running, not the one read from the file
+f = Path(tempfile.gettempdir(), 'fw-plan-' + hashlib.sha256(P.encode()).hexdigest()[:16] + '.json')
+plan = json.loads(f.read_text(encoding='utf-8')) if f.is_file() else {}
+if plan.get('project') != P or plan.get('mode') != M: sys.exit(f'no {M} plan saved for {P}: plan again')
+ops = [lifecycle.Operation(**d) for d in plan['ops']]
+if M == 'uninstall': lifecycle.apply_uninstall(Path(P), Path('..'), ops)
+else: lifecycle.apply_update(Path(P), Path('..'), ops)
+"
+```
+
+In the other modes the plan is the list of files and of what happens to them, written before touching them.
 
 ---
 
@@ -21,6 +59,7 @@ The snippets start from `<FW>/tools`. `<PRJ>` is the project root; `<FW>` is the
 
 Updates the method while preserving the adaptation.
 
+0. **Plan** with `plan_down`: kernel regions to reassemble, skills and hooks to update, missing entries in `settings.json`, the manifest's version. `hooks=None` keeps the hooks the project uses; if it uses none, **one single question** — does it want them, `gateguard` included? — and a yes becomes `hooks=[…]` with the chosen names from `settings.HOOKS`.
 1. **Compare the versions:** the project's is in the kernel region's marker, the source's in `<FW>/VERSION`.
 2. **Diagnosis first.** `KERNEL_DRIFT` findings must be resolved *first*: updating over a local change erases it silently.
 3. **Reassemble** with the new method and the existing project sections, extracted from the current installation and rewritten unchanged.
@@ -39,8 +78,8 @@ p.write_text(assemble.build_document(Path('../method'), version, sections), enco
 ```
 
 4. **Same operation on `.claude/shared/orchestration.md`**, with the kernel from `<FW>/coordinator/`: the versioned documents are **two**, updating only one leaves them misaligned. There the domain cycles are **inside** the region and the project does not record which profile it was born from: they must be passed again with `extra=assemble.installed_cycles(region.body, Path('..'))`, or they disappear without any finding seeing it.
-5. **Same operation on every installed agent**, with `split_source` and `build_agent`: front matter and the `## Project context` block stay the project's, the method comes from the master.
-6. **Update `version` in `.claude/framework.json`**, leaving `source`, `profile` and `accepted` as they are. No step did it: the manifest kept declaring the previous version, and it is the only one readable without opening a generated document. The doctor now sees it (`VERSION_MISMATCH`).
+5. **Same operation on every installed agent**, with `split_source` and `build_agent`: front matter and the `## Project context` block stay the project's, the method comes from the master. If the plan names a `model` or `effort` different from the source, ask: yes → that front-matter line takes the source's value.
+6. **Run the plan** from step 0 with `apply_update`: it copies skills and hooks, merges `settings.json`, writes `version` into `.claude/framework.json` and appends the new delta to `settings_added`. It skips the kernel regions: steps 3-5 have already rewritten them.
 7. **Verify** with `doctor`: it must exit 0.
 
 **Conflicts are presented, they do not resolve themselves:** on a region modified locally the user must see both versions and decide.
@@ -53,7 +92,7 @@ p.write_text(assemble.build_document(Path('../method'), version, sections), enco
 
 `[what]` names **one** change. With no argument, list what can be promoted and go **one thing at a time**: step 2 has to be asked case by case, and a wholesale promotion cannot ask it.
 
-1. **Locate the change:** `doctor` flags it as `KERNEL_DRIFT`; the content is obtained by comparing the project's kernel region with the corresponding source. **Drift does not see new files:** only `CLAUDE.md`, `orchestration.md` and the agent cards have a kernel region, so also list the files that sit in the project's `.claude/shared/` or `.claude/agents/` and are missing from the source. A guide added by hand can be promoted and no finding names it.
+1. **Locate the change:** `doctor` flags it as `KERNEL_DRIFT`; the content is obtained by comparing the project's kernel region with the corresponding source. **Drift does not see new files:** only `CLAUDE.md`, `orchestration.md` and the agent cards have a kernel region, so also list the files that sit in the project's `.claude/shared/` or `.claude/agents/` and are missing from the source, and the hooks in `.claude/hooks/` that differ from their original. A guide added by hand can be promoted and no finding names it.
 2. **Ask whether it holds for everyone.** An improvement to the method goes up, a derogation specific to that project does not: the question is put to the user, not decided.
 3. **Apply it to the source**, and the choice of destination is **by
    recipient**:
@@ -64,6 +103,7 @@ p.write_text(assemble.build_document(Path('../method'), version, sections), enco
    | when to delegate, to whom, with what prompt, the project's state | `<FW>/coordinator/` |
    | the mandate of a specific role | `<FW>/agents/<name>.md` |
    | reference material of a domain | `<FW>/shared/` |
+   | a check the agent must not be able to skip | `<FW>/hooks/`, and its entry in `<FW>/tools/fwbuild/settings.py` |
 
    Getting this wrong costs: a delegation rule in `method/` is paid by every subagent at every spawn without being usable; an execution rule in `coordinator/` will never be seen by whoever executes.
 4. **Record the base, if it is not there already**, **before** touching `VERSION`:
@@ -148,7 +188,7 @@ Only for those who have used `--up`: an untouched source is updated by replacing
 
 ---
 
-## `--activate <agent>` / `--deactivate <agent>`
+## `--activate <agent|guide>` / `--deactivate <agent|guide>`
 
 **Activating** copies the agent from the master at its **current version**, fills in its `## Project context` block and adds the row to the routing table in `.claude/shared/orchestration.md` — never in `CLAUDE.md`: routing is coordinator content.
 
@@ -163,6 +203,8 @@ The name goes in backticks in the **second** column. Anywhere else, that agent s
 Activating later is *better* than a dormant file: you always take the latest version, not one frozen at installation day.
 
 **Deactivating** removes the file from `.claude/agents/` and the row from the routing. **The master is not touched.** If the project block held information that cannot be reconstructed, save it first.
+
+**A guide** is named by its path under `shared/` (`domain/llm-guide.md`). Activating it: copy it into `.claude/shared/`, fill in the project block, add its line in `CLAUDE.md § Shared guides` — without it, it is `SHARED_ORPHAN`. Deactivating it: file and line go. A guide that an installed file still cites is not deactivated: the pointer would stay dead (`SHARED_MISSING`).
 
 Always check for conflicts after an activation:
 
@@ -179,13 +221,41 @@ Always close with `doctor`.
 
 ---
 
+## `--repair` — putting back what is missing
+
+At the installed version, which must be the source's: otherwise `plan_repair` refuses, and `--down` comes first. It puts back the lifecycle skills, the hooks in use, the state files and the cited guides that are missing, and the missing entries in `settings.json`. **It overwrites nothing:** a file that differs from the source is a local change and stays.
+
+1. Plan with `plan_repair`, ok, `apply_update`.
+2. Guides and state files that are recreated come from the template: fill in the `[TO FILL IN]` blocks as at installation.
+3. Close with `doctor`.
+
+---
+
+## `--uninstall` — removing the framework from the project
+
+Only what is byte-for-byte identical to the source is deleted; what the project adapted goes into `.claude/framework-archive/`, at its relative path. The source must be reachable and the manifest present; an archive already there stops the plan.
+
+| file | what happens |
+|---|---|
+| `CLAUDE.md` | only the kernel region goes, the project sections stay |
+| skills and hooks | identical to the source → removed; different → archived |
+| cards, guides and styles that come from the source, `orchestration.md` | archived |
+| `.claude/settings.json` | the `settings_added` entries still equal go; those the user changed stay, and the plan names them. Without a record, the rest is not touched |
+| framework hook entries, even ones the user touched up | removed, **one plan line per entry**: the script goes, and a closed hook without its script blocks every edit or every command |
+| `docs/` | stay |
+| `.claude/framework.json` | archived last |
+
+Plan with `plan_uninstall`, ok, `apply_uninstall`: a file changed after the plan stops everything, before the first byte is written.
+
+---
+
 ## Change of field
 
 A project does not stay where it was born: a library grows a demo, a tool becomes a service. The field lives in `profile` inside `.claude/framework.json`, the only place that knows it. No dedicated mode: these are the same four operations of an installation, on the new profile.
 
 1. **Roster** — `--activate` what the new field implies, `--deactivate` the rest. Check for conflicts afterwards.
-2. **Guides** — copy the new profile's guides plus the ones the activated agents cite (`profile.required_guides`), and add the line in `CLAUDE.md § Shared guides`: what the guide holds, taken from the line under its title. The doctor demands that the path be cited (`SHARED_ORPHAN`), not that the line be written well: that is on whoever installs.
+2. **Guides** — copy those of `profile.guides` on the new profile and the roster after the change, and add the line in `CLAUDE.md § Shared guides`: what the guide holds, taken from the line under its title. The doctor demands that the path be cited (`SHARED_ORPHAN`), not that the line be written well: that is on whoever installs.
 3. **Cycles** — reassemble the coordinator's guide appending the new field's (`assemble.cycle_files`), or without them if it drops them. They live **inside** the kernel region: no finding sees them vanish.
-4. **Permissions** — regenerate `.claude/settings.json` from the new profile's `Profile.settings`, **merging** it into the existing file: the old field's `deny` goes, whatever the user added stays. A flat regeneration deletes permissions no profile ever wrote.
+4. **Permissions** — `settings.unmerge(current, settings_added)` removes what the old field had added and is still equal; then `settings.merge(rest, new)`, with `new` = the new profile's `Profile.settings` merged with `settings.hooks` of the hooks in `.claude/hooks/`. Show `kept` and the conflicts before writing. Without a record, `merge` only: the old `deny` stays until the user removes it. A flat regeneration deletes permissions no profile ever wrote.
 
-Then update `profile` in `framework.json`. Skipping it leaves the project declaring a field it no longer has: the next maintenance regenerates the wrong permissions and no finding notices — the file declares, it does not verify.
+Then update `profile` in `framework.json`; `settings_added` becomes what the `merge` added. Skipping it leaves the project declaring a field it no longer has: the next maintenance regenerates the wrong permissions and no finding notices — the file declares, it does not verify.

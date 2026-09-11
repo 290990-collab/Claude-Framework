@@ -97,9 +97,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "doctor":
         findings = doctor.check(args.path)
         # The exit code is decided on blocking findings only, and decided
-        # **once**: `--json` is a format, not a posture. Computing it after the
-        # "no findings" branch made a CI that added the flag to a clean
-        # installation exit 1 — the exact opposite of what the flag promises.
+        # **once**: `--json` is a format, not a posture. Computed after the
+        # "no findings" branch, it would make a CI that adds the flag to a clean
+        # installation exit 1.
         blocking = [f for f in findings if f.blocking]
         code = 1 if (args.strict and blocking) or any(
             f.severity == "ERROR" for f in findings

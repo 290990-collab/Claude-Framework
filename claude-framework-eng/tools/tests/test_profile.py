@@ -80,9 +80,8 @@ class TestExclusive(unittest.TestCase):
 class TestRequiredGuides(unittest.TestCase):
     """The guides an agent cites and that the profile may not list.
 
-    The defect surfaced by installing the framework on itself: activating
-    `scientific-reviewer` on a `library` profile produces a dead pointer,
-    because that card cites a guide only `research` installs.
+    Activating `scientific-reviewer` on a `library` profile would produce a dead
+    pointer, because that card cites a guide `library` does not install.
     """
 
     FRAMEWORK = Path(__file__).resolve().parents[2]
@@ -92,11 +91,7 @@ class TestRequiredGuides(unittest.TestCase):
         self.assertIn("domain/research-principles.md", got)
 
     def test_a_profile_alone_has_no_gap(self):
-        """No profile is inconsistent on its own: the gap opens with extras.
-
-        It is why the end-to-end trial did not see it — it uses `research`,
-        which installs that guide already.
-        """
+        """No profile is inconsistent on its own: the gap opens with extras."""
         for name in ("software", "library", "research", "web", "data"):
             prof = profile.load(self.FRAMEWORK / "profiles" / f"{name}.toml")
             needed = profile.required_guides(
@@ -115,6 +110,22 @@ class TestRequiredGuides(unittest.TestCase):
 
     def test_unknown_agent_is_skipped_not_fatal(self):
         self.assertEqual(profile.required_guides(self.FRAMEWORK, ["nonexistent"]), [])
+
+    def test_guides_add_extras_and_refuse_unknown_ones(self):
+        """One single answer to "which guides to install": the field's, those the
+        chosen agents cite, those asked for on top. An extra that does not
+        exist is an error: passed over in silence, the project would not receive
+        the guide it asked for."""
+        prof = profile.load(self.FRAMEWORK / "profiles" / "library.toml")
+        roster = profile.roster(prof, extras=["scientific-reviewer"], drop=[])
+        got = profile.guides(
+            self.FRAMEWORK, prof, roster, extras=["domain/llm-guide.md"]
+        )
+        for rel in [*prof.shared, "domain/research-principles.md", "domain/llm-guide.md"]:
+            self.assertIn(rel, got)
+        self.assertEqual(len(got), len(set(got)))
+        with self.assertRaises(FileNotFoundError):
+            profile.guides(self.FRAMEWORK, prof, roster, extras=["core/nonexistent.md"])
 
 
 if __name__ == "__main__":

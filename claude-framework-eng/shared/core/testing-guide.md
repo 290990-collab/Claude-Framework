@@ -17,6 +17,8 @@ A useful test fails when the behaviour is wrong, passes when it is right, and do
 | a contract towards the outside | on the contract: shape, fields, compatibility |
 | behaviour with real dirty data | on a real sample, not an ideal one |
 | an end-to-end flow | one or two critical paths, not all of them |
+| an access control | with another authenticated user's id, not only without credentials |
+| hashes, encodings, arithmetic | against a known answer computed outside the code, never against its output |
 
 Most common error: testing everything at the most convenient level — the unit — leaving uncovered the level at which defects really arise.
 

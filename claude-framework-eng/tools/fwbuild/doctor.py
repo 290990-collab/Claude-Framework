@@ -1,10 +1,11 @@
 """The integrity checks of an installation.
 
-Eighteen finding codes: eight of severity ERROR (PLACEHOLDER, ROSTER_MISSING,
+Twenty finding codes: eight of severity ERROR (PLACEHOLDER, ROSTER_MISSING,
 SHARED_MISSING, STATE_MISSING, KERNEL_MISSING, FABLE, EXCLUSIVE,
-MANIFEST_MISSING) and ten of severity WARN (ROSTER_ORPHAN, KERNEL_DRIFT,
+MANIFEST_MISSING) and twelve of severity WARN (ROSTER_ORPHAN, KERNEL_DRIFT,
 COORDINATOR_LEAK, SKILLS_MISSING, VERSION_MISMATCH, SETTINGS_MISSING,
-SHARED_ORPHAN, TOKEN_BUDGET, REPORT_FORMAT, ACCEPTED_UNUSED). MANIFEST_MISSING
+SHARED_ORPHAN, TOKEN_BUDGET, REPORT_FORMAT, ACCEPTED_UNUSED, UNSAFE_UNICODE,
+PERSONAL_PATH). MANIFEST_MISSING
 is the only one that comes out at both: ERROR if the file is missing, WARN if it
 is incomplete.
 Every code is explained, with what to do about it, in the `framework-doctor`
@@ -23,25 +24,50 @@ from . import assemble, kernel, profile, source
 
 # One marker only, and deliberately not `{{...}}`: that is the template syntax
 # of half the world (Vue, Angular, Jinja, Handlebars), and a project naming it
-# among its own constraints used to get an ERROR with no way out.
+# among its own constraints would get an ERROR with no way out.
 PLACEHOLDER_RE = re.compile(r"TO FILL IN")
-# The report format before D3: confidence **as** a percentage, that is `CONF:`
-# followed by the placeholder of the time (`<0-100%>`) or by a digit. A project
-# installed back then keeps it until it goes through `framework-sync --down`: no
-# other check sees it, because the kernel hash matches — it matches the old
-# text. The value must be the percentage: `CONF: HIGH — 80% coverage` is a
+# The superseded report format: confidence **as** a percentage, that is `CONF:`
+# followed by a placeholder with `%` (`<0-100%>`) or by a digit. A project
+# installed with that format keeps it until it goes through `framework-sync
+# --down`: no other check sees it, because the kernel hash matches that text. The value must be the percentage: `CONF: HIGH — 80% coverage` is a
 # categorical judgement quoting a number in its reason, and it is legitimate
 # text the pattern must not touch.
 CONF_PERCENT_RE = re.compile(r"CONF:\s*(?:<[^>\n]*%|\d[^%\n]*%)")
 ROUTING_AGENT_RE = re.compile(r"^\|[^|]*\|\s*`([a-z-]+)`\s*\|", re.MULTILINE)
 FABLE_RE = re.compile(r"^model:\s*fable\s*$", re.MULTILINE)
 SHARED_REF_RE = re.compile(r"\.claude/shared/([A-Za-z0-9_./-]+\.md)")
+# Characters the model reads and whoever reviews the file does not see:
+# bidirectional controls, zero-width spaces, invisible operators, fillers, the
+# tag block (the vehicle of "ASCII smuggling"). Variation selectors
+# U+FE00-FE0F and U+E0100-E01EF are out: they compose emoji, and U+FE0F sits
+# in the source itself. U+FEFF counts only past offset 0: at the start of a
+# file it is the BOM editors write, and the lookbehind on any character
+# excludes it there. Escapes only: the source scans itself.
+UNSAFE_CHARS_RE = re.compile(
+    r"[\u200B-\u200D\u2060-\u2064\u202A-\u202E\u2066-\u2069"
+    r"\u115F\u1160\u180E\u3164\U000E0000-\U000E007F]"
+    r"|(?<=[\s\S])\uFEFF"
+)
+# A user's folder: Windows (doubled JSON backslashes included), macOS, Linux.
+# Template placeholder names do not count, in any case, and neither do the
+# shared folders every machine has. On Windows `Users` ignores case: the file
+# system does not distinguish it.
+PERSONAL_PATH_RE = re.compile(
+    r"(?:[A-Za-z]:[\\/]+(?i:users)[\\/]+|/Users/|/home/)"
+    r"(?!(?i:example|me|user|username|you|yourname|yourusername|your-username"
+    r"|public|shared|default|all users)"
+    r"(?![A-Za-z0-9._-]))"
+    r"[A-Za-z][A-Za-z0-9._-]*"
+)
 STATE_FILES = ("TODO.md", "status.md", "roadmap.md")
 # The skills every installation receives. One single list: duplicating it in
 # the tooling and in the tests means adding one and discovering from the red
 # where the copies were.
 LIFECYCLE_SKILLS = ("framework-doctor", "framework-sync", "framework-memory")
 ORCHESTRATION = "shared/orchestration.md"
+# Where the uninstall moves what the project had adapted, keeping the relative
+# path.
+ARCHIVE_DIR = Path(".claude") / "framework-archive"
 
 # Titles that belong to the coordinator's guide. If they reappear in
 # CLAUDE.md, every subagent pays for them at every spawn without being able to
@@ -60,8 +86,9 @@ def _source_version() -> str | None:
     """The source's version, deduced from the package's position.
 
     `fwbuild` lives in the source's `tools/` directory: the root is two levels
-    up. The source directory's name is not assumed anywhere. If it is not reachable the check is skipped — the doctor must stay usable
-    without the source.
+    up. The source directory's name is not assumed anywhere. If it is not
+    reachable the check is skipped — the doctor must stay usable without the
+    source.
     """
     p = Path(__file__).resolve().parents[2] / "VERSION"
     return p.read_text(encoding="utf-8").strip() if p.is_file() else None
@@ -115,10 +142,10 @@ class Measure:
 def measure(claude_text: str) -> Measure:
     """Measures a CLAUDE.md, separating kernel region and project sections.
 
-    Without markers — variant B, which is legitimate — the two parts are not
-    distinguishable: the total is reported and the absence of the split is
-    declared, instead of attributing everything to one of the two and firing a
-    finding on a healthy installation.
+    Without markers — an installation without tracking, which is legitimate —
+    the two parts are not distinguishable: the total is reported and the
+    absence of the split is declared, instead of attributing everything to one
+    of the two and firing a finding on a healthy installation.
     """
     region = kernel.parse(claude_text)
     if region is None:
@@ -136,15 +163,38 @@ def _markdown_files(root: Path) -> list[Path]:
     explains that finding. The state files in `docs/` are included: they are
     born from a template with placeholders, and an unfilled template is
     indistinguishable from absent state for whoever reads it at session start.
+
+    The uninstall archive is excluded: it keeps the cards as they were,
+    placeholders and pointers included, and it is material to consult.
     """
     files = [root / "CLAUDE.md"]
     claude_dir = root / ".claude"
     if claude_dir.is_dir():
-        skills = claude_dir / "skills"
+        skipped = (claude_dir / "skills", root / ARCHIVE_DIR)
         files += sorted(
-            p for p in claude_dir.rglob("*.md") if skills not in p.parents
+            p
+            for p in claude_dir.rglob("*.md")
+            if not any(d in p.parents for d in skipped)
         )
     files += [root / "docs" / name for name in STATE_FILES]
+    return [f for f in files if f.is_file()]
+
+
+def _scanned_files(root: Path) -> list[Path]:
+    """The files in which to look for invisible characters and personal paths.
+
+    Wider than `_markdown_files`: skills and hooks are copied verbatim, but a
+    hidden character in a skill is exactly the vehicle being looked for, and a
+    personal path gets there the same way. **Never `framework.json`:** its
+    `source` is absolute by construction when the source sits outside the
+    project, and flagging it would give a warning on every installation made
+    that way.
+    """
+    claude_dir = root / ".claude"
+    files = _markdown_files(root)
+    files += sorted((claude_dir / "skills").rglob("*.md"))
+    files += sorted((claude_dir / "hooks").glob("*.py"))
+    files.append(claude_dir / "settings.json")
     return [f for f in files if f.is_file()]
 
 
@@ -299,9 +349,6 @@ def check(root: Path) -> list[Finding]:
         if not (root / "docs" / name).is_file():
             out.append(Finding("STATE_MISSING", "ERROR", f"docs/{name} absent"))
 
-    # No finding used to look at `framework.json`: an installation without one
-    # passed `--strict` clean, and then `framework-sync` could not find the
-    # source and the fleet report did not even count it as an installation.
     manifest = source.read_manifest(root)
     if manifest is None:
         out.append(
@@ -327,10 +374,9 @@ def check(root: Path) -> list[Finding]:
                     "the installation no longer knows what it was born from",
                 )
             )
-        # No update ever wrote the version declared in the manifest:
-        # `--down` reassembles the markers and leaves it as it was. The file
-        # ends up naming a version the project no longer has, and it is the
-        # only one readable without opening a generated document.
+        # The manifest's version is the only one readable without opening a
+        # generated document: if it diverges from the markers, it declares a
+        # version the project does not have.
         elif declared and manifest["version"].strip() not in declared:
             out.append(
                 Finding(
@@ -381,9 +427,7 @@ def check(root: Path) -> list[Finding]:
     #
     # Below the ceiling the framework sets itself for the method alone the
     # finding stays silent: on a small file the ratio is true and irrelevant,
-    # and a warning about eleven tokens is noise. No real case lands there —
-    # with a kernel of ~1275 words, "project beyond the kernel" already means
-    # more than 2500 in total.
+    # and a warning about eleven tokens is noise.
     m = measure(claude_text)
     if (
         m.has_region
@@ -408,6 +452,36 @@ def check(root: Path) -> list[Finding]:
                     "WARN",
                     f'CLAUDE.md contains "{heading}": it is coordinator content, '
                     f"paid by every subagent at every spawn",
+                )
+            )
+
+    # One finding per file, at the first occurrence: enough to open it. The
+    # path found is not printed — it is the name of whoever wrote it. The user's
+    # skills and hooks may not be UTF-8: here they are only scanned, and an
+    # unreadable byte must not stop the doctor or `fwbuild report`.
+    for f in _scanned_files(root):
+        rel = f.relative_to(root).as_posix()
+        text = texts[rel] if rel in texts else f.read_text(encoding="utf-8", errors="replace")
+        hidden = UNSAFE_CHARS_RE.search(text)
+        if hidden:
+            line = text.count("\n", 0, hidden.start()) + 1
+            out.append(
+                Finding(
+                    "UNSAFE_UNICODE",
+                    "WARN",
+                    f"{rel}:{line}: invisible character U+{ord(hidden.group()):04X}"
+                    " — the model reads it, whoever reviews the file does not",
+                )
+            )
+        personal = PERSONAL_PATH_RE.search(text)
+        if personal:
+            line = text.count("\n", 0, personal.start()) + 1
+            out.append(
+                Finding(
+                    "PERSONAL_PATH",
+                    "WARN",
+                    f"{rel}:{line}: path inside a user's folder — "
+                    "it does not exist on the machine of whoever clones",
                 )
             )
 

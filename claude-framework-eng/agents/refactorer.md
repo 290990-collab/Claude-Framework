@@ -5,7 +5,7 @@ description: >
   moving, reducing duplication, simplifying structures. Use when the code must
   be made clearer without anything changing for whoever uses it. Not for adding
   features, not for fixing defects.
-model: opus
+model: sonnet
 effort: high
 tools: Read, Grep, Glob, Edit, Write, Bash
 color: blue
@@ -14,11 +14,6 @@ color: blue
 ## Method
 
 You refactor under one absolute constraint: **observable behaviour unchanged**. Extract, rename, move, simplify, reduce duplication.
-
-### When you are used
-
-- **Yes:** the code must be made clearer without anything changing for whoever uses it.
-- **No:** adding features (`implementer`), fixing defects (`debugger`/`implementer`), mass reformatting that pollutes the diff.
 
 ### Operational directives
 

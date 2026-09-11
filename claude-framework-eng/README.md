@@ -8,15 +8,16 @@ VERSION              kernel version (semantics: patch · minor · major)
 method/              COMMON kernel → CLAUDE.md, read by everyone at every spawn
 coordinator/         COORDINATOR kernel → shared/orchestration.md, on demand
 cycles/              domain cycles, appended to the guide if the profile asks
-agents/              19 agents: method + project [TO FILL IN] block
+agents/              22 agents: method + project [TO FILL IN] block
 shared/core/         generic guides, loaded on demand
-shared/domain/       domain guides (design, research, data)
-profiles/            5 profiles: domain → roster, guides, cycles, permissions
+shared/domain/       domain guides (design, research, data, llm)
+profiles/            6 profiles: domain → roster, guides, cycles, permissions
 templates/           the state files, generated empty but structured
-skills/              framework-install · framework-doctor · framework-sync · framework-memory
+hooks/               config_protection · block_no_verify (closed) · gateguard (open) → .claude/hooks/
+skills/              framework-install · framework-doctor · framework-sync · framework-memory · framework-comply
 tools/fwbuild/       assembly, hashing, checks — pure Python stdlib
 tools/trial_install.py  the proof: installs a fake project, which the doctor checks
-tools/tests/         162 tests
+tools/tests/         218 tests
 ```
 
 ## The separation that matters: by recipient, not by subject
@@ -55,12 +56,14 @@ The repository carries **two sources**, one per language:
 git clone <repo> ~/.claude/claude-framework
 cp -r ~/.claude/claude-framework/claude-framework-eng ~/.claude/framework
 cp -r ~/.claude/framework/skills/framework-install ~/.claude/skills/
+cp -r ~/.claude/framework/skills/framework-comply ~/.claude/skills/
 ```
 
 ```powershell
 git clone <repo> $HOME\.claude\claude-framework
 Copy-Item -Recurse $HOME\.claude\claude-framework\claude-framework-eng $HOME\.claude\framework
 Copy-Item -Recurse $HOME\.claude\framework\skills\framework-install $HOME\.claude\skills\
+Copy-Item -Recurse $HOME\.claude\framework\skills\framework-comply $HOME\.claude\skills\
 ```
 
 The destination is named `framework/` because that is one of the three places

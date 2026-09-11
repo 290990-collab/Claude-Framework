@@ -247,16 +247,15 @@ class TestDoctor(unittest.TestCase):
             self.assertNotIn("SHARED_ORPHAN", codes(doctor.check(p)))
 
     def test_detects_missing_manifest(self):
-        """Without `framework.json` the installation passed clean, and then
-        `framework-sync` could not find the source and the fleet report did not
-        even count it among the projects."""
+        """Without `framework.json` `framework-sync` cannot find the source and
+        the fleet report does not count the project: it is not a clean
+        installation."""
         with tempfile.TemporaryDirectory() as d:
             found = doctor.check(make_project(d, manifest=False))
             self.assertIn("MANIFEST_MISSING", codes(found))
 
     def test_detects_manifest_without_the_profile(self):
-        """The profile is the one thing the installation knew and did not write
-        down: without it, "regenerate the profile's permissions" cannot be
+        """Without the profile, "regenerate the profile's permissions" cannot be
         carried out."""
         with tempfile.TemporaryDirectory() as d:
             p = make_project(d)
@@ -270,7 +269,7 @@ class TestDoctor(unittest.TestCase):
 
     def test_template_syntax_is_not_a_placeholder(self):
         """`{{...}}` is the template syntax of half the world: a project quoting
-        it among its own constraints used to get an ERROR with no way out."""
+        it among its own constraints would get an ERROR with no way out."""
         with tempfile.TemporaryDirectory() as d:
             p = make_project(d)
             f = p / "CLAUDE.md"
@@ -353,10 +352,9 @@ class TestDoctor(unittest.TestCase):
             self.assertIn("VERSION_MISMATCH", codes(doctor.check(p)))
 
     def test_detects_a_manifest_left_on_the_previous_version(self):
-        """`--down` reassembles the markers and for six versions left
-        `framework.json` declaring the previous one. It is the version readable
-        without opening a generated document — the fleet report starts from it
-        — and no finding looked at it."""
+        """The version in `framework.json` is the one readable without opening a
+        generated document — the fleet report starts from it: if it stays on the
+        previous one, the finding says so."""
         with tempfile.TemporaryDirectory() as d:
             p = make_project(d)
             path = p / ".claude" / "framework.json"
@@ -369,7 +367,7 @@ class TestDoctor(unittest.TestCase):
 
     def test_detects_installation_behind_the_source(self):
         """An old but internally consistent method: it is the fork between
-        projects, and before this check no finding saw it."""
+        projects, and the hash does not see it."""
         with tempfile.TemporaryDirectory() as d:
             p = make_project(d)
             tracked = [p / "CLAUDE.md", p / ".claude" / "shared" / "orchestration.md"]
@@ -377,6 +375,107 @@ class TestDoctor(unittest.TestCase):
             for f in tracked:
                 self._rewrap(f, "0.3.0")
             self.assertEqual(codes(doctor.check(p)), {"VERSION_MISMATCH"})
+
+    def test_detects_bidi_control_in_an_agent(self):
+        """A bidirectional control reverses on screen the text that follows: the
+        model reads one instruction, whoever reviews the card sees another."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            f = p / ".claude" / "agents" / "explorer.md"
+            f.write_text(
+                f.read_text(encoding="utf-8") + "Read \u202evne.\n", encoding="utf-8"
+            )
+            self.assertIn("UNSAFE_UNICODE", codes(doctor.check(p)))
+
+    def test_emoji_variation_selector_and_leading_bom_are_not_unsafe(self):
+        """U+FE0F composes emoji and sits in the source itself; the BOM at the
+        start of a file is written by editors. Flagging them would make
+        `--strict` fail on a healthy installation."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            (p / "docs" / "status.md").write_text(
+                "\ufeff# Status\n\nClosed \u2714\ufe0f\n", encoding="utf-8"
+            )
+            self.assertNotIn("UNSAFE_UNICODE", codes(doctor.check(p)))
+
+    def test_detects_personal_path_but_not_a_placeholder(self):
+        """A user's folder does not exist on the machine of whoever clones; an
+        example's `YourName` belongs to nobody. `settings.json` is JSON, and
+        JSON doubles the backslashes."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            settings = p / ".claude" / "settings.json"
+            home = "C:" + "\\Users\\"
+            settings.write_text(
+                json.dumps({"env": {"PRJ": home + "YourName"}}), encoding="utf-8"
+            )
+            self.assertNotIn("PERSONAL_PATH", codes(doctor.check(p)))
+            settings.write_text(
+                json.dumps({"env": {"PRJ": home + "jsmith"}}), encoding="utf-8"
+            )
+            self.assertIn("PERSONAL_PATH", codes(doctor.check(p)))
+
+    def test_shared_user_folders_are_not_personal_and_case_does_not_hide_one(self):
+        """`Public`, `Shared`, `Default`, `All Users` are on every machine and
+        belong to nobody; on Windows `c:\\users\\` is the same folder as
+        `C:\\Users\\`."""
+        shared = (
+            "C:" + "/Users/" + "Public",
+            "/Users/" + "Shared",
+            "C:" + "\\Users\\" + "Default",
+            "C:" + "\\Users\\" + "All Users",
+        )
+        for text in shared:
+            with self.subTest(text=text):
+                self.assertIsNone(doctor.PERSONAL_PATH_RE.search(text))
+        self.assertIsNotNone(doctor.PERSONAL_PATH_RE.search("c:" + "\\users\\" + "jsmith"))
+
+    def test_a_scanned_file_that_is_not_utf8_is_still_scanned(self):
+        """The user's skills and hooks are only scanned: one saved in cp1252
+        must not bring down the doctor, nor `fwbuild report`."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            home = ("C:" + "\\Users\\" + "jsmith").encode("utf-8")
+            hooks = p / ".claude" / "hooks"
+            hooks.mkdir()
+            (hooks / "mine.py").write_bytes(b"# citt\xe0\n")
+            (p / ".claude" / "skills" / "framework-doctor" / "SKILL.md").write_bytes(
+                b"name: framework-doctor\ncitt\xe0 " + home + b"\n"
+            )
+            self.assertEqual(codes(doctor.check(p)), {"PERSONAL_PATH"})
+
+    def test_absolute_source_in_manifest_is_not_a_personal_path(self):
+        """With the source outside the project `source` is absolute by
+        construction: a relative path does not hold, because the depth of the
+        clone is not known."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            (p / ".claude" / "framework.json").write_text(
+                json.dumps(
+                    {
+                        "source": "C:" + "\\Users\\" + "jsmith" + "\\framework",
+                        "version": VERSION,
+                        "profile": "software",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            self.assertNotIn("PERSONAL_PATH", codes(doctor.check(p)))
+
+    def test_an_uninstall_archive_is_not_checked(self):
+        """The archive keeps the cards as they were, placeholders and pointers
+        included: it is material to consult, not an installation. Scanning it
+        would give errors no change to the project can remove."""
+        with tempfile.TemporaryDirectory() as d:
+            p = make_project(d)
+            old = p / doctor.ARCHIVE_DIR / ".claude" / "agents" / "old.md"
+            old.parent.mkdir(parents=True)
+            old.write_text(
+                "[TO FILL IN]\nSee `.claude/shared/core/lost.md`.\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(doctor.check(p), [])
+
 
 
 if __name__ == "__main__":

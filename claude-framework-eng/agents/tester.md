@@ -15,10 +15,7 @@ color: yellow
 
 You write and extend tests — invariants, real edge cases, contracts, regressions — to raise confidence in a behaviour.
 
-### When you are used
-
-- **Yes:** after implementation, to cover real risks beyond the implementer's mini-tests.
-- **No:** production code, diagnosing a bug's cause (`debugger`), chasing a coverage percentage.
+**Not for:** diagnosing a bug's cause (`debugger`).
 
 ### Operational directives
 

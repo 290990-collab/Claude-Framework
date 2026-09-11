@@ -2,7 +2,7 @@ name = "web"
 description = "Websites and web applications where visual rendering is part of the product."
 critical_surface = "What the user sees and what an outsider reaches: visual rendering and the surface exposed on the network."
 
-agents = ["frontend", "deploy", "security-reviewer", "api-scout", "debugger"]
+agents = ["frontend", "deploy", "security-reviewer", "api-scout", "debugger", "silent-failure-hunter", "conversation-analyzer"]
 cycles = ["design"]
 
 shared = [
@@ -12,6 +12,7 @@ shared = [
   "core/testing-guide.md",
   "core/debugging-playbook.md",
   "core/review-checklist.md",
+  "core/security-guide.md",
   "domain/design-guide.md",
 ]
 

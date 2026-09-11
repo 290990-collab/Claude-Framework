@@ -31,11 +31,10 @@ class Profile:
     It installs no agent: a field's surface is known before knowing the
     project, its reviewer is not.
 
-    There is no field for agents "to be installed later": `on_demand` promised
-    that and `roster` appended them anyway, which means it installed them. An
-    agent the field implies belongs in `agents`, where it is visible; one the
-    field does not imply is brought in by the questionnaire as an extra, or by
-    `--activate` afterwards.
+    There is no field for agents "to be installed later": an agent the field
+    implies belongs in `agents`, where it is visible; one the field does not
+    imply is brought in by the questionnaire as an extra, or by `--activate`
+    afterwards.
     """
 
     name: str
@@ -76,9 +75,9 @@ def required_guides(framework_root: Path, agents: Sequence[str]) -> list[str]:
     """The guides these agents' cards cite.
 
     The profile lists the guides of the **field**; an agent activated as an
-    extra brings its own, and nothing resolved them: the card ended up
-    installed with a dead pointer, and the defect was visible only with the
-    doctor, on an already written installation (`SHARED_MISSING`). A pointer
+    extra brings its own. Unresolved, the card is installed with a dead
+    pointer that the doctor sees only on an already written installation
+    (`SHARED_MISSING`). A pointer
     the agent cannot follow is worse than an absent one — it sits in a file it
     pays for at every spawn.
     """
@@ -91,3 +90,26 @@ def required_guides(framework_root: Path, agents: Sequence[str]) -> list[str]:
             if ref not in out:
                 out.append(ref)
     return sorted(out)
+
+
+def guides(
+    framework_root: Path,
+    prof: Profile,
+    roster: Sequence[str],
+    extras: Sequence[str] = (),
+) -> list[str]:
+    """The guides to install: the field's, those the chosen agents cite, those
+    asked for on top.
+
+    An extra that does not exist is a configuration error, like a declared and
+    missing cycle: passed over in silence, the project would not receive the
+    guide it asked for and no finding would say so — nothing cites it.
+    """
+    for rel in extras:
+        if not (framework_root / "shared" / rel).is_file():
+            raise FileNotFoundError(f"guide requested but missing: shared/{rel}")
+    out: list[str] = []
+    for rel in [*prof.shared, *required_guides(framework_root, roster), *extras]:
+        if rel not in out:
+            out.append(rel)
+    return out

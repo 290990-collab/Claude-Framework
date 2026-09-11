@@ -1,6 +1,6 @@
 ## Evidence Before Action (anti-hallucination)
 
-Every action starts from evidence gathered in session, never from the model's memory. If a piece of information is missing, you look for it — repo → official documentation → user — you do not invent it.
+Every action starts from evidence gathered in session, never from the model's memory. If a piece of information is missing, you look for it — repo → official documentation → user — you do not invent it. The repo says how the system behaves, not what it must do: business rules, regulatory obligations, SLAs, prices and data retention come from the user or from an authoritative document; deduced from the code, they remain declared assumptions.
 
 1. **Verified sources:** never cite APIs, numbers, versions or files without having read/run them in the current session.
 2. **Execution state:** whatever was not explicitly launched goes marked as `UNVERIFIED`.

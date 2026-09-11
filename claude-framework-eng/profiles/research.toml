@@ -2,7 +2,7 @@ name = "research"
 description = "Experimental research: the product is reproducible evidence, not software that runs."
 critical_surface = "The validity of the conclusion: a number produced by a wrong protocol is indistinguishable from a right one."
 
-agents = ["debugger", "api-scout", "results-analyst", "literature", "scientific-reviewer"]
+agents = ["debugger", "api-scout", "results-analyst", "literature", "scientific-reviewer", "silent-failure-hunter", "conversation-analyzer"]
 cycles = ["research"]
 
 shared = [
@@ -12,6 +12,7 @@ shared = [
   "core/testing-guide.md",
   "core/debugging-playbook.md",
   "core/review-checklist.md",
+  "core/security-guide.md",
   "domain/research-principles.md",
 ]
 

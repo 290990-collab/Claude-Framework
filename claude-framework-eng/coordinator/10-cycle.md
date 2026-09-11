@@ -1,6 +1,6 @@
 ## The code cycle
 
-**Understand → Design → Implement → Verify → Integrate**
+**Understand → Design → Implement → Verify → Review → Integrate**
 
 1. **Understand:** `explorer` (repo) and/or `api-scout` (external libraries and docs).
 2. **Design:** `architect` ONLY IF the task touches ≥3 files or a contract, or if the request is ambiguous. *Otherwise it is skipped:* a three-line plan is written by the coordinator.
@@ -10,9 +10,8 @@
    - *Test-first excluded:* refactoring, UI, prototypes, dependencies, documentation.
 4. **Verify:** `tester` extends coverage beyond the implementer's mini-tests (few solid tests on the domain's boundaries).
 5. **Review:** if the diff touches the **critical surface** → first the reviewer of that surface, then `final-reviewer`, which verifies from scratch without trusting the reports.
+   - *Important task* — long, complex, blocking a high-level goal, or declared so by the user (fixing or changing an existing feature yes, touching up an interface no) → **double review:** two isolated `final-reviewer`s, same rubric, one after the other; it passes only if both pass. Fixes as per rule 9.
 6. **Integrate:** the coordinator resolves the findings and integrates. Commit ONLY at the user's request.
-
-*Note:* for small low-risk changes (≤2-3 files) the coordinator runs the whole cycle itself, with no spawn.
 
 ## Choosing between agents that look close
 
@@ -26,3 +25,4 @@
 | Frontend or logic | Views, markup, style, motion → **`frontend`** \| Logic and services → **`implementer`** (if it weighs on both, `architect` splits the task) |
 | Publishing | Simple hosting, a push updates it → **`deploy`** \| Resources as code, multiple environments → **`infra`**. They do not coexist |
 | Type of review | "Is the code correct?" → **`final-reviewer`** \| "Is it safe / valid / is the data right?" → the reviewer of the critical surface, FIRST |
+| Targeted review | Swallowed errors, invented defaults, branches that hide the cause → **`silent-failure-hunter`** \| Comments that no longer tell the truth → **`comment-analyzer`** |

@@ -2,11 +2,11 @@
 
 It slots into the code cycle between *Understand* and *Design*. Here visual rendering is part of the product: an interface that is correct and ugly is not a partial success, it is a product that contradicts itself.
 
-**Understand → Direction → Design → Implement → Verify (functional *and* visual) → Integrate.**
+**Understand → Direction → Design → Implement → Verify (functional *and* visual) → Review → Integrate.**
 
 The added step is the second:
 
-**Direction** (`frontend`, before any markup): grid, type scale, palette, rhythm of space, tone of motion. Decided **before** the first component and expressed in tokens, not in adjectives. Ambiguous requests → plan mode or brainstorming first.
+**Direction** (`frontend`, before any markup): grid, type scale, palette, rhythm of space, tone of motion. Decided **before** the first component and expressed in tokens, not in adjectives. Ambiguous requests → plan mode first.
 
 Rules of the cycle:
 

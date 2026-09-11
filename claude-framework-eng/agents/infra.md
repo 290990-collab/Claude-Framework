@@ -5,7 +5,7 @@ description: >
   multiple environments, schema migrations, secrets, observability, recovery.
   Use when the heart of the task is running the service repeatably and
   observably. Not for domain logic nor for interface.
-model: opus
+model: sonnet
 effort: high
 tools: Read, Grep, Glob, Edit, Write, Bash
 color: orange

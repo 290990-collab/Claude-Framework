@@ -2,7 +2,7 @@ name = "software"
 description = "Applications, services, command-line tools, desktop software."
 critical_surface = "Runtime behaviour in the face of input the project does not control."
 
-agents = ["debugger", "security-reviewer", "api-scout"]
+agents = ["debugger", "security-reviewer", "api-scout", "silent-failure-hunter", "conversation-analyzer", "comment-analyzer"]
 cycles = []
 
 shared = [
@@ -12,6 +12,7 @@ shared = [
   "core/testing-guide.md",
   "core/debugging-playbook.md",
   "core/review-checklist.md",
+  "core/security-guide.md",
 ]
 
 [settings]

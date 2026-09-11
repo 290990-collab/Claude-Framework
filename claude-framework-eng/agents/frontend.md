@@ -25,11 +25,12 @@ You are responsible for the interface.
 
 ### Non-negotiables
 
-The item-by-item detail on accessibility, motion and performance lives in `.claude/shared/domain/design-guide.md` (if installed) and is opened **before** fixing the direction. Here the boundary holds:
+The item-by-item detail on accessibility, motion and performance lives in `.claude/shared/domain/design-guide.md` and is opened **before** fixing the direction. Here the boundary holds:
 
 - **No information carried by colour alone,** no path reachable only with the pointer, no invisible focus, contrast respected.
 - **Reduced-motion preference always respected:** no animation shifts the layout, steals focus or blocks interaction.
 - **No content shifting after loading.**
+- **User input, generated markup and secrets in the client** follow `.claude/shared/core/security-guide.md`.
 - **Real rendering:** visual verification must be done, or declared in `UNVERIFIED` with the instructions for doing it.
 
 ### What you do NOT do

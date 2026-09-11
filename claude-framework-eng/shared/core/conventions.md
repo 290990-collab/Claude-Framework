@@ -1,18 +1,16 @@
 # Conventions
 
-Cross-cutting rules of form. The working method lives elsewhere: here there is only how things are written.
+Cross-cutting rules of form.
 
 ## Commits
 
-- **Only on the user's explicit request.**
 - Messages in English, imperative, first line ≤ 72 characters (`Fix …`, `Add …`, `Remove …`).
-- One commit = one logical change. No refactoring mixed with new features.
+- One commit = one logical change.
 - The body explains the **why**, not the what (the what is in the diff).
 - Never rewrite shared history, never force a push, never skip the automated checks.
 
 ## Scope of a change
 
-- Only what is asked; the rest is flagged in the report instead of being done.
 - Refactoring, dependency updates and mass reformatting are separate tasks.
 - Do not touch generated artefacts: they are regenerated, not edited by hand.
 
@@ -25,10 +23,10 @@ Cross-cutting rules of form. The working method lives elsewhere: here there is o
 
 ## Comments
 
-- They explain **non-obvious constraints**: reasons for non-obvious choices, edge cases or formats imposed from outside.
-- Never describe what the code below already expresses.
-- Update or remove comments together with the code they describe.
-- Delete unused commented-out code: either it is needed now, or it goes.
+- **Non-obvious constraint** = a non-obvious choice, an edge case, a format imposed from outside. Never what the code already says.
+- **No chronicle:** no history of the change ("used to be", "fix for") and no IDs of internal documents. The constraint is stated in the present tense; the history lives in the commit.
+- They are updated or removed together with the code they describe.
+- Unused commented-out code is deleted.
 
 ## Documentation
 
@@ -40,8 +38,6 @@ Cross-cutting rules of form. The working method lives elsewhere: here there is o
 
 - The build must pass after every task.
 - No new warning introduced without flagging it.
-- No empty error handling: handle or propagate, providing context.
-- No dead code for future uses: either it is needed now, or it is not added.
 
 ## In this project
 

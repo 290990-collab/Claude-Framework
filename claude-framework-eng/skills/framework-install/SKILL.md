@@ -55,16 +55,19 @@ DONE WHEN: you have delivered, in compact form:
   3. build, test and startup commands — taken from the configuration files, not deduced
   4. entry points
   5. presence or absence of: user interface, data pipelines,
-     publication configuration, tests, documentation
+     publication configuration, tests, documentation,
+     language models, notebooks
   6. visible contracts: public APIs, persisted formats, schemas
   7. what looks relevant but is generated or third-party
+  8. field signals — dependencies, files, folders that tell what kind of
+     project this is — each with file:line, without classifying them
 
 CONSTRAINTS:
   - read only, no changes
   - do not open heavy artefacts or dependency folders
   - if a command is not declared anywhere, say so instead of inventing it
 
-DONE WHEN: the 7 points above, in compact form, with file:line where needed.
+DONE WHEN: the 8 points above, in compact form, with file:line where needed.
 ```
 
 Large repository → several `explorer`s in parallel on disjoint subtrees: it is the only agent with free parallelism.
@@ -97,6 +100,8 @@ They are rewritten in the **most compressed form that keeps the meaning**: these
 
 **One question at a time**, not a single block: every answer can change the following ones. Offer concrete options and a recommendation motivated by the code or by the idea.
 
+**Proposal** — once per installation, before question 1: profile, extra agents and guides, hooks, each with its evidence — the signals of `explorer`'s point 8 with `file:line`, or the sentence of the idea that motivates it. It sits **next to** the questions, never in their place: they are all asked, and each one confirms or corrects its part.
+
 ### Always — four questions
 
 **1. Field of the project** → profile in `<FW>/profiles/`:
@@ -108,6 +113,7 @@ They are rewritten in the **most compressed form that keeps the meaning**: these
 | `web` | sites and applications where visual rendering is part of the product |
 | `research` | the product is reproducible evidence, not software that runs |
 | `data` | acquisition, transformation and indexing pipelines |
+| `llm` | a language model produces text, decisions or actions that the code uses |
 
 If none fits, ask the user to describe the field and build the roster by hand from the closest profile.
 
@@ -131,6 +137,8 @@ Two reviewers only if the project really has two distinct critical surfaces.
 
 **4. Autonomy** — what can be done without asking. Conservative default: **none of this**. Commits · publication · installing dependencies · long or expensive runs · irreversible changes.
 
+In the same question, **`gateguard` yes or no**: it denies the first touch of every file in a session until the facts are presented — who imports it, what public surface changes — and it costs one extra turn per file; `FRAMEWORK_GATEGUARD=off` turns it off. The other hooks in `settings.HOOKS` are always installed.
+
 ### Conditional — only for what the profile does not already install
 
 **Ask only about agents the roster does not have.** Compute it first (Step 4) and skip the questions already settled: a question that cannot change anything teaches the user that the questionnaire is a formality.
@@ -139,8 +147,10 @@ Is there an interface? → `frontend` · Does external data come in? →
 `data-ingestion` · Are there measurements to interpret? → `results-analyst` ·
 Is literature or academic writing needed? → `literature` · Does the project get
 published, and with simple hosting or infrastructure defined as code? →
-`deploy` **or** `infra`, never both · Are there heavy operations launched by the
-user and not by the agent? → they go into the commands.
+`deploy` **or** `infra`, never both · Comments and docstrings to keep true? →
+`comment-analyzer` · A guide from `<FW>/shared/` that the profile does not
+bring? → extra guide · Are there heavy operations launched by the user and not
+by the agent? → they go into the commands.
 
 Regulatory constraints and performance requirements belong to **question 2**: they are critical surfaces, not contours of the profile.
 
@@ -157,10 +167,14 @@ cd <FW>/tools && python -c "
 from pathlib import Path
 from fwbuild import profile
 prof = profile.load(Path('../profiles/<PROFILE>.toml'))
-print(profile.roster(prof, extras=[], drop=[]))
-print('conflicts:', profile.check_exclusive(profile.roster(prof, [], [])))
+r = profile.roster(prof, extras=[], drop=[])
+print(r)
+print('conflicts:', profile.check_exclusive(r))
+print('guides:', profile.guides(Path('..'), prof, r, extras=[]))
 "
 ```
+
+`guides` joins the profile's guides, those the chosen cards cite and the extras from the conditional questions; an extra that does not exist is a `FileNotFoundError`, not one guide fewer.
 
 ## Step 5 — Generation
 
@@ -177,10 +191,27 @@ print('conflicts:', profile.check_exclusive(profile.roster(prof, [], [])))
 
 It holds everywhere, but this is where things get lost: **none of these files is overwritten before being read.**
 
+**Before the first file is written, the plan and the user's ok:**
+
+```bash
+cd <FW>/tools && python -c "
+import sys
+from pathlib import Path
+from fwbuild import lifecycle
+sys.stdout.reconfigure(encoding='utf-8')
+ops = lifecycle.plan_install(Path('<PRJ>'), lifecycle.targets(Path('..'), <ROSTER>, <GUIDES>, <HOOKS>))
+print(lifecycle.render(ops))
+print(*(f'keep        {o.path} — {o.reason}' for o in ops if o.action == 'keep'), sep='\n')
+"
+```
+
+`<HOOKS>` is `settings.HOOKS`, without `gateguard` if question 4 said no. `overwrite` and `merge` are read by name; `keep` is project material that will stay next to the framework. A `ValueError` on an existing `framework.json`: the project is already installed → `framework-sync`.
+
 - **A `CLAUDE.md` that was already there:** its content is project material. The directives kept at Step 2 go into the project sections, the rest (commands, architecture, state, constraints) into the section it belongs to. Only then do you write the new file, which now contains the old one too. Whatever finds no place is asked about, not thrown away.
 - **`docs/TODO.md`, `status.md`, `roadmap.md` that were already there:** you fill in the template **with their content**, instead of copying the empty one over them. A TODO deleted at installation is the first file the framework promises every session will read.
-- **Skills already in `.claude/skills/`:** they are not touched and not moved. List them in `CLAUDE.md` next to the two lifecycle ones, one line each: a skill nobody knows they have never gets invoked.
-- **A `.claude/settings.json` that was already there:** the permissions inside it are the user's, and serialising `Profile.settings` over them deletes them. The profile's `deny` is **merged** into theirs; any other key already present is shown and asked about, not overwritten.
+- **Skills already in `.claude/skills/`:** they are not touched and not moved. List them in `CLAUDE.md` next to the lifecycle ones, one line each: a skill nobody knows they have never gets invoked.
+- **A `.claude/settings.json` that was already there:** the permissions inside it are the user's, and serialising `Profile.settings` over them deletes them. It is merged with `settings.merge`: lists are joined, on a differing scalar theirs stays and the key goes into the conflicts, which are shown before writing.
+- **Hooks already in `.claude/hooks/`, or `hooks` entries in the settings:** they are the user's. The scripts stay; one with the name of a framework hook shows up as `overwrite` and is asked about. The entries are merged with the framework's, never replaced.
 - **Output styles already in `.claude/output-styles/`, or an `outputStyle` already written in the settings:** the user has already chosen how they want to be spoken to. Show it next to `Reporting` and ask which one holds; the loser stays on disk, it is not deleted.
 
 ### `CLAUDE.md` — project sections
@@ -240,7 +271,7 @@ from pathlib import Path
 from fwbuild import assemble
 F = Path('..'); V = (F/'VERSION').read_text(encoding='utf-8').strip()
 P = Path('<PRJ>')
-for d in ('.claude/shared', '.claude/agents', '.claude/skills', '.claude/output-styles', 'docs'):
+for d in ('.claude/shared', '.claude/agents', '.claude/skills', '.claude/output-styles', '.claude/hooks', 'docs'):
     P.joinpath(d).mkdir(parents=True, exist_ok=True)
 P.joinpath('CLAUDE.md').write_text(
     assemble.build_document(F/'method', V, PROJECT_SECTIONS), encoding='utf-8')
@@ -253,31 +284,34 @@ P.joinpath('.claude/shared/orchestration.md').write_text(
 
 **Domain cycles** — if the profile declares `cycles`, the files from `<FW>/cycles/` are appended to the kernel region of the coordinator's guide (`extra=assemble.cycle_files(...)`): they are orchestration, not execution, so never in `CLAUDE.md`.
 
-**Guides** — copy from `<FW>/shared/` those of the profile **plus those the chosen agents cite**, filling in the project block there too. An extra brings its own: without them the card goes out with a dead pointer that the doctor sees only once the installation is already written (`SHARED_MISSING`).
-
-```python
-sorted(set(prof.shared) | set(profile.required_guides(F, roster)))
-```
+**Guides** — copy from `<FW>/shared/` the list from `profile.guides` at Step 4, filling in the project block there too. An extra agent brings its own: without them the card goes out with a dead pointer that the doctor sees only once the installation is already written (`SHARED_MISSING`).
 
 **Lifecycle skills** — copy `<FW>/skills/framework-doctor`, `framework-sync` and `framework-memory` into `.claude/skills/`. Without them they are not invocable and the doctor flags it (`SKILLS_MISSING`).
 
 **Reply style** — copy `<FW>/output-styles/reporting.md` into `.claude/output-styles/` and **fill in the `## This project` block** with the answer to question 3. Left unfilled it is a `PLACEHOLDER`: the doctor reads every `.md` under `.claude/` except the skills.
 
-**`.claude/settings.json`** — serialise `Profile.settings` to JSON, **merging** it into whatever was there (→ *Pre-existing material*). It carries `outputStyle`, the name of the style just copied: without it the file is installed and nobody selects it.
+**Hooks** — copy `<FW>/hooks/<name>.py` into `.claude/hooks/` for every name in `<HOOKS>`. An entry in the settings without its script, for a closed hook, blocks every edit or every command.
 
-**`.claude/framework.json`** — `source`, `version`, `profile`: it is how the two skills find the source again, and the only place that records **what** the installation is made of. Without the profile, "regenerate the permissions of the project's profile" cannot be carried out. The shape **is not written by you**: `source.manifest` makes the path relative when the source sits inside the project and absolute only when it sits outside — an absolute path to an internal source is the machine of whoever installed it, and it dies at the first clone.
+**`.claude/settings.json`** — profile and hooks together first, then on top of whatever was there (→ *Pre-existing material*):
 
 ```python
-source.manifest(PRJ, FW, version, prof.name)
+fw_settings, _, c = settings.merge(prof.settings, settings.hooks(<HOOKS>))   # c not empty: a defect in the source, stop
+merged, added, conflicts = settings.merge(<existing settings.json, or {}>, fw_settings)
+```
+
+`conflicts` are shown before writing `merged`. It carries `outputStyle`, the name of the style just copied: without it the file is installed and nobody selects it.
+
+**`.claude/framework.json`** — `source`, `version`, `profile`: it is how the two skills find the source again, and the only place that records **what** the installation is made of. Without the profile, "regenerate the permissions of the project's profile" cannot be carried out. `settings_added` is `added`: the only piece of `settings.json` that `framework-sync --uninstall` will be able to remove. The shape **is not written by you**: `source.manifest` makes the path relative when the source sits inside the project and absolute only when it sits outside — an absolute path to an internal source is the machine of whoever installed it, and it dies at the first clone.
+
+```python
+source.manifest(PRJ, FW, version, prof.name, settings_added=added)
 ```
 
 The `accepted` field **is not written at installation**: it is born empty and is added by whoever decides to live with a warning (→ `framework-doctor` skill).
 
 **State files** — copy the three templates into `docs/` and fill in every `[TO FILL IN — …]` block **immediately**: first entry and first step in `TODO.md` with today's date, first goal with its criterion in `roadmap.md`. `status.md` is born empty by construction — you write in it when something closes. The sections that may legitimately stay empty (waiting, blocked, open decisions) carry no placeholder: they already hold the right text, and it is replaced when there is something. It must be done here: at Step 6 a residual placeholder is a `PLACEHOLDER`, and `TODO.md` is the file every future session reads first.
 
-### Note on `@import`
-
-If `CLAUDE.md` supports `@import` in the version of Claude Code in use, the assembly could stay virtual. **It must be verified, not assumed:** the default is physical concatenation, which does not depend on any feature of the harness. Do not introduce `@import` without having verified them.
+**No `@import`:** the kernel is concatenated physically.
 
 ## Step 6 — Verification
 

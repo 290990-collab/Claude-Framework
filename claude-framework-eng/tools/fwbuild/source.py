@@ -19,6 +19,7 @@ REQUIRED = (
     "profiles",
     "templates",
     "skills",
+    "hooks",
     "tools/fwbuild",
 )
 
@@ -61,8 +62,8 @@ def reference(project_root: Path, framework_root: Path) -> str:
     relative path does not hold — the depth of the clone is unknown — and the
     absolute one remains the only writable form.
 
-    It is here and not in the skill because the skill already prescribed it, in
-    prose, and that is exactly how the rule came to be disregarded.
+    It is here and not in the skill: a rule written only in prose gets
+    disregarded.
     """
     project_root = Path(project_root).resolve()
     framework_root = Path(framework_root).resolve()
@@ -86,21 +87,32 @@ MANIFEST = Path(".claude") / "framework.json"
 
 
 def manifest(
-    project_root: Path, framework_root: Path, version: str, profile_name: str
+    project_root: Path,
+    framework_root: Path,
+    version: str,
+    profile_name: str,
+    settings_added: dict | None = None,
 ) -> dict:
     """The contents of `.claude/framework.json`.
 
     `source` and `version` say where the project was born. `profile` says what
-    it is **made of**, and it is the one thing the installation knew and wrote
-    down nowhere: without it, `SETTINGS_MISSING` prescribes regenerating the
-    permissions "of the project's profile" that nobody can name any more, and a
-    change of field has no starting point.
+    it is **made of**: without it, `SETTINGS_MISSING` prescribes regenerating
+    the permissions "of the project's profile" that nobody can name any more,
+    and a change of field has no starting point.
+
+    `settings_added` is what the installation actually added to
+    `settings.json`: the only piece of that file the uninstall may remove. It is
+    written only if present — an empty record and an absent one say different
+    things, and the second means "do not touch".
     """
-    return {
+    data = {
         "source": reference(project_root, framework_root),
         "version": version,
         "profile": profile_name,
     }
+    if settings_added is not None:
+        data["settings_added"] = settings_added
+    return data
 
 
 def read_manifest(project_root: Path) -> dict | None:
