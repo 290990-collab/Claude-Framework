@@ -1,41 +1,37 @@
-# CLAW
+<p align="center">
+  <img src="assets/claw.png" alt="CLAW, an orange block with two claws, sitting cross-legged in calm focus" width="440">
+</p>
+
+<h1 align="center">CLAW</h1>
+
+```
+┌── claude-framework-eng ──────────────────────────────────────────────┐
+│                                                                      │
+│       method   coordinator   cycles   agents   shared   hooks        │
+│                                                                      │
+└───────────────────────────────────┬──────────────────────────────────┘
+                                    │                             ▲
+                             ┌──────┴──────┐                      │
+                             │   profile   │                      │
+                             └──────┬──────┘                      │
+                                    │                             │
+  /framework-install ─┐      ┌──────┴──────┐                      │
+  /framework-doctor  ─┼──────┤   fwbuild   │                      │
+  /framework-sync    ─┤      └──────┬──────┘                      │
+  /framework-comply  ─┘             │                             │
+                                    │                             │
+┌── project ────────────────────────┴─────────────────────────────┴────┐
+│                                                                      │
+│  CLAUDE.md   .claude/agents   .claude/shared   .claude/hooks   docs  │
+│                                                                      │
+└──────────────────────────────────────────────────────────────────────┘
+```
 
 **A working method for Claude Code, installed in one command and kept honest by a doctor.**
 
 Specialised subagents, delegation rules, evidence-before-action and a context
 budget per role — generated into your project, versioned, and checked by a tool
 that tells you the moment an installation drifts.
-
-![CLAW, an orange block with two claws, sitting cross-legged in calm focus](assets/claw.jpg)
-
-```
- SOURCE    claude-framework-eng/  (or claude-framework-it/)
-
-   method/        coordinator/    agents/        shared/        hooks/
-   rules every    delegation      one role       guides read    guardrails
-   agent reads    and cycles      per file       on demand
-      |               |              |              |              |
-      +---------------+-------+------+--------------+--------------+
-                              |
- PROFILE   profiles/<field>.toml  picks roster, guides, cycles, permissions
-                              |
-                              v
- BUILD     tools/fwbuild      assembles, hashes the kernel, verifies
-                              |
-                              v
- PROJECT   CLAUDE.md          the method in a hashed region + your context
-           .claude/agents/    only the roles the profile chose
-           .claude/shared/    orchestration for the coordinator, guides
-           .claude/hooks/     checks that run before tool calls
-           docs/              TODO · status · roadmap
-                              ^
-                              |
- SKILLS    /framework-install   builds the project once
-           /framework-doctor    reports drift, each finding with its remedy
-           /framework-sync      new version down, local fixes up to SOURCE
-           /framework-memory    stale memories against the repo
-           /framework-comply    whether a rule is actually followed
-```
 
 ---
 
