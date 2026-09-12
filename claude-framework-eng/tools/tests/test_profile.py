@@ -91,13 +91,17 @@ class TestRequiredGuides(unittest.TestCase):
         self.assertIn("domain/research-principles.md", got)
 
     def test_a_profile_alone_has_no_gap(self):
-        """No profile is inconsistent on its own: the gap opens with extras."""
-        for name in ("software", "library", "research", "web", "data"):
-            prof = profile.load(self.FRAMEWORK / "profiles" / f"{name}.toml")
+        """No profile is inconsistent on its own: the gap opens with extras.
+
+        The profiles on disk are walked, not a list written by hand: a new
+        profile is exactly the case where the gap would slip through.
+        """
+        for path in sorted((self.FRAMEWORK / "profiles").glob("*.toml")):
+            prof = profile.load(path)
             needed = profile.required_guides(
                 self.FRAMEWORK, profile.roster(prof, extras=[], drop=[])
             )
-            with self.subTest(profile=name):
+            with self.subTest(profile=prof.name):
                 self.assertEqual(sorted(set(needed) - set(prof.shared)), [])
 
     def test_library_plus_scientific_reviewer_needs_a_guide_it_lacks(self):

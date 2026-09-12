@@ -8,10 +8,10 @@ VERSION              kernel version (semantics: patch · minor · major)
 method/              COMMON kernel → CLAUDE.md, read by everyone at every spawn
 coordinator/         COORDINATOR kernel → shared/orchestration.md, on demand
 cycles/              domain cycles, appended to the guide if the profile asks
-agents/              22 agents: method + project [TO FILL IN] block
+agents/              28 agents: method + project [TO FILL IN] block
 shared/core/         generic guides, loaded on demand
 shared/domain/       domain guides (design, research, data, llm)
-profiles/            6 profiles: domain → roster, guides, cycles, permissions
+profiles/            7 profiles: domain → roster, guides, cycles, permissions
 templates/           the state files, generated empty but structured
 hooks/               config_protection · block_no_verify (closed) · gateguard (open) → .claude/hooks/
 skills/              framework-install · framework-doctor · framework-sync · framework-memory · framework-comply

@@ -24,7 +24,7 @@ The source lives in one of these places, **in this order**: `./framework/` (copi
 cd <FW>/tools && python -m fwbuild source ..
 ```
 
-It prints root and version, or what is missing and exits 1.
+It prints root, version and the state of the upstream record, or what is missing and exits 1.
 
 **If it exits 1, stop here:** no folders, no files — a wrong source discovered halfway leaves a project worse than a virgin one. Ask the user where the framework is and retry with that path. **Found but incomplete is an error, not a reason to try the next one.**
 
@@ -114,6 +114,9 @@ They are rewritten in the **most compressed form that keeps the meaning**: these
 | `research` | the product is reproducible evidence, not software that runs |
 | `data` | acquisition, transformation and indexing pipelines |
 | `llm` | a language model produces text, decisions or actions that the code uses |
+| `marketing` | the product has to become known: positioning, copy, images, campaigns |
+
+A software project that also publishes content stays `software`: the marketing agents and guides are added as extras.
 
 If none fits, ask the user to describe the field and build the roster by hand from the closest profile.
 

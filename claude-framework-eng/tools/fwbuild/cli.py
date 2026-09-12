@@ -6,7 +6,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import doctor, report, source
+from . import doctor, report, source, upgrade
 
 # Claude Opus 5 list price, uncached input tokens, in dollars per million. It
 # is a declared default, not a truth: prices change and caching lowers the real
@@ -92,6 +92,16 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         version = (root / "VERSION").read_text(encoding="utf-8").strip()
         print(f"{root} v{version}")
+        # Without the record, `--upgrade` takes the source to be intact and
+        # replaces it with the release: what `--up` promoted is lost there.
+        record = upgrade.read_record(root)
+        if record is None:
+            print("no upstream record: intact, updated by replacing it")
+        else:
+            print(
+                f"modified with --up: base v{upgrade.base_version(root)}, "
+                f"from {record.get('repo') or 'repo not declared'}"
+            )
         return 0
 
     if args.command == "doctor":

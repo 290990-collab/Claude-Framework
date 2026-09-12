@@ -6,11 +6,23 @@ from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
-from fwbuild import cli
+from fwbuild import cli, source, upgrade
 from tests.test_doctor import make_project
 
 FRAMEWORK = Path(__file__).resolve().parents[2]
 VERSION = (FRAMEWORK / "VERSION").read_text(encoding="utf-8").strip()
+
+
+def _fake_source(parent: Path) -> Path:
+    """Una root che `source.resolve` accetta, senza copiare il framework."""
+    root = parent / "fw"
+    for rel in source.REQUIRED:
+        if rel == "VERSION":
+            root.mkdir(exist_ok=True)
+            (root / rel).write_text("9.9.9\n", encoding="utf-8")
+        else:
+            (root / rel).mkdir(parents=True, exist_ok=True)
+    return root
 
 
 class TestDoctorCommand(unittest.TestCase):
@@ -59,6 +71,23 @@ class TestSourceCommand(unittest.TestCase):
             with redirect_stdout(buf):
                 self.assertEqual(cli.main(["source", d]), 1)
             self.assertIn("method", buf.getvalue())
+
+    def test_says_whether_the_source_has_been_promoted(self):
+        """Un sorgente senza record `--upgrade` lo considera intatto e lo
+        sostituisce: ciò che `--up` ha promosso si perde lì, e finora nessun
+        comando lo diceva prima."""
+        with tempfile.TemporaryDirectory() as d:
+            root = _fake_source(Path(d))
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                self.assertEqual(cli.main(["source", str(root)]), 0)
+            self.assertIn("nessun record", buf.getvalue())
+            upgrade.write_record(root, "1.2.3", "edizione", "github.com/x/y")
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                cli.main(["source", str(root)])
+            self.assertIn("base v1.2.3", buf.getvalue())
+            self.assertIn("github.com/x/y", buf.getvalue())
 
     def test_explicit_path_is_the_only_candidate(self):
         """Dove la regola «nessun fallback» è davvero decisa."""

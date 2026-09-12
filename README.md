@@ -91,8 +91,9 @@ Then, in any project: `/framework-install`.
 | `/framework-memory` | Pairs every stale memory with the repo line that contradicts it |
 | `/framework-comply` | Measures whether a rule is actually followed, across real `claude -p` runs |
 
-**Profiles:** `software` · `library` · `web` · `data` · `research` · `llm` — each
-sets the roster, the guides and the permissions for its field.
+**Profiles:** `software` · `library` · `web` · `data` · `research` · `llm` ·
+`marketing` — each sets the roster, the guides and the permissions for its
+field.
 
 The framework writes `CLAUDE.md`, `.claude/` and `docs/`, and nothing else. Your
 code, build and dependencies stay untouched.

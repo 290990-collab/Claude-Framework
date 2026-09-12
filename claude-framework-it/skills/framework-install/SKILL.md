@@ -23,7 +23,7 @@ Il sorgente sta in uno di questi posti, **in quest'ordine**: `./framework/` (cop
 cd <FW>/tools && python -m fwbuild source ..
 ```
 
-Stampa root e versione, oppure cosa manca ed esce 1.
+Stampa root, versione e stato del record upstream, oppure cosa manca ed esce 1.
 
 **Se esce 1, fermati qui:** niente cartelle, niente file — un sorgente sbagliato scoperto a metà lascia un progetto peggiore di uno vergine. Chiedi all'utente dov'è il framework e riprova con quel percorso. **Trovato ma incompleto è un errore, non un motivo per provare il successivo.**
 
@@ -113,6 +113,9 @@ Si riscrivono nella forma **più compressa che conserva il senso**: sono parole 
 | `research` | il prodotto è evidenza riproducibile, non software che gira |
 | `data` | pipeline di acquisizione, trasformazione, indicizzazione |
 | `llm` | un modello linguistico produce testo, decisioni o azioni che il codice usa |
+| `marketing` | il prodotto va fatto conoscere: posizionamento, testo, immagini, campagne |
+
+Un progetto software che pubblica anche contenuti resta `software`: agenti e guide del marketing si aggiungono come extra.
 
 Se nessuno calza, chiedi all'utente di descrivere il campo e costruisci il roster a mano dal profilo più vicino.
 

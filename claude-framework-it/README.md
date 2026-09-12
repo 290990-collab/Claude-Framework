@@ -8,10 +8,10 @@ VERSION              versione del kernel (semantica: patch · minor · major)
 method/              kernel COMUNE → CLAUDE.md, letto da tutti a ogni spawn
 coordinator/         kernel del COORDINATORE → shared/orchestration.md, on-demand
 cycles/              cicli di dominio, accodati alla guida se il profilo li chiede
-agents/              22 agenti: metodo + blocco [DA COMPILARE] di progetto
+agents/              28 agenti: metodo + blocco [DA COMPILARE] di progetto
 shared/core/         guide generiche, caricate on-demand
 shared/domain/       guide di dominio (design, ricerca, dati, llm)
-profiles/            6 profili: dominio → roster, guide, cicli, permessi
+profiles/            7 profili: dominio → roster, guide, cicli, permessi
 templates/           i file di stato, generati vuoti ma strutturati
 hooks/               config_protection · block_no_verify (chiusi) · gateguard (aperto) → .claude/hooks/
 skills/              framework-install · framework-doctor · framework-sync · framework-memory · framework-comply

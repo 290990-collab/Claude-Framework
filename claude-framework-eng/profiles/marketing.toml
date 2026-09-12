@@ -1,0 +1,27 @@
+name = "marketing"
+description = "Content and publishing: positioning, copy, images and campaigns for a product."
+critical_surface = "The public claims about the product: a promise the product does not keep stays read even after the correction, and no test sees it."
+
+agents = ["market-researcher", "copywriter", "visual-designer", "campaign-planner", "content-analyst", "claim-reviewer"]
+cycles = ["launch"]
+
+shared = [
+  "core/conventions.md",
+  "core/coding-standards.md",
+  "core/architecture-guide.md",
+  "core/testing-guide.md",
+  "core/review-checklist.md",
+  "core/security-guide.md",
+  "domain/marketing-guide.md",
+  "domain/marketing-voice.md",
+]
+
+[settings]
+# Answer style: governs only what the user reads.
+outputStyle = "Reporting"
+
+[settings.permissions]
+deny = [
+  "Read(./**/.env)", "Read(./**/.env.*)", "Read(./**/*.env)",
+  "Read(./**/*.key)", "Read(./**/*.pem)", "Read(./**/*.p12)",
+]
