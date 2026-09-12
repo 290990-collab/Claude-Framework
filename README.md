@@ -162,7 +162,7 @@ Every mode that writes shows the plan first and waits for your ok.
 |---|---|
 | `python -m fwbuild doctor --strict <project>` | The doctor's check; exit 1 on warnings too |
 | `python -m fwbuild doctor --json <project>` | Findings plus the `CLAUDE.md` measure, for CI |
-| `python -m fwbuild cost <project> --spawns 200 --devs 12` | What `CLAUDE.md` costs in tokens and dollars; `--price` per million tokens |
+| `python -m fwbuild cost <project> [--spawns N] [--devs N] [--price USD]` | Estimated cost of `CLAUDE.md`: its tokens × spawns a day × people × price per million input tokens. Defaults: 100 spawns, 1 person, $5 |
 | `python -m fwbuild report <folder>` | Which method versions run where, across repos; `--depth`, `--strict`, `--json` |
 | `python -m fwbuild source [path]` | Validates a source and says whether it was promoted with `--up` |
 
