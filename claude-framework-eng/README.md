@@ -1,4 +1,4 @@
-# Claude Code framework — source
+# CLAW — source
 
 A **self-sufficient** folder: a single master on the machine, or copied into
 the project. Everything needed is in here, tooling included.

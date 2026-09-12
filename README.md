@@ -1,4 +1,4 @@
-# Claude Framework
+# CLAW
 
 **A working method for Claude Code, installed in one command and kept honest by a doctor.**
 
@@ -6,25 +6,36 @@ Specialised subagents, delegation rules, evidence-before-action and a context
 budget per role — generated into your project, versioned, and checked by a tool
 that tells you the moment an installation drifts.
 
-```
-claude-framework-eng/
-├── method/
-├── coordinator/
-├── cycles/
-├── agents/
-├── profiles/
-├── shared/
-│   ├── core/
-│   └── domain/
-├── hooks/
-├── output-styles/
-├── templates/
-├── skills/
-└── tools/
-    └── fwbuild/
-```
+![CLAW, an orange block with two claws, sitting cross-legged in calm focus](assets/claw.jpg)
 
-![The doctor on an installed project: no findings, what the context costs, and the drift a hand edit leaves behind](assets/demo.gif)
+```
+ SOURCE    claude-framework-eng/  (or claude-framework-it/)
+
+   method/        coordinator/    agents/        shared/        hooks/
+   rules every    delegation      one role       guides read    guardrails
+   agent reads    and cycles      per file       on demand
+      |               |              |              |              |
+      +---------------+-------+------+--------------+--------------+
+                              |
+ PROFILE   profiles/<field>.toml  picks roster, guides, cycles, permissions
+                              |
+                              v
+ BUILD     tools/fwbuild      assembles, hashes the kernel, verifies
+                              |
+                              v
+ PROJECT   CLAUDE.md          the method in a hashed region + your context
+           .claude/agents/    only the roles the profile chose
+           .claude/shared/    orchestration for the coordinator, guides
+           .claude/hooks/     checks that run before tool calls
+           docs/              TODO · status · roadmap
+                              ^
+                              |
+ SKILLS    /framework-install   builds the project once
+           /framework-doctor    reports drift, each finding with its remedy
+           /framework-sync      new version down, local fixes up to SOURCE
+           /framework-memory    stale memories against the repo
+           /framework-comply    whether a rule is actually followed
+```
 
 ---
 
@@ -55,7 +66,7 @@ install. Two self-standing editions: swap `claude-framework-eng` for
 `claude-framework-it` to work in Italian.
 
 ```bash
-git clone https://github.com/290990-collab/Claude-Framework.git ~/.claude/claude-framework
+git clone https://github.com/290990-collab/CLAW.git ~/.claude/claude-framework
 cp -r ~/.claude/claude-framework/claude-framework-eng ~/.claude/framework
 mkdir -p ~/.claude/skills
 cp -r ~/.claude/framework/skills/framework-install ~/.claude/skills/
@@ -63,7 +74,7 @@ cp -r ~/.claude/framework/skills/framework-comply ~/.claude/skills/
 ```
 
 ```powershell
-git clone https://github.com/290990-collab/Claude-Framework.git $HOME\.claude\claude-framework
+git clone https://github.com/290990-collab/CLAW.git $HOME\.claude\claude-framework
 Copy-Item -Recurse $HOME\.claude\claude-framework\claude-framework-eng $HOME\.claude\framework
 New-Item -ItemType Directory -Force $HOME\.claude\skills | Out-Null
 Copy-Item -Recurse $HOME\.claude\framework\skills\framework-install $HOME\.claude\skills\framework-install

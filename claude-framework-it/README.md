@@ -1,4 +1,4 @@
-# Framework Claude Code — sorgente
+# CLAW — sorgente
 
 Cartella **autosufficiente**: un master unico sulla macchina, oppure copiata nel
 progetto. Tutto ciò che serve è qui dentro, tooling incluso.
