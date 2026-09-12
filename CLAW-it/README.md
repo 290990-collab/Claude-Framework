@@ -88,7 +88,8 @@ Quanto costa il contesto comune di un progetto installato — la `CLAUDE.md` che
 ogni subagent paga a ogni spawn — lo dice:
 
 ```bash
-cd <sorgente>/tools && python -m fwbuild cost <progetto> --spawns 200 --devs 12
+cd <sorgente>/tools && python -m fwbuild cost <progetto> [--spawns N] [--devs N] [--price USD]
+# predefiniti: 100 spawn al giorno, 1 persona, $5 per milione di token in input
 ```
 
 `doctor --json` stampa gli stessi rilievi più quella misura, per la CI.
