@@ -147,6 +147,8 @@ Serve solo a chi ha usato `--up`: un sorgente intatto si aggiorna sostituendolo.
 
    **Base sbagliata, confronto inutile:** se nessun commit corrisponde — repository sbagliato, storia troncata, numero mai pubblicato — fermati e chiedi. Non ripiegare su `VERSION`: quella è la risposta giusta solo quando `upstream.json` manca.
 
+   **Nome della cartella:** fino a 1.4.0 le edizioni stavano in `claude-framework-it/` e `claude-framework-eng/`, da 1.5.0 in `CLAW-it/` e `CLAW-eng/`. Con una base 1.4.0 o precedente, `<EDIZIONE>` nei comandi qui sopra e in `<BASE>/<EDIZIONE>` è il nome vecchio; `<NEW>/<EDIZIONE>` e il record del passo 7 usano quello nuovo.
+
 3. **Classifica**, senza scrivere niente:
 
    ```bash

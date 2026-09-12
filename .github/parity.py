@@ -22,8 +22,8 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-IT = ROOT / "claude-framework-it"
-EN = ROOT / "claude-framework-eng"
+IT = ROOT / "CLAW-it"
+EN = ROOT / "CLAW-eng"
 
 # Frontmatter keys an agent card may carry. `description` is read by Claude
 # Code in the user's own language, so it is the one key allowed to differ.

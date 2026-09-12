@@ -50,18 +50,18 @@ It is the only friction, and it is paid **once**, not per project.
 **Single master** — recommended: one source on the machine, personal skill.
 
 The repository carries **two sources**, one per language:
-`claude-framework-it/` and `claude-framework-eng/`. You install **one**.
+`CLAW-it/` and `CLAW-eng/`. You install **one**.
 
 ```bash
-git clone <repo> ~/.claude/claude-framework
-cp -r ~/.claude/claude-framework/claude-framework-eng ~/.claude/framework
+git clone <repo> ~/.claude/CLAW
+cp -r ~/.claude/CLAW/CLAW-eng ~/.claude/framework
 cp -r ~/.claude/framework/skills/framework-install ~/.claude/skills/
 cp -r ~/.claude/framework/skills/framework-comply ~/.claude/skills/
 ```
 
 ```powershell
-git clone <repo> $HOME\.claude\claude-framework
-Copy-Item -Recurse $HOME\.claude\claude-framework\claude-framework-eng $HOME\.claude\framework
+git clone <repo> $HOME\.claude\CLAW
+Copy-Item -Recurse $HOME\.claude\CLAW\CLAW-eng $HOME\.claude\framework
 Copy-Item -Recurse $HOME\.claude\framework\skills\framework-install $HOME\.claude\skills\
 Copy-Item -Recurse $HOME\.claude\framework\skills\framework-comply $HOME\.claude\skills\
 ```

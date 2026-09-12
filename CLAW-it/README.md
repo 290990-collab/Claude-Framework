@@ -49,19 +49,19 @@ l'unico attrito, e si paga **una volta**, non a ogni progetto.
 
 **Master unico** — consigliato: un sorgente solo sulla macchina, skill personale.
 
-Il repository porta **due sorgenti**, uno per lingua: `claude-framework-it/` e
-`claude-framework-eng/`. Se ne installa **uno**.
+Il repository porta **due sorgenti**, uno per lingua: `CLAW-it/` e
+`CLAW-eng/`. Se ne installa **uno**.
 
 ```bash
-git clone <repo> ~/.claude/claude-framework
-cp -r ~/.claude/claude-framework/claude-framework-it ~/.claude/framework
+git clone <repo> ~/.claude/CLAW
+cp -r ~/.claude/CLAW/CLAW-it ~/.claude/framework
 cp -r ~/.claude/framework/skills/framework-install ~/.claude/skills/
 cp -r ~/.claude/framework/skills/framework-comply ~/.claude/skills/
 ```
 
 ```powershell
-git clone <repo> $HOME\.claude\claude-framework
-Copy-Item -Recurse $HOME\.claude\claude-framework\claude-framework-it $HOME\.claude\framework
+git clone <repo> $HOME\.claude\CLAW
+Copy-Item -Recurse $HOME\.claude\CLAW\CLAW-it $HOME\.claude\framework
 Copy-Item -Recurse $HOME\.claude\framework\skills\framework-install $HOME\.claude\skills\
 Copy-Item -Recurse $HOME\.claude\framework\skills\framework-comply $HOME\.claude\skills\
 ```

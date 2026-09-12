@@ -5,7 +5,7 @@
 <h1 align="center">CLAW</h1>
 
 ```
-┌── claude-framework-eng ──────────────────────────────────────────────┐
+┌── CLAW-eng ──────────────────────────────────────────────────────────┐
 │                                                                      │
 │       method   coordinator   cycles   agents   shared   hooks        │
 │                                                                      │
@@ -57,27 +57,77 @@ Claude Code gives you subagents, hooks and skills. It does not give you a
 
 ## Install
 
-Once per machine. Requires Claude Code and Python 3.11+ — stdlib only, nothing to
-install. Two self-standing editions: swap `claude-framework-eng` for
-`claude-framework-it` to work in Italian.
+Once per machine. Needs Claude Code and Python 3.11+ — nothing else to install.
 
-```bash
-git clone https://github.com/290990-collab/CLAW.git ~/.claude/claude-framework
-cp -r ~/.claude/claude-framework/claude-framework-eng ~/.claude/framework
-mkdir -p ~/.claude/skills
-cp -r ~/.claude/framework/skills/framework-install ~/.claude/skills/
-cp -r ~/.claude/framework/skills/framework-comply ~/.claude/skills/
+### macOS · Linux
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/290990-collab/CLAW.git ~/.claude/CLAW
+   ```
+
+2. **Copy one edition as your source** — `CLAW-eng`, or `CLAW-it` for Italian
+
+   ```bash
+   cp -r ~/.claude/CLAW/CLAW-eng ~/.claude/framework
+   ```
+
+3. **Create the personal skills folder**
+
+   ```bash
+   mkdir -p ~/.claude/skills
+   ```
+
+4. **Add `/framework-install`** — generates the method into a project
+
+   ```bash
+   cp -r ~/.claude/framework/skills/framework-install ~/.claude/skills/
+   ```
+
+5. **Add `/framework-comply`** — measures whether a rule is followed
+
+   ```bash
+   cp -r ~/.claude/framework/skills/framework-comply ~/.claude/skills/
+   ```
+
+### Windows · PowerShell
+
+1. **Clone the repository**
+
+   ```powershell
+   git clone https://github.com/290990-collab/CLAW.git $HOME\.claude\CLAW
+   ```
+
+2. **Copy one edition as your source** — `CLAW-eng`, or `CLAW-it` for Italian
+
+   ```powershell
+   Copy-Item -Recurse $HOME\.claude\CLAW\CLAW-eng $HOME\.claude\framework
+   ```
+
+3. **Create the personal skills folder**
+
+   ```powershell
+   New-Item -ItemType Directory -Force $HOME\.claude\skills | Out-Null
+   ```
+
+4. **Add `/framework-install`** — generates the method into a project
+
+   ```powershell
+   Copy-Item -Recurse $HOME\.claude\framework\skills\framework-install $HOME\.claude\skills\framework-install
+   ```
+
+5. **Add `/framework-comply`** — measures whether a rule is followed
+
+   ```powershell
+   Copy-Item -Recurse $HOME\.claude\framework\skills\framework-comply $HOME\.claude\skills\framework-comply
+   ```
+
+### Then, in any project
+
 ```
-
-```powershell
-git clone https://github.com/290990-collab/CLAW.git $HOME\.claude\claude-framework
-Copy-Item -Recurse $HOME\.claude\claude-framework\claude-framework-eng $HOME\.claude\framework
-New-Item -ItemType Directory -Force $HOME\.claude\skills | Out-Null
-Copy-Item -Recurse $HOME\.claude\framework\skills\framework-install $HOME\.claude\skills\framework-install
-Copy-Item -Recurse $HOME\.claude\framework\skills\framework-comply $HOME\.claude\skills\framework-comply
+/framework-install
 ```
-
-Then, in any project: `/framework-install`.
 
 ---
 
@@ -100,6 +150,6 @@ code, build and dependencies stay untouched.
 
 ---
 
-## Version 1.4.0
+## Version 1.5.0
 
 MIT — see [LICENSE](LICENSE).

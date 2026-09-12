@@ -187,7 +187,7 @@ class TestGateguard(unittest.TestCase):
     def test_gateguard_fails_open_with_a_warning(self):
         broken = self.base / "rotto"
         broken.mkdir()
-        (broken / "claude-framework-gateguard").write_text("", encoding="utf-8")
+        (broken / "claw-gateguard").write_text("", encoding="utf-8")
         cases = (
             (edit(self.prj, "src/a.py"), {"TMP": str(broken), "TEMP": str(broken), "TMPDIR": str(broken)}),
             (b"{rotto", {}),

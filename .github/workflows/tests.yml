@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        edition: [claude-framework-it, claude-framework-eng]
+        edition: [CLAW-it, CLAW-eng]
 
     runs-on: ${{ matrix.os }}
     defaults:
