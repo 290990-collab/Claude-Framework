@@ -148,8 +148,6 @@ Only for those who have used `--up`: an untouched source is updated by replacing
 
    **Wrong base, useless comparison:** if no commit matches — wrong repository, truncated history, a number never published — stop and ask. Do not fall back on `VERSION`: that is the right answer only when `upstream.json` is missing.
 
-   **Folder name:** up to 1.4.0 the editions lived in `claude-framework-it/` and `claude-framework-eng/`, from 1.5.0 in `CLAW-it/` and `CLAW-eng/`. With a base of 1.4.0 or earlier, `<EDITION>` in the commands above and in `<BASE>/<EDITION>` is the old name; `<NEW>/<EDITION>` and the record in step 7 use the new one.
-
 3. **Classify**, writing nothing:
 
    ```bash
