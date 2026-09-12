@@ -61,31 +61,31 @@ Once per machine. Needs Claude Code and Python 3.11+ — nothing else to install
 
 ### macOS · Linux
 
-1. **Clone the repository**
+1. Clone the repository
 
    ```bash
    git clone https://github.com/290990-collab/CLAW.git ~/.claude/CLAW
    ```
 
-2. **Copy one edition as your source** — `CLAW-eng`, or `CLAW-it` for Italian
+2. Copy one edition as your source — `CLAW-eng`, or `CLAW-it` for Italian
 
    ```bash
    cp -r ~/.claude/CLAW/CLAW-eng ~/.claude/framework
    ```
 
-3. **Create the personal skills folder**
+3. Create the personal skills folder
 
    ```bash
    mkdir -p ~/.claude/skills
    ```
 
-4. **Add `/framework-install`** — generates the method into a project
+4. Add `/framework-install` — generates the method into a project
 
    ```bash
    cp -r ~/.claude/framework/skills/framework-install ~/.claude/skills/
    ```
 
-5. **Add `/framework-comply`** — measures whether a rule is followed
+5. Add `/framework-comply` — measures whether a rule is followed
 
    ```bash
    cp -r ~/.claude/framework/skills/framework-comply ~/.claude/skills/
@@ -93,31 +93,31 @@ Once per machine. Needs Claude Code and Python 3.11+ — nothing else to install
 
 ### Windows · PowerShell
 
-1. **Clone the repository**
+1. Clone the repository
 
    ```powershell
    git clone https://github.com/290990-collab/CLAW.git $HOME\.claude\CLAW
    ```
 
-2. **Copy one edition as your source** — `CLAW-eng`, or `CLAW-it` for Italian
+2. Copy one edition as your source — `CLAW-eng`, or `CLAW-it` for Italian
 
    ```powershell
    Copy-Item -Recurse $HOME\.claude\CLAW\CLAW-eng $HOME\.claude\framework
    ```
 
-3. **Create the personal skills folder**
+3. Create the personal skills folder
 
    ```powershell
    New-Item -ItemType Directory -Force $HOME\.claude\skills | Out-Null
    ```
 
-4. **Add `/framework-install`** — generates the method into a project
+4. Add `/framework-install` — generates the method into a project
 
    ```powershell
    Copy-Item -Recurse $HOME\.claude\framework\skills\framework-install $HOME\.claude\skills\framework-install
    ```
 
-5. **Add `/framework-comply`** — measures whether a rule is followed
+5. Add `/framework-comply` — measures whether a rule is followed
 
    ```powershell
    Copy-Item -Recurse $HOME\.claude\framework\skills\framework-comply $HOME\.claude\skills\framework-comply
@@ -133,13 +133,46 @@ Once per machine. Needs Claude Code and Python 3.11+ — nothing else to install
 
 ## Use
 
-| Slash command | What it does |
+### In Claude Code
+
+| Command | When | What it does |
+|---|---|---|
+| `/framework-install` | once per project | Reads the repo, asks a short questionnaire, picks the roster, generates everything, verifies it |
+| `/framework-doctor` | something looks off, before an update | Checks the installation; every finding comes with its remedy |
+| `/framework-memory` | long session, after a restructure | Pairs every stale memory with the repo line that contradicts it |
+| `/framework-comply <rule>` | a rule seems ignored | Counts how often each step of the rule is followed across `claude -p` runs — 17 by default, on your tokens |
+
+### Keeping in sync — `/framework-sync <mode>`
+
+| Mode | What it does |
 |---|---|
-| `/framework-install` | Reads the repo, asks a short questionnaire, picks the roster, generates everything, verifies it |
-| `/framework-doctor` | Checks the installation; every finding comes with its remedy |
-| `/framework-sync` | New versions **down** into the project, improvements **up** into the source, agents on and off |
-| `/framework-memory` | Pairs every stale memory with the repo line that contradicts it |
-| `/framework-comply` | Measures whether a rule is actually followed, across real `claude -p` runs |
+| `--down` | New source version into the project, your adaptation kept |
+| `--up [what]` | A local change up into the source, so the next project inherits it |
+| `--upgrade` | A new release over a source you changed with `--up` |
+| `--activate <agent\|guide>` | Adds an agent or a guide at the source's current version |
+| `--deactivate <agent\|guide>` | Removes it from the project; the source keeps it |
+| `--repair` | Puts back missing skills, hooks, guides and state files; overwrites nothing |
+| `--uninstall` | Deletes what matches the source, archives what you adapted |
+
+Every mode that writes shows the plan first and waits for your ok.
+
+### From the shell — in `<source>/tools`
+
+| Command | What it does |
+|---|---|
+| `python -m fwbuild doctor --strict <project>` | The doctor's check; exit 1 on warnings too |
+| `python -m fwbuild doctor --json <project>` | Findings plus the `CLAUDE.md` measure, for CI |
+| `python -m fwbuild cost <project> --spawns 200 --devs 12` | What `CLAUDE.md` costs in tokens and dollars; `--price` per million tokens |
+| `python -m fwbuild report <folder>` | Which method versions run where, across repos; `--depth`, `--strict`, `--json` |
+| `python -m fwbuild source [path]` | Validates a source and says whether it was promoted with `--up` |
+
+### Settings
+
+| Setting | Effect |
+|---|---|
+| `$CLAUDE_FRAMEWORK` | Source location, checked after `./framework/` and before `~/.claude/framework/` |
+| `FRAMEWORK_GATEGUARD=off` | Turns the `gateguard` hook off |
+| `accepted` in `.claude/framework.json` | Warnings you accept: printed as notes, `--strict` still passes |
 
 **Profiles:** `software` · `library` · `web` · `data` · `research` · `llm` ·
 `marketing` — each sets the roster, the guides and the permissions for its
